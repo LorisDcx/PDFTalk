@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { PDFChat } from '@/components/pdf-chat'
 import { Flashcards } from '@/components/flashcards'
+import { Slides } from '@/components/slides'
 import { 
   Sheet,
   SheetContent,
@@ -440,6 +441,13 @@ export default function DocumentPage() {
 
             {/* Flashcards */}
             <Flashcards 
+              documentId={document.id}
+              documentContent={summary?.easy_reading || digest.summary.join('\n')}
+              documentName={document.file_name}
+            />
+
+            {/* Slides / Presentation */}
+            <Slides 
               documentId={document.id}
               documentContent={summary?.easy_reading || digest.summary.join('\n')}
               documentName={document.file_name}
