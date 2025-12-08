@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2, Send, Sparkles, ArrowUp } from 'lucide-react'
+import { Loader2, Sparkles, ArrowUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Message {
@@ -18,18 +18,37 @@ interface PDFChatProps {
   documentName: string
 }
 
-const SUGGESTED_QUESTIONS = [
-  "Quelles sont mes obligations ?",
-  "Que se passe-t-il si je ne respecte pas ce document ?",
-  "Quels sont les délais à retenir ?",
-]
-
 export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Generate AI suggestions on mount
+  useEffect(() => {
+    generateSuggestions()
+  }, [documentContent])
+
+  const generateSuggestions = async () => {
+    try {
+      const response = await fetch('/api/chat/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000) }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSuggestions(data.suggestions || [])
+      }
+    } catch (error) {
+      console.error('Failed to generate suggestions:', error)
+    } finally {
+      setIsLoadingSuggestions(false)
+    }
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -135,22 +154,9 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
               <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                 Discutez avec votre PDF
               </h3>
-              <p className="text-muted-foreground mb-8 max-w-md">
+              <p className="text-muted-foreground max-w-md">
                 Posez n'importe quelle question sur <span className="font-medium text-foreground">"{documentName}"</span> et obtenez des réponses instantanées.
               </p>
-              
-              {/* Suggested questions - Rounded pills */}
-              <div className="flex flex-wrap gap-3 justify-center max-w-lg">
-                {SUGGESTED_QUESTIONS.map((question, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(question)}
-                    className="px-5 py-2.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-200"
-                  >
-                    {question}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : (
             <>
@@ -208,19 +214,21 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
 
         {/* Input area */}
         <div className="p-4 border-t bg-background/80 backdrop-blur-xl space-y-3">
-          {/* Quick suggestions - always visible */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {SUGGESTED_QUESTIONS.map((question, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(question)}
-                disabled={isLoading}
-                className="px-4 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-xs font-medium text-foreground/70 hover:text-foreground transition-all duration-200 disabled:opacity-50"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
+          {/* Quick suggestions - AI generated */}
+          {suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {suggestions.map((question: string, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(question)}
+                  disabled={isLoading}
+                  className="px-4 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-xs font-medium text-foreground/70 hover:text-foreground transition-all duration-200 disabled:opacity-50"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          )}
           
           <form onSubmit={handleSubmit} className="relative">
             <div className="relative flex items-end gap-2 p-2 rounded-2xl border bg-background shadow-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
