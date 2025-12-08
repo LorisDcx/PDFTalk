@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
 // Use service role for webhook - bypasses RLS
+// Falls back to anon key if service role not available (will still work with proper RLS policies)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 export async function POST(request: NextRequest) {
