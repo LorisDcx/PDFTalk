@@ -15,7 +15,11 @@ import {
   ArrowRight,
   CheckCircle,
   Clock,
-  FileSearch
+  FileSearch,
+  Layers,
+  Presentation,
+  Globe,
+  Sparkles
 } from 'lucide-react'
 
 export default function LandingPage() {
@@ -106,6 +110,54 @@ export default function LandingPage() {
               title={t('featureDocComparison')}
               description={t('featureDocComparisonDesc')}
             />
+            <FeatureCard
+              icon={<Layers className="h-6 w-6" />}
+              title={t('featureFlashcards')}
+              description={t('featureFlashcardsDesc')}
+              highlighted
+            />
+            <FeatureCard
+              icon={<Presentation className="h-6 w-6" />}
+              title={t('featureSlides')}
+              description={t('featureSlidesDesc')}
+              highlighted
+            />
+            <FeatureCard
+              icon={<Globe className="h-6 w-6" />}
+              title={t('featureMultilingual')}
+              description={t('featureMultilingualDesc')}
+              highlighted
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Generation Tools Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-primary/5">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <Sparkles className="h-4 w-4" />
+              {t('generationToolsTitle')}
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {t('generationToolsSubtitle')}
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            <ExampleCard
+              icon={<Layers className="h-5 w-5" />}
+              text={t('exampleFlashcards')}
+            />
+            <ExampleCard
+              icon={<Presentation className="h-5 w-5" />}
+              text={t('exampleSlides')}
+            />
+            <ExampleCard
+              icon={<Globe className="h-5 w-5" />}
+              text={t('exampleMultilingual')}
+            />
           </div>
         </div>
       </section>
@@ -154,6 +206,8 @@ export default function LandingPage() {
               popularText={t('popular')}
               perMonthText={t('perMonth')}
               pagesPerMonthText={t('pagesPerMonth')}
+              label={t('planBasicLabel')}
+              features={[t('flashcardsIncluded'), t('slidesIncluded')]}
             />
             <PricingCard
               name="Growth"
@@ -163,6 +217,8 @@ export default function LandingPage() {
               popularText={t('popular')}
               perMonthText={t('perMonth')}
               pagesPerMonthText={t('pagesPerMonth')}
+              label={t('planGrowthLabel')}
+              features={[t('flashcardsIncluded'), t('slidesIncluded'), t('multilingualIncluded')]}
             />
             <PricingCard
               name="Pro"
@@ -172,6 +228,8 @@ export default function LandingPage() {
               popularText={t('popular')}
               perMonthText={t('perMonth')}
               pagesPerMonthText={t('pagesPerMonth')}
+              label={t('planProLabel')}
+              features={[t('flashcardsIncluded'), t('slidesIncluded'), t('multilingualIncluded')]}
             />
           </div>
           
@@ -201,17 +259,28 @@ export default function LandingPage() {
   )
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({ icon, title, description, highlighted }: { icon: React.ReactNode; title: string; description: string; highlighted?: boolean }) {
   return (
-    <Card className="border-0 shadow-sm card-hover group">
+    <Card className={`border-0 shadow-sm card-hover group ${highlighted ? 'ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-cyan-500/5' : ''}`}>
       <CardContent className="p-6">
-        <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
+        <div className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${highlighted ? 'bg-gradient-to-br from-primary to-cyan-500 text-white' : 'bg-primary/10 text-primary'}`}>
           {icon}
         </div>
         <h3 className="font-semibold text-lg mb-2">{title}</h3>
         <p className="text-muted-foreground text-sm">{description}</p>
       </CardContent>
     </Card>
+  )
+}
+
+function ExampleCard({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex items-start gap-4 p-5 rounded-xl bg-background border shadow-sm hover:shadow-md transition-shadow">
+      <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-white">
+        {icon}
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+    </div>
   )
 }
 
@@ -232,9 +301,10 @@ function UseCaseCard({ title, description, items }: { title: string; description
   )
 }
 
-function PricingCard({ name, price, pages, highlighted, popularText, perMonthText, pagesPerMonthText }: { 
+function PricingCard({ name, price, pages, highlighted, popularText, perMonthText, pagesPerMonthText, label, features }: { 
   name: string; price: string; pages: string; highlighted: boolean;
   popularText: string; perMonthText: string; pagesPerMonthText: string;
+  label?: string; features?: string[];
 }) {
   return (
     <Card className={`card-hover ${highlighted ? 'border-primary shadow-lg scale-105' : ''}`}>
@@ -245,11 +315,24 @@ function PricingCard({ name, price, pages, highlighted, popularText, perMonthTex
           </span>
         )}
         <h3 className="font-semibold text-lg">{name}</h3>
+        {label && (
+          <p className="text-xs text-muted-foreground mt-1">{label}</p>
+        )}
         <div className="my-4">
           <span className="text-3xl font-bold gradient-text">{price}€</span>
           <span className="text-muted-foreground">{perMonthText}</span>
         </div>
-        <p className="text-sm text-muted-foreground">{pages} {pagesPerMonthText}</p>
+        <p className="text-sm text-muted-foreground mb-4">{pages} {pagesPerMonthText}</p>
+        {features && features.length > 0 && (
+          <div className="space-y-1.5 pt-4 border-t">
+            {features.map((feature, i) => (
+              <div key={i} className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <CheckCircle className="h-3 w-3 text-primary" />
+                {feature}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   )
