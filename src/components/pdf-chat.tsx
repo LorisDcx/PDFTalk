@@ -28,10 +28,10 @@ export function PDFChat({ documentId, documentContent, documentName, language = 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Generate AI suggestions on mount
+  // Generate AI suggestions on mount and when language changes
   useEffect(() => {
     generateSuggestions()
-  }, [documentContent])
+  }, [documentContent, language])
 
   const generateSuggestions = async () => {
     try {
