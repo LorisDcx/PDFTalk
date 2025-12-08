@@ -21,9 +21,17 @@ import {
   Sparkles,
   Maximize2,
   Minimize2,
-  X
+  X,
+  Languages
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLanguage, LANGUAGES } from '@/lib/i18n'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Slide {
   id: number
@@ -61,6 +69,8 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const { t } = useLanguage()
 
   // Load existing slides from localStorage on mount
   useEffect(() => {
@@ -131,6 +141,61 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
     setSlides([])
     setPresentationTitle('')
     setIsViewerOpen(false)
+  }
+
+  const translateSlides = async (targetLang: string) => {
+    if (slides.length === 0) return
+    setIsTranslating(true)
+    
+    try {
+      // Translate title
+      const titleResponse = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: presentationTitle, targetLanguage: targetLang }),
+      })
+      if (titleResponse.ok) {
+        const { translatedText } = await titleResponse.json()
+        setPresentationTitle(translatedText)
+      }
+      
+      // Translate each slide content
+      const translatedSlides = await Promise.all(slides.map(async (slide) => {
+        const textsToTranslate: string[] = []
+        if (slide.title) textsToTranslate.push(slide.title)
+        if (slide.subtitle) textsToTranslate.push(slide.subtitle)
+        if (slide.bullets) textsToTranslate.push(...slide.bullets)
+        if (slide.text) textsToTranslate.push(slide.text)
+        
+        if (textsToTranslate.length === 0) return slide
+        
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textsToTranslate.join('\n---\n'), targetLanguage: targetLang }),
+        })
+        
+        if (!response.ok) return slide
+        
+        const { translatedText } = await response.json()
+        const parts = translatedText.split(/---/).map((p: string) => p.trim())
+        
+        let idx = 0
+        const newSlide = { ...slide }
+        if (slide.title) newSlide.title = parts[idx++] || slide.title
+        if (slide.subtitle) newSlide.subtitle = parts[idx++] || slide.subtitle
+        if (slide.bullets) newSlide.bullets = slide.bullets.map(() => parts[idx++] || '')
+        if (slide.text) newSlide.text = parts[idx++] || slide.text
+        
+        return newSlide
+      }))
+      
+      setSlides(translatedSlides)
+    } catch (error) {
+      console.error('Translation error:', error)
+    } finally {
+      setIsTranslating(false)
+    }
   }
 
   const nextSlide = useCallback(() => {
@@ -286,7 +351,7 @@ ${slides.map((slide, i) => `
                         : "bg-muted hover:bg-muted/80"
                     )}
                   >
-                    {num} slides
+                    {num} {t('slides')}
                   </button>
                 ))}
               </div>
@@ -300,12 +365,12 @@ ${slides.map((slide, i) => `
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Génération en cours...
+                    {t('generatingSlides')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer {slideCount} slides
+                    {t('generate')} {slideCount} {t('slides')}
                   </>
                 )}
               </Button>
@@ -334,10 +399,25 @@ ${slides.map((slide, i) => `
               </div>
             </div>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(!isFullscreen)} title="Plein écran" className="hover:bg-primary/10">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" title={t('translateContent')} className="hover:bg-primary/10" disabled={isTranslating}>
+                    {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {LANGUAGES.map((lang) => (
+                    <DropdownMenuItem key={lang.code} onClick={() => translateSlides(lang.name)}>
+                      <span className="mr-2">{lang.flag}</span>
+                      {lang.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(!isFullscreen)} title={t('fullscreen')} className="hover:bg-primary/10">
                 {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
-              <Button variant="ghost" size="icon" onClick={exportToHTML} title="Télécharger HTML" className="hover:bg-primary/10">
+              <Button variant="ghost" size="icon" onClick={exportToHTML} title={t('downloadHTML')} className="hover:bg-primary/10">
                 <Download className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setIsViewerOpen(false)} className="hover:bg-primary/10">

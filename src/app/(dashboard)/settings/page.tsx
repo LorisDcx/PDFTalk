@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
@@ -18,6 +19,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const supabase = createClient()
 
   useEffect(() => {
@@ -46,13 +48,13 @@ export default function SettingsPage() {
 
       await refreshProfile()
       toast({
-        title: 'Settings saved',
-        description: 'Your profile has been updated',
+        title: t('settingsSaved'),
+        description: t('profileUpdated'),
       })
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to save settings',
+        description: t('uploadError'),
         variant: 'destructive',
       })
     } finally {
@@ -71,40 +73,40 @@ export default function SettingsPage() {
   return (
     <div className="container max-w-2xl py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings</p>
+        <h1 className="text-3xl font-bold mb-2">{t('settingsTitle')}</h1>
+        <p className="text-muted-foreground">{t('settingsSubtitle')}</p>
       </div>
 
       <div className="space-y-6">
         {/* Profile */}
         <Card>
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>Your personal information</CardDescription>
+            <CardTitle>{t('profile')}</CardTitle>
+            <CardDescription>{t('profileDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input id="email" value={user.email || ''} disabled />
-              <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+              <p className="text-xs text-muted-foreground">{t('emailCannotChange')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('name')}</Label>
               <Input 
                 id="name" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder={t('yourName')}
               />
             </div>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t('saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('saveChanges')
               )}
             </Button>
           </CardContent>
@@ -113,22 +115,22 @@ export default function SettingsPage() {
         {/* Account */}
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Manage your account</CardDescription>
+            <CardTitle>{t('account')}</CardTitle>
+            <CardDescription>{t('manageAccount')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium mb-1">Account ID</p>
+              <p className="text-sm font-medium mb-1">{t('accountId')}</p>
               <p className="text-sm text-muted-foreground font-mono">{user.id}</p>
             </div>
             <Separator />
             <div>
-              <p className="text-sm font-medium mb-1">Danger Zone</p>
+              <p className="text-sm font-medium mb-1">{t('dangerZone')}</p>
               <p className="text-sm text-muted-foreground mb-4">
-                Permanently delete your account and all associated data.
+                {t('deleteAccountDesc')}
               </p>
               <Button variant="destructive" size="sm">
-                Delete Account
+                {t('deleteAccount')}
               </Button>
             </div>
           </CardContent>

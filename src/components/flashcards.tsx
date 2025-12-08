@@ -21,9 +21,17 @@ import {
   Shuffle,
   Sparkles,
   GraduationCap,
-  Trash2
+  Trash2,
+  Languages
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLanguage, LANGUAGES } from '@/lib/i18n'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Flashcard {
   id: string
@@ -46,6 +54,8 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [cardCount, setCardCount] = useState(20)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const { t } = useLanguage()
 
   // Load existing flashcards from localStorage on mount
   useEffect(() => {
@@ -153,6 +163,41 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
     URL.revokeObjectURL(url)
   }
 
+  const translateFlashcards = async (targetLang: string) => {
+    if (flashcards.length === 0) return
+    setIsTranslating(true)
+    
+    try {
+      const content = flashcards.map(c => `Q: ${c.question}\nA: ${c.answer}`).join('\n\n---\n\n')
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: content, targetLanguage: targetLang }),
+      })
+      
+      if (!response.ok) throw new Error('Translation failed')
+      
+      const { translatedText } = await response.json()
+      const parts = translatedText.split(/---/).map((p: string) => p.trim()).filter(Boolean)
+      
+      const translated = parts.map((part: string, i: number) => {
+        const qMatch = part.match(/Q:\s*([^\n]+)/)
+        const aMatch = part.match(/A:\s*(.+)/)
+        return {
+          id: flashcards[i]?.id || `card-${i}`,
+          question: qMatch?.[1]?.trim() || flashcards[i]?.question || '',
+          answer: aMatch?.[1]?.trim() || flashcards[i]?.answer || '',
+        }
+      })
+      
+      setFlashcards(translated)
+    } catch (error) {
+      console.error('Translation error:', error)
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
   const currentCard = flashcards[currentIndex]
 
   return (
@@ -167,7 +212,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
             onClick={() => setIsViewerOpen(true)}
           >
             <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
-            <span>Voir ({flashcards.length})</span>
+            <span>{t('view')} ({flashcards.length})</span>
           </Button>
         )}
 
@@ -176,7 +221,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
           <DialogTrigger asChild>
             <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
               <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
-              <span>{flashcards.length > 0 ? 'Regénérer' : 'Flashcards'}</span>
+              <span>{flashcards.length > 0 ? t('regenerate') : t('flashcards')}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
@@ -186,16 +231,16 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">Générer des Flashcards</DialogTitle>
+                  <DialogTitle className="text-xl">{t('generateFlashcards')}</DialogTitle>
                   <DialogDescription>
-                    Créez des cartes mémoire pour réviser
+                    {t('flashcardsDesc')}
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
             <div className="py-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="cardCount" className="text-sm font-medium">Nombre de flashcards</Label>
+                <Label htmlFor="cardCount" className="text-sm font-medium">{t('numberOfCards')}</Label>
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
@@ -221,7 +266,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                         : "bg-muted hover:bg-muted/80"
                     )}
                   >
-                    {num} cartes
+                    {num} {t('cards')}
                   </button>
                 ))}
               </div>
@@ -235,12 +280,12 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Génération en cours...
+                    {t('generatingCards')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer {cardCount} flashcards
+                    {t('generate')} {cardCount} {t('flashcards')}
                   </>
                 )}
               </Button>
@@ -265,16 +310,31 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={shuffleCards} title="Mélanger" className="hover:bg-primary/10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" title={t('translateContent')} className="hover:bg-primary/10" disabled={isTranslating}>
+                        {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {LANGUAGES.map((lang) => (
+                        <DropdownMenuItem key={lang.code} onClick={() => translateFlashcards(lang.name)}>
+                          <span className="mr-2">{lang.flag}</span>
+                          {lang.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button variant="ghost" size="icon" onClick={shuffleCards} title={t('shuffle')} className="hover:bg-primary/10">
                     <Shuffle className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={resetCards} title="Recommencer" className="hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" onClick={resetCards} title={t('restart')} className="hover:bg-primary/10">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV" className="hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" onClick={exportToCSV} title={t('exportCSV')} className="hover:bg-primary/10">
                     <Download className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={deleteFlashcards} title="Supprimer" className="hover:bg-destructive/10 text-destructive">
+                  <Button variant="ghost" size="icon" onClick={deleteFlashcards} title={t('delete')} className="hover:bg-destructive/10 text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -296,11 +356,11 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   )}
                 >
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-4 px-3 py-1 bg-primary/10 rounded-full">
-                    Question
+                    {t('question')}
                   </span>
                   <p className="text-lg font-medium leading-relaxed">{currentCard?.question}</p>
                   <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                    👆 Cliquez pour révéler la réponse
+                    👆 {t('clickToRevealAnswer')}
                   </p>
                 </div>
                 
@@ -313,11 +373,11 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   )}
                 >
                   <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-4 px-3 py-1 bg-emerald-500/10 rounded-full">
-                    Réponse
+                    {t('answer')}
                   </span>
                   <p className="text-base leading-relaxed">{currentCard?.answer}</p>
                   <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                    👆 Cliquez pour voir la question
+                    👆 {t('clickToShowQuestion')}
                   </p>
                 </div>
               </div>
@@ -331,7 +391,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   className="gap-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Précédent
+                  {t('previous')}
                 </Button>
                 
                 {/* Progress dots */}
@@ -360,7 +420,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   disabled={currentIndex === flashcards.length - 1}
                   className="gap-2"
                 >
-                  Suivant
+                  {t('next')}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

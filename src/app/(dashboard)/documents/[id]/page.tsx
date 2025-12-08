@@ -237,7 +237,7 @@ export default function DocumentPage() {
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
                   <FileText className="h-4 w-4 group-hover:text-primary transition-colors" />
-                  Résumé
+                  {t('summary')}
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
@@ -249,8 +249,8 @@ export default function DocumentPage() {
                           <FileText className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <SheetTitle>Résumé exécutif</SheetTitle>
-                          <SheetDescription>Les points clés de votre document</SheetDescription>
+                          <SheetTitle>{t('summary')}</SheetTitle>
+                          <SheetDescription>{t('summaryDesc')}</SheetDescription>
                         </div>
                       </div>
                       <TranslateButton 
@@ -275,7 +275,7 @@ export default function DocumentPage() {
                   {/* Key Clauses */}
                   {digest.keyClauses && digest.keyClauses.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Clauses clés</h4>
+                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">{t('keyClauses')}</h4>
                       <div className="space-y-3">
                         {digest.keyClauses.map((clause, i) => (
                           <div key={i} className="p-4 bg-muted/50 rounded-xl border">
@@ -292,7 +292,7 @@ export default function DocumentPage() {
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        Actions suggérées
+                        {t('suggestedActions')}
                       </h4>
                       <div className="space-y-2">
                         {digest.actions.map((action, i) => (
@@ -314,7 +314,7 @@ export default function DocumentPage() {
                     onClick={() => copyToClipboard(digest.summary.join('\n'))}
                   >
                     <Copy className="h-4 w-4 mr-2" />
-                    Copier le résumé
+                    {t('copySummary')}
                   </Button>
                 </div>
               </SheetContent>
@@ -325,7 +325,7 @@ export default function DocumentPage() {
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
                   <AlertTriangle className="h-4 w-4 group-hover:text-primary transition-colors" />
-                  Risques & Questions
+                  {t('risks')}
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
@@ -337,8 +337,8 @@ export default function DocumentPage() {
                           <AlertTriangle className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <SheetTitle>Risques & Questions</SheetTitle>
-                          <SheetDescription>Points d'attention et questions à poser</SheetDescription>
+                          <SheetTitle>{t('risks')}</SheetTitle>
+                          <SheetDescription>{t('risksDesc')}</SheetDescription>
                         </div>
                       </div>
                       <TranslateButton 
@@ -351,10 +351,10 @@ export default function DocumentPage() {
                 <div className="p-6 space-y-6">
                   {/* Risks */}
                   <div>
-                    <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Risques identifiés</h4>
+                    <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">{t('risksIdentified')}</h4>
                     {digest.risks.length === 0 ? (
                       <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
-                        Aucun risque significatif identifié
+                        {t('noRisks')}
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -377,10 +377,10 @@ export default function DocumentPage() {
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
                       <HelpCircle className="h-4 w-4" />
-                      Questions à poser
+                      {t('questionsToAsk')}
                     </h4>
                     {digest.questions.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Aucune question suggérée</p>
+                      <p className="text-sm text-muted-foreground">{t('noQuestions')}</p>
                     ) : (
                       <div className="space-y-2">
                         {digest.questions.map((question, i) => (
@@ -402,7 +402,7 @@ export default function DocumentPage() {
                     onClick={() => copyToClipboard(digest.questions.join('\n'))}
                   >
                     <Copy className="h-4 w-4 mr-2" />
-                    Copier les questions
+                    {t('copyQuestions')}
                   </Button>
                 </div>
               </SheetContent>
@@ -413,7 +413,7 @@ export default function DocumentPage() {
               <SheetTrigger asChild>
                 <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
                   <BookOpen className="h-4 w-4 group-hover:text-primary transition-colors" />
-                  Lecture facile
+                  {t('easyReading')}
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
@@ -425,8 +425,8 @@ export default function DocumentPage() {
                           <BookOpen className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <SheetTitle>Version simplifiée</SheetTitle>
-                          <SheetDescription>Le document expliqué simplement</SheetDescription>
+                          <SheetTitle>{t('easyReading')}</SheetTitle>
+                          <SheetDescription>{t('easyReadingDesc')}</SheetDescription>
                         </div>
                       </div>
                       {summary?.easy_reading && (
@@ -453,12 +453,12 @@ export default function DocumentPage() {
                         onClick={() => copyToClipboard(summary.easy_reading || '')}
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        Copier
+                        {t('copy')}
                       </Button>
                     </>
                   ) : (
                     <div className="p-4 rounded-xl bg-muted/50 border text-sm text-muted-foreground">
-                      La version simplifiée n'est pas disponible.
+                      {t('notAvailable')}
                     </div>
                   )}
                 </div>

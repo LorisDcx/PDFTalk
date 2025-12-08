@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/i18n'
 
 interface DocumentWithSummary extends Document {
   summaryPreview?: string
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [isUploading, setIsUploading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   
   // Create supabase client once per component mount
   const [supabase] = useState(() => createClient())
@@ -91,8 +93,8 @@ export default function DashboardPage() {
       } catch (error) {
         console.error('Error fetching documents:', error)
         toast({
-          title: 'Erreur',
-          description: 'Échec du chargement des documents',
+          title: 'Error',
+          description: t('uploadError'),
           variant: 'destructive',
         })
       } finally {
@@ -121,8 +123,8 @@ export default function DashboardPage() {
 
     if (!hasAccess) {
       toast({
-        title: 'Accès expiré',
-        description: 'Passez à un forfait pour continuer',
+        title: t('accessExpired'),
+        description: t('upgradeToUnlock'),
         variant: 'destructive',
       })
       router.push('/billing')
@@ -133,8 +135,8 @@ export default function DashboardPage() {
     const planLimits = getPlanLimits(profile.current_plan)
     if (profile.pages_processed_this_month >= planLimits.pagesPerMonth) {
       toast({
-        title: 'Limite mensuelle atteinte',
-        description: 'Passez à un forfait supérieur',
+        title: t('monthlyLimitReached'),
+        description: t('upgradeToUnlock'),
         variant: 'destructive',
       })
       router.push('/billing')
@@ -159,8 +161,8 @@ export default function DashboardPage() {
       }
 
       toast({
-        title: 'Document importé !',
-        description: 'Analyse IA en cours...',
+        title: t('documentUploaded'),
+        description: t('aiAnalyzing'),
       })
 
       // Refresh profile (for updated usage)
@@ -171,8 +173,8 @@ export default function DashboardPage() {
     } catch (error: any) {
       console.error('Upload error:', error)
       toast({
-        title: 'Erreur d\'import',
-        description: error.message || 'Veuillez réessayer',
+        title: t('uploadError'),
+        description: error.message,
         variant: 'destructive',
       })
     } finally {
@@ -191,7 +193,7 @@ export default function DashboardPage() {
   }
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) return
+    if (!confirm(t('confirmDelete'))) return
     
     try {
       // Delete from storage first
@@ -212,14 +214,14 @@ export default function DashboardPage() {
       setDocuments(docs => docs.filter(d => d.id !== documentId))
       
       toast({
-        title: 'Document supprimé',
-        description: 'Le document a été supprimé avec succès',
+        title: t('documentDeleted'),
+        description: t('documentDeletedDesc'),
       })
     } catch (error) {
       console.error('Delete error:', error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible de supprimer le document',
+        title: 'Error',
+        description: t('uploadError'),
         variant: 'destructive',
       })
     }
@@ -258,9 +260,9 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
               <Sparkles className="h-8 w-8 text-primary" />
-              Dashboard
+              {t('dashboardTitle')}
             </h1>
-            <p className="text-muted-foreground">Analysez et gérez vos documents</p>
+            <p className="text-muted-foreground">{t('analyzeDocuments')}</p>
           </div>
           
           {/* Inline usage display */}
@@ -268,7 +270,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm">
               <div className="flex-1 min-w-[200px]">
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Pages ce mois</span>
+                  <span className="text-muted-foreground">{t('pagesThisMonth')}</span>
                   <span className="font-semibold text-lg">
                     {profile.pages_processed_this_month} / {getPlanLimits(profile.current_plan).pagesPerMonth}
                   </span>
@@ -284,7 +286,7 @@ export default function DashboardPage() {
               </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/billing">
-                  {profile.subscription_status === 'active' ? 'Gérer' : 'Upgrade'}
+                  {profile.subscription_status === 'active' ? t('manage') : t('upgrade')}
                 </Link>
               </Button>
             </div>
@@ -298,12 +300,12 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-destructive animate-pulse" />
               <div>
-                <p className="font-medium text-destructive">Votre essai a expiré</p>
-                <p className="text-sm text-muted-foreground">Passez à un forfait pour continuer à analyser vos documents</p>
+                <p className="font-medium text-destructive">{t('trialExpiredMsg')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgradeToUnlock')}</p>
               </div>
             </div>
             <Button asChild className="btn-press">
-              <Link href="/billing">Passer au forfait</Link>
+              <Link href="/billing">{t('upgradePlan')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -311,7 +313,7 @@ export default function DashboardPage() {
 
       {/* Upload Section */}
       <section className="mb-8 animate-fade-in-up">
-        <h2 className="text-lg font-semibold mb-4">Importer un document</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('uploadDocument')}</h2>
         <FileUpload 
           onUpload={handleUpload} 
           disabled={!canUpload() || isUploading}
@@ -321,10 +323,10 @@ export default function DashboardPage() {
       {/* Documents List */}
       <section className="animate-fade-in-up">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Vos documents récents</h2>
+          <h2 className="text-lg font-semibold">{t('recentDocuments')}</h2>
           {documents.length > 0 && (
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/documents">Voir tout</Link>
+              <Link href="/documents">{t('viewAll')}</Link>
             </Button>
           )}
         </div>
@@ -340,9 +342,9 @@ export default function DashboardPage() {
               <div className="animate-float">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               </div>
-              <h3 className="font-medium mb-2">Aucun document</h3>
+              <h3 className="font-medium mb-2">{t('noDocuments')}</h3>
               <p className="text-sm text-muted-foreground">
-                Importez votre premier PDF pour commencer
+                {t('uploadFirstPdf')}
               </p>
             </CardContent>
           </Card>
