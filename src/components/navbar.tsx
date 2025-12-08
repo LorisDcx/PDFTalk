@@ -17,6 +17,7 @@ import { FileText, LogOut, Settings, CreditCard, LayoutDashboard, FolderOpen, Me
 import { Badge } from './ui/badge'
 import { getTrialDaysRemaining, isTrialExpired } from '@/lib/utils'
 import { useState } from 'react'
+import { LanguageSelector } from './language-selector'
 
 export function Navbar() {
   const { user, profile, signOut, isLoading } = useAuth()
@@ -71,6 +72,9 @@ export function Navbar() {
             <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
           ) : user ? (
             <>
+              {/* Language selector */}
+              <LanguageSelector />
+
               {/* Logged in navigation */}
               <div className="flex items-center gap-1">
                 {userLinks.map((link) => (
@@ -143,6 +147,9 @@ export function Navbar() {
             </>
           ) : (
             <>
+              {/* Language selector */}
+              <LanguageSelector />
+
               {/* Public navigation */}
               <div className="flex items-center gap-6">
                 {publicLinks.map((link) => (

@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { PDFChat } from '@/components/pdf-chat'
 import { Flashcards } from '@/components/flashcards'
 import { Slides } from '@/components/slides'
-import { LanguageSelector } from '@/components/language-selector'
+import { TranslateButton } from '@/components/translate-button'
 import { 
   Sheet,
   SheetContent,
@@ -46,14 +46,9 @@ export default function DocumentPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [digest, setDigest] = useState<DocumentDigest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [language, setLanguage] = useState('fr')
-  const [translatedContent, setTranslatedContent] = useState<{
-    summary: string[] | null
-    risks: string[] | null
-    questions: string[] | null
-    easyReading: string | null
-  }>({ summary: null, risks: null, questions: null, easyReading: null })
-  const [isTranslating, setIsTranslating] = useState(false)
+  const [translatedSummary, setTranslatedSummary] = useState<string[] | null>(null)
+  const [translatedRisks, setTranslatedRisks] = useState<string | null>(null)
+  const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -120,90 +115,6 @@ export default function DocumentPage() {
       })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  // Translate content when language changes
-  useEffect(() => {
-    if (language === 'fr') {
-      // Reset to original French content
-      setTranslatedContent({ summary: null, risks: null, questions: null, easyReading: null })
-      return
-    }
-    
-    if (digest && summary) {
-      translateContent()
-    }
-  }, [language, digest, summary])
-
-  const translateContent = async () => {
-    if (!digest || !summary) return
-    
-    setIsTranslating(true)
-    
-    const languageNames: Record<string, string> = {
-      en: 'English', es: 'español', de: 'Deutsch', it: 'italiano',
-      pt: 'português', zh: '中文', ja: '日本語', ar: 'العربية'
-    }
-    const langName = languageNames[language] || language
-
-    try {
-      // Translate all content in parallel
-      const [summaryRes, risksRes, questionsRes, easyRes] = await Promise.all([
-        fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            text: digest.summary.join('\n---\n'), 
-            targetLanguage: langName 
-          }),
-        }),
-        fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            text: digest.risks.map((r: any) => `${r.title}: ${r.description}`).join('\n---\n'), 
-            targetLanguage: langName 
-          }),
-        }),
-        fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            text: digest.questions.join('\n---\n'), 
-            targetLanguage: langName 
-          }),
-        }),
-        summary.easy_reading ? fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            text: summary.easy_reading, 
-            targetLanguage: langName 
-          }),
-        }) : Promise.resolve(null),
-      ])
-
-      const summaryData = await summaryRes.json()
-      const risksData = await risksRes.json()
-      const questionsData = await questionsRes.json()
-      const easyData = easyRes ? await easyRes.json() : null
-
-      setTranslatedContent({
-        summary: summaryData.translatedText?.split('\n---\n') || null,
-        risks: risksData.translatedText?.split('\n---\n') || null,
-        questions: questionsData.translatedText?.split('\n---\n') || null,
-        easyReading: easyData?.translatedText || null,
-      })
-    } catch (error) {
-      console.error('Translation error:', error)
-      toast({
-        title: 'Erreur de traduction',
-        description: 'La traduction a échoué',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsTranslating(false)
     }
   }
 
@@ -330,26 +241,26 @@ export default function DocumentPage() {
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
                 <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-white" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <SheetTitle>Résumé exécutif</SheetTitle>
+                          <SheetDescription>Les points clés de votre document</SheetDescription>
+                        </div>
                       </div>
-                      <div>
-                        <SheetTitle>Résumé exécutif</SheetTitle>
-                        <SheetDescription>Les points clés de votre document</SheetDescription>
-                      </div>
+                      <TranslateButton 
+                        content={digest.summary.join('\n\n')}
+                        onTranslate={(text) => setTranslatedSummary(text.split('\n\n').filter(Boolean))}
+                      />
                     </div>
                   </SheetHeader>
                 </div>
                 <div className="p-6 space-y-6">
-                  {isTranslating && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Traduction en cours...
-                    </div>
-                  )}
                   <div className="space-y-3">
-                    {(translatedContent.summary || digest.summary).map((item, i) => (
+                    {(translatedSummary || digest.summary).map((item, i) => (
                       <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
                         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                           <CheckCircle className="h-4 w-4 text-primary" />
@@ -418,38 +329,30 @@ export default function DocumentPage() {
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
                 <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
-                        <AlertTriangle className="h-5 w-5 text-white" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                          <AlertTriangle className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <SheetTitle>Risques & Questions</SheetTitle>
+                          <SheetDescription>Points d'attention et questions à poser</SheetDescription>
+                        </div>
                       </div>
-                      <div>
-                        <SheetTitle>Risques & Questions</SheetTitle>
-                        <SheetDescription>Points d'attention et questions à poser</SheetDescription>
-                      </div>
+                      <TranslateButton 
+                        content={[...digest.risks.map(r => `${r.title}: ${r.description}`), ...digest.questions].join('\n\n')}
+                        onTranslate={(text) => setTranslatedRisks(text)}
+                      />
                     </div>
                   </SheetHeader>
                 </div>
                 <div className="p-6 space-y-6">
-                  {isTranslating && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Traduction en cours...
-                    </div>
-                  )}
                   {/* Risks */}
                   <div>
                     <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Risques identifiés</h4>
                     {digest.risks.length === 0 ? (
                       <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
                         Aucun risque significatif identifié
-                      </div>
-                    ) : translatedContent.risks ? (
-                      <div className="space-y-3">
-                        {translatedContent.risks.map((risk, i) => (
-                          <div key={i} className="p-4 rounded-xl bg-muted/50 border">
-                            <p className="text-sm">{risk}</p>
-                          </div>
-                        ))}
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -478,7 +381,7 @@ export default function DocumentPage() {
                       <p className="text-sm text-muted-foreground">Aucune question suggérée</p>
                     ) : (
                       <div className="space-y-2">
-                        {(translatedContent.questions || digest.questions).map((question, i) => (
+                        {digest.questions.map((question, i) => (
                           <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0 font-medium">
                               {i + 1}
@@ -514,38 +417,38 @@ export default function DocumentPage() {
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
                 <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-white" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <SheetTitle>Version simplifiée</SheetTitle>
+                          <SheetDescription>Le document expliqué simplement</SheetDescription>
+                        </div>
                       </div>
-                      <div>
-                        <SheetTitle>Version simplifiée</SheetTitle>
-                        <SheetDescription>Le document expliqué simplement</SheetDescription>
-                      </div>
+                      {summary?.easy_reading && (
+                        <TranslateButton 
+                          content={summary.easy_reading}
+                          onTranslate={(text) => setTranslatedEasyReading(text)}
+                        />
+                      )}
                     </div>
                   </SheetHeader>
                 </div>
                 <div className="p-6">
-                  {isTranslating && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Traduction en cours...
-                    </div>
-                  )}
                   {summary?.easy_reading ? (
                     <>
                       <div className="p-4 rounded-xl bg-muted/50 border">
                         <div className="prose prose-sm max-w-none">
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {translatedContent.easyReading || summary.easy_reading}
-                          </div>
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">{translatedEasyReading || summary.easy_reading}</div>
                         </div>
                       </div>
                       <Button 
                         variant="outline" 
                         size="sm"
                         className="w-full mt-4"
-                        onClick={() => copyToClipboard(translatedContent.easyReading || summary.easy_reading || '')}
+                        onClick={() => copyToClipboard(summary.easy_reading || '')}
                       >
                         <Copy className="h-4 w-4 mr-2" />
                         Copier
@@ -565,7 +468,6 @@ export default function DocumentPage() {
               documentId={document.id}
               documentContent={summary?.easy_reading || digest.summary.join('\n')}
               documentName={document.file_name}
-              language={language}
             />
 
             {/* Slides / Presentation */}
@@ -573,13 +475,6 @@ export default function DocumentPage() {
               documentId={document.id}
               documentContent={summary?.easy_reading || digest.summary.join('\n')}
               documentName={document.file_name}
-              language={language}
-            />
-
-            {/* Language Selector */}
-            <LanguageSelector 
-              documentId={document.id}
-              onLanguageChange={setLanguage}
             />
           </div>
 
@@ -588,7 +483,6 @@ export default function DocumentPage() {
             documentId={document.id}
             documentContent={summary?.easy_reading || digest.summary.join('\n')}
             documentName={document.file_name}
-            language={language}
           />
         </div>
       )}

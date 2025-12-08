@@ -49,10 +49,9 @@ interface SlidesProps {
   documentId: string
   documentContent: string
   documentName: string
-  language?: string
 }
 
-export function Slides({ documentId, documentContent, documentName, language = 'fr' }: SlidesProps) {
+export function Slides({ documentId, documentContent, documentName }: SlidesProps) {
   const [slides, setSlides] = useState<Slide[]>([])
   const [presentationTitle, setPresentationTitle] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -106,7 +105,6 @@ export function Slides({ documentId, documentContent, documentName, language = '
           documentId,
           documentContent,
           slideCount,
-          language,
         }),
       })
 

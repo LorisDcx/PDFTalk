@@ -16,10 +16,9 @@ interface PDFChatProps {
   documentId: string
   documentContent: string
   documentName: string
-  language?: string
 }
 
-export function PDFChat({ documentId, documentContent, documentName, language = 'fr' }: PDFChatProps) {
+export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -28,17 +27,17 @@ export function PDFChat({ documentId, documentContent, documentName, language = 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Generate AI suggestions on mount and when language changes
+  // Generate AI suggestions on mount
   useEffect(() => {
     generateSuggestions()
-  }, [documentContent, language])
+  }, [documentContent])
 
   const generateSuggestions = async () => {
     try {
       const response = await fetch('/api/chat/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000), language }),
+        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000) }),
       })
       if (response.ok) {
         const data = await response.json()

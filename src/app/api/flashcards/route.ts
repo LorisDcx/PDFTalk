@@ -13,23 +13,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentId, documentContent, count = 20, language = 'fr' } = await request.json()
+    const { documentId, documentContent, count = 20 } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
     const cardCount = Math.min(100, Math.max(10, count))
-    
-    const languageNames: Record<string, string> = {
-      fr: 'français', en: 'English', es: 'español', de: 'Deutsch',
-      it: 'italiano', pt: 'português', zh: '中文', ja: '日本語', ar: 'العربية'
-    }
-    const langName = languageNames[language] || 'français'
 
     const systemPrompt = `Tu es un expert en création de flashcards éducatives. Analyse le document fourni et crée exactement ${cardCount} flashcards pour aider à mémoriser les concepts clés.
-
-LANGUE: Génère TOUT le contenu (questions et réponses) en ${langName}.
 
 CONTENU DU DOCUMENT:
 ${documentContent.substring(0, 12000)} ${documentContent.length > 12000 ? '... [document tronqué]' : ''}
