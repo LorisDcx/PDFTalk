@@ -27,19 +27,19 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
-  // Generate AI suggestions on mount
+  // Generate AI suggestions on mount and when language changes
   useEffect(() => {
     generateSuggestions()
-  }, [documentContent])
+  }, [documentContent, language])
 
   const generateSuggestions = async () => {
     try {
       const response = await fetch('/api/chat/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000) }),
+        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000), language }),
       })
       if (response.ok) {
         const data = await response.json()

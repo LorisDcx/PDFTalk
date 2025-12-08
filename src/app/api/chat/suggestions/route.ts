@@ -13,25 +13,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentContent } = await request.json()
+    const { documentContent, language = 'fr' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ suggestions: [] })
     }
+
+    // Language names for the prompt
+    const languageNames: Record<string, string> = {
+      fr: 'French', en: 'English', es: 'Spanish', de: 'German',
+      it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic'
+    }
+    const targetLanguage = languageNames[language] || 'English'
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { 
           role: 'system', 
-          content: `Analyse ce document et génère exactement 3 questions pertinentes et spécifiques que l'utilisateur pourrait vouloir poser. Les questions doivent être:
-- Directement liées au contenu du document
-- Pratiques et utiles
-- Courtes (max 8 mots)
-- En français
+          content: `Analyze this document and generate exactly 3 relevant and specific questions the user might want to ask. The questions must be:
+- Directly related to the document content
+- Practical and useful
+- Short (max 8 words)
+- Written in ${targetLanguage}
 
-Réponds UNIQUEMENT avec un JSON valide dans ce format:
-{"suggestions": ["Question 1", "Question 2", "Question 3"]}`
+Respond ONLY with valid JSON in this format:
+{"suggestions": ["Question 1 in ${targetLanguage}", "Question 2 in ${targetLanguage}", "Question 3 in ${targetLanguage}"]}`
         },
         { 
           role: 'user', 

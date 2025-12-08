@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentId, documentContent, count = 20 } = await request.json()
+    const { documentId, documentContent, count = 20, language = 'fr' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
@@ -21,26 +21,34 @@ export async function POST(request: NextRequest) {
 
     const cardCount = Math.min(100, Math.max(10, count))
 
-    const systemPrompt = `Tu es un expert en création de flashcards éducatives. Analyse le document fourni et crée exactement ${cardCount} flashcards pour aider à mémoriser les concepts clés.
+    // Language names for the prompt
+    const languageNames: Record<string, string> = {
+      fr: 'French', en: 'English', es: 'Spanish', de: 'German',
+      it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic'
+    }
+    const targetLanguage = languageNames[language] || 'English'
 
-CONTENU DU DOCUMENT:
-${documentContent.substring(0, 12000)} ${documentContent.length > 12000 ? '... [document tronqué]' : ''}
+    const systemPrompt = `You are an expert in creating educational flashcards. Analyze the provided document and create exactly ${cardCount} flashcards to help memorize key concepts.
 
-INSTRUCTIONS:
-- Crée exactement ${cardCount} flashcards
-- Chaque question doit être claire et spécifique
-- Chaque réponse doit être concise (2-3 phrases max)
-- Couvre les concepts les plus importants du document
-- Varie les types de questions (définitions, dates, processus, concepts)
-- Réponds UNIQUEMENT en JSON valide
+DOCUMENT CONTENT:
+${documentContent.substring(0, 12000)} ${documentContent.length > 12000 ? '... [document truncated]' : ''}
 
-FORMAT DE RÉPONSE (JSON strict):
+CRITICAL INSTRUCTIONS:
+- Create exactly ${cardCount} flashcards
+- ALL questions and answers MUST be written in ${targetLanguage}
+- Each question must be clear and specific
+- Each answer must be concise (2-3 sentences max)
+- Cover the most important concepts from the document
+- Vary question types (definitions, dates, processes, concepts)
+- Respond ONLY with valid JSON
+
+RESPONSE FORMAT (strict JSON):
 {
   "flashcards": [
     {
       "id": "1",
-      "question": "Question claire et précise",
-      "answer": "Réponse concise et informative"
+      "question": "Clear and precise question in ${targetLanguage}",
+      "answer": "Concise and informative answer in ${targetLanguage}"
     }
   ]
 }`
@@ -49,7 +57,7 @@ FORMAT DE RÉPONSE (JSON strict):
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Génère ${cardCount} flashcards à partir de ce document.` },
+        { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
       ],
       temperature: 0.7,
       max_tokens: 4000,

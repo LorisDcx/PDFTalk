@@ -55,7 +55,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   // Load existing flashcards from localStorage on mount
   useEffect(() => {
@@ -96,6 +96,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
           documentId,
           documentContent,
           count: cardCount,
+          language,
         }),
       })
 

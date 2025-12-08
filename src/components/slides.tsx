@@ -70,7 +70,7 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   // Load existing slides from localStorage on mount
   useEffect(() => {
@@ -115,6 +115,7 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
           documentId,
           documentContent,
           slideCount,
+          language,
         }),
       })
 
