@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { PLANS, PlanId } from '@/lib/stripe'
 import { Loader2, Check, Crown } from 'lucide-react'
 import { getTrialDaysRemaining, isTrialExpired } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n'
 
 export default function BillingPage() {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
@@ -17,6 +18,7 @@ export default function BillingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   // Handle success/canceled from Stripe redirect
   useEffect(() => {
@@ -27,15 +29,15 @@ export default function BillingPage() {
       // Refresh profile to get updated subscription data
       refreshProfile()
       toast({
-        title: 'Paiement réussi !',
-        description: 'Votre abonnement est maintenant actif. Merci !',
+        title: t('paymentSuccess'),
+        description: t('paymentSuccessDesc'),
       })
       // Clean URL
       router.replace('/billing')
     } else if (canceled === 'true') {
       toast({
-        title: 'Paiement annulé',
-        description: 'Vous pouvez réessayer quand vous le souhaitez.',
+        title: t('paymentCanceled'),
+        description: t('paymentCanceledDesc'),
         variant: 'destructive',
       })
       router.replace('/billing')
@@ -118,8 +120,8 @@ export default function BillingPage() {
   return (
     <div className="container max-w-5xl py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Billing</h1>
-        <p className="text-muted-foreground">Manage your subscription and billing</p>
+        <h1 className="text-3xl font-bold mb-2">{t('billingTitle')}</h1>
+        <p className="text-muted-foreground">{t('billingSubtitle')}</p>
       </div>
 
       {/* Current Status */}
@@ -127,14 +129,14 @@ export default function BillingPage() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold">Current Plan</h3>
+              <h3 className="font-semibold">{t('currentPlan')}</h3>
               <p className="text-muted-foreground">
                 {hasActiveSubscription ? (
-                  <>You are on the <span className="font-medium text-foreground">{PLANS[profile.current_plan!].name}</span> plan</>
+                  <>{t('youAreOnPlan')} <span className="font-medium text-foreground">{PLANS[profile.current_plan!].name}</span></>
                 ) : isInTrial ? (
-                  <>You have <span className="font-medium text-foreground">{trialDays} days</span> left in your trial</>
+                  <><span className="font-medium text-foreground">{trialDays}</span> {t('daysLeftInTrial')}</>
                 ) : (
-                  'Your trial has expired'
+                  t('trialHasExpired')
                 )}
               </p>
             </div>
@@ -143,7 +145,7 @@ export default function BillingPage() {
                 {isLoading === 'manage' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Manage Subscription'
+                  t('manageSubscription')
                 )}
               </Button>
             )}
@@ -161,7 +163,7 @@ export default function BillingPage() {
             <Card key={planId} className={isPopular ? 'border-primary shadow-md relative' : ''}>
               {isPopular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary">Most Popular</Badge>
+                  <Badge className="bg-primary">{t('mostPopular')}</Badge>
                 </div>
               )}
               <CardHeader>
@@ -171,7 +173,7 @@ export default function BillingPage() {
                 </CardTitle>
                 <CardDescription>
                   <span className="text-3xl font-bold text-foreground">{plan.price}€</span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-muted-foreground">{t('perMonth')}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -194,9 +196,9 @@ export default function BillingPage() {
                   {isLoading === planId ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : isCurrentPlan ? (
-                    'Current Plan'
+                    t('currentPlanBadge')
                   ) : (
-                    'Subscribe'
+                    t('subscribe')
                   )}
                 </Button>
               </CardFooter>
@@ -207,30 +209,30 @@ export default function BillingPage() {
 
       {/* FAQ */}
       <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('faqTitle')}</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-medium mb-1">Can I upgrade or downgrade?</h3>
+            <h3 className="font-medium mb-1">{t('faqUpgrade')}</h3>
             <p className="text-sm text-muted-foreground">
-              Yes! You can change your plan anytime. Changes take effect immediately, and we'll prorate the billing.
+              {t('faqUpgradeAnswer')}
             </p>
           </div>
           <div>
-            <h3 className="font-medium mb-1">What happens if I exceed my limit?</h3>
+            <h3 className="font-medium mb-1">{t('faqExceed')}</h3>
             <p className="text-sm text-muted-foreground">
-              You'll receive a notification and can upgrade your plan or wait for the monthly reset.
+              {t('faqExceedAnswer')}
             </p>
           </div>
           <div>
-            <h3 className="font-medium mb-1">Can I cancel anytime?</h3>
+            <h3 className="font-medium mb-1">{t('faqCancel')}</h3>
             <p className="text-sm text-muted-foreground">
-              Absolutely. Cancel anytime from the billing portal. You'll keep access until the end of your billing period.
+              {t('faqCancelAnswer')}
             </p>
           </div>
           <div>
-            <h3 className="font-medium mb-1">Do you offer refunds?</h3>
+            <h3 className="font-medium mb-1">{t('faqRefunds')}</h3>
             <p className="text-sm text-muted-foreground">
-              We offer a 7-day free trial so you can try before you buy. Refunds are handled on a case-by-case basis.
+              {t('faqRefundsAnswer')}
             </p>
           </div>
         </div>

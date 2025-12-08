@@ -1,8 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Navbar } from '@/components/navbar'
 import { DemoUpload } from '@/components/demo-upload'
+import { useLanguage } from '@/lib/i18n'
 import { 
   FileText, 
   Shield, 
@@ -16,6 +19,7 @@ import {
 } from 'lucide-react'
 
 export default function LandingPage() {
+  const { t } = useLanguage()
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -25,18 +29,17 @@ export default function LandingPage() {
         <div className="container max-w-6xl text-center">
           <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm mb-6 bg-background animate-fade-in-down">
             <Zap className="h-4 w-4 mr-2 text-primary animate-pulse" />
-            Analyse de documents par IA
+            {t('heroTagline')}
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 animate-fade-in-up stagger-1">
-            Comprenez n'importe quel PDF
+            {t('heroTitle')}
             <br />
-            <span className="gradient-text">en 2 minutes</span>
+            <span className="gradient-text">{t('heroTitleHighlight')}</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up stagger-2">
-            Déposez vos contrats, devis et documents business. Obtenez des résumés instantanés, 
-            une analyse des risques et des versions simplifiées.
+            {t('heroDescription')}
           </p>
           
           {/* Demo Upload Zone */}
@@ -47,17 +50,17 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up stagger-4">
             <Button size="lg" asChild className="btn-press hover-lift">
               <Link href="/signup">
-                Essai gratuit 7 jours
+                {t('freeTrial7Days')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" size="lg" asChild className="btn-press">
-              <Link href="#features">Découvrir</Link>
+              <Link href="#features">{t('discover')}</Link>
             </Button>
           </div>
           
           <p className="text-sm text-muted-foreground mt-4 animate-fade-in stagger-5">
-            Sans carte bancaire • 7 jours gratuits
+            {t('noCreditCard')}
           </p>
         </div>
       </section>
@@ -66,42 +69,42 @@ export default function LandingPage() {
       <section id="features" className="py-20 px-4">
         <div className="container max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-4 animate-fade-in-up">
-            Tout ce qu'il faut pour comprendre vos documents
+            {t('featuresTitle')}
           </h2>
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto animate-fade-in-up stagger-1">
-            Arrêtez de passer des heures sur des documents complexes. L'IA fait le travail.
+            {t('featuresSubtitle')}
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
               icon={<FileSearch className="h-6 w-6" />}
-              title="Executive Summary"
-              description="Get 5-10 key bullet points covering the most important information in seconds."
+              title={t('featureExecutiveSummary')}
+              description={t('featureExecutiveSummaryDesc')}
             />
             <FeatureCard
               icon={<Shield className="h-6 w-6" />}
-              title="Risk Analysis"
-              description="Identify potential risks, unusual clauses, and points requiring attention."
+              title={t('featureRiskAnalysis')}
+              description={t('featureRiskAnalysisDesc')}
             />
             <FeatureCard
               icon={<MessageSquare className="h-6 w-6" />}
-              title="Questions to Ask"
-              description="Get suggested questions to clarify with the other party before signing."
+              title={t('featureQuestionsToAsk')}
+              description={t('featureQuestionsToAskDesc')}
             />
             <FeatureCard
               icon={<BookOpen className="h-6 w-6" />}
-              title="Easy Reading Mode"
-              description="Complex legal language transformed into plain, simple English anyone can understand."
+              title={t('featureEasyReading')}
+              description={t('featureEasyReadingDesc')}
             />
             <FeatureCard
               icon={<Clock className="h-6 w-6" />}
-              title="Instant Processing"
-              description="Upload your PDF and get results in under 60 seconds. No waiting around."
+              title={t('featureInstantProcessing')}
+              description={t('featureInstantProcessingDesc')}
             />
             <FeatureCard
               icon={<FileText className="h-6 w-6" />}
-              title="Document Comparison"
-              description="Compare multiple versions to see exactly what changed between documents."
+              title={t('featureDocComparison')}
+              description={t('featureDocComparisonDesc')}
             />
           </div>
         </div>
@@ -111,23 +114,23 @@ export default function LandingPage() {
       <section className="py-20 px-4 bg-secondary/30">
         <div className="container max-w-6xl">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Perfect for your business documents
+            {t('useCasesTitle')}
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <UseCaseCard
-              title="Contracts"
-              description="Understand service agreements, NDAs, employment contracts, and partnership deals."
+              title={t('useCaseContracts')}
+              description={t('useCaseContractsDesc')}
               items={['Service agreements', 'NDAs', 'Employment contracts', 'Partnership deals']}
             />
             <UseCaseCard
-              title="Quotes & Proposals"
-              description="Analyze vendor quotes, project proposals, and pricing documents quickly."
+              title={t('useCaseQuotes')}
+              description={t('useCaseQuotesDesc')}
               items={['Vendor quotes', 'Project proposals', 'Pricing documents', 'RFP responses']}
             />
             <UseCaseCard
-              title="Terms & Policies"
-              description="Decode CGV, privacy policies, terms of service, and compliance documents."
+              title={t('useCaseTerms')}
+              description={t('useCaseTermsDesc')}
               items={['Terms of service', 'Privacy policies', 'CGV documents', 'Compliance docs']}
             />
           </div>
@@ -137,9 +140,9 @@ export default function LandingPage() {
       {/* Pricing Preview */}
       <section id="pricing" className="py-20 px-4">
         <div className="container max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Tarification simple et transparente</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('pricingTitle')}</h2>
           <p className="text-muted-foreground mb-8">
-            Démarrez avec 7 jours d'essai gratuit. Choisissez ensuite le forfait adapté à vos besoins.
+            {t('pricingSubtitle')}
           </p>
           
           <div className="grid md:grid-cols-3 gap-6">
@@ -148,23 +151,32 @@ export default function LandingPage() {
               price="3.99"
               pages="150"
               highlighted={false}
+              popularText={t('popular')}
+              perMonthText={t('perMonth')}
+              pagesPerMonthText={t('pagesPerMonth')}
             />
             <PricingCard
               name="Growth"
               price="12.99"
               pages="600"
               highlighted={true}
+              popularText={t('popular')}
+              perMonthText={t('perMonth')}
+              pagesPerMonthText={t('pagesPerMonth')}
             />
             <PricingCard
               name="Pro"
               price="20.99"
               pages="1,500"
               highlighted={false}
+              popularText={t('popular')}
+              perMonthText={t('perMonth')}
+              pagesPerMonthText={t('pagesPerMonth')}
             />
           </div>
           
           <Button size="lg" className="mt-8" asChild>
-            <Link href="/signup">Start your free trial</Link>
+            <Link href="/signup">{t('startFreeTrial')}</Link>
           </Button>
         </div>
       </section>
@@ -177,11 +189,11 @@ export default function LandingPage() {
             <span className="font-semibold">PDFTalk</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PDFTalk. All rights reserved.
+            © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
           </p>
           <div className="flex gap-4 text-sm text-muted-foreground">
-            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-            <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
+            <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
           </div>
         </div>
       </footer>
@@ -220,21 +232,24 @@ function UseCaseCard({ title, description, items }: { title: string; description
   )
 }
 
-function PricingCard({ name, price, pages, highlighted }: { name: string; price: string; pages: string; highlighted: boolean }) {
+function PricingCard({ name, price, pages, highlighted, popularText, perMonthText, pagesPerMonthText }: { 
+  name: string; price: string; pages: string; highlighted: boolean;
+  popularText: string; perMonthText: string; pagesPerMonthText: string;
+}) {
   return (
     <Card className={`card-hover ${highlighted ? 'border-primary shadow-lg scale-105' : ''}`}>
       <CardContent className="p-6 text-center">
         {highlighted && (
           <span className="inline-block px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full mb-3 animate-pulse-soft">
-            Populaire
+            {popularText}
           </span>
         )}
         <h3 className="font-semibold text-lg">{name}</h3>
         <div className="my-4">
           <span className="text-3xl font-bold gradient-text">{price}€</span>
-          <span className="text-muted-foreground">/mois</span>
+          <span className="text-muted-foreground">{perMonthText}</span>
         </div>
-        <p className="text-sm text-muted-foreground">{pages} pages/mois</p>
+        <p className="text-sm text-muted-foreground">{pages} {pagesPerMonthText}</p>
       </CardContent>
     </Card>
   )
