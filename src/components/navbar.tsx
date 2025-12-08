@@ -18,11 +18,13 @@ import { Badge } from './ui/badge'
 import { getTrialDaysRemaining, isTrialExpired } from '@/lib/utils'
 import { useState } from 'react'
 import { LanguageSelector } from './language-selector'
+import { useLanguage } from '@/lib/i18n'
 
 export function Navbar() {
   const { user, profile, signOut, isLoading } = useAuth()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { t } = useLanguage()
 
   console.log('🧭 Navbar RENDER - isLoading:', isLoading, 'user:', !!user, 'pathname:', pathname)
 
@@ -38,23 +40,23 @@ export function Navbar() {
     }
     if (profile.trial_end_at && !isTrialExpired(profile.trial_end_at)) {
       const days = getTrialDaysRemaining(profile.trial_end_at)
-      return <Badge variant="warning" className="text-xs">{days}j restants</Badge>
+      return <Badge variant="warning" className="text-xs">{days} {t('daysRemaining')}</Badge>
     }
-    return <Badge variant="destructive" className="text-xs">Trial expiré</Badge>
+    return <Badge variant="destructive" className="text-xs">{t('trialExpired')}</Badge>
   }
 
   const isActive = (path: string) => pathname === path
 
   // Navigation links for non-logged in users
   const publicLinks = [
-    { href: '/#features', label: 'Fonctionnalités' },
-    { href: '/#pricing', label: 'Tarifs' },
+    { href: '/#features', labelKey: 'features' },
+    { href: '/#pricing', labelKey: 'pricing' },
   ]
 
   // Navigation links for logged-in users
   const userLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/billing', label: 'Abonnement', icon: CreditCard },
+    { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
+    { href: '/billing', labelKey: 'billing', icon: CreditCard },
   ]
 
   return (
@@ -88,7 +90,7 @@ export function Navbar() {
                     }`}
                   >
                     <link.icon className="h-4 w-4" />
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 ))}
               </div>
@@ -121,25 +123,25 @@ export function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard" className="cursor-pointer">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard
+                        {t('dashboard')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/billing" className="cursor-pointer">
                         <CreditCard className="mr-2 h-4 w-4" />
-                        Abonnement
+                        {t('billing')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/settings" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
-                        Paramètres
+                        {t('settings')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut} className="cursor-pointer text-red-600 focus:text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
-                      Déconnexion
+                      {t('logout')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -158,16 +160,16 @@ export function Navbar() {
                     href={link.href}
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 ))}
               </div>
               <div className="flex items-center gap-3">
                 <Button variant="ghost" asChild className="text-foreground hover:text-foreground">
-                  <Link href="/login">Connexion</Link>
+                  <Link href="/login">{t('login')}</Link>
                 </Button>
                 <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
-                  <Link href="/signup">Essai gratuit</Link>
+                  <Link href="/signup">{t('signup')}</Link>
                 </Button>
               </div>
             </>
@@ -213,7 +215,7 @@ export function Navbar() {
                     }`}
                   >
                     <link.icon className="h-4 w-4" />
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 ))}
                 <Link
@@ -222,14 +224,14 @@ export function Navbar() {
                   className="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground"
                 >
                   <Settings className="h-4 w-4" />
-                  Paramètres
+                  {t('settings')}
                 </Link>
                 <button
                   onClick={() => { signOut(); setMobileMenuOpen(false); }}
                   className="flex items-center gap-3 px-3 py-2 rounded-md text-red-600 w-full text-left"
                 >
                   <LogOut className="h-4 w-4" />
-                  Déconnexion
+                  {t('logout')}
                 </button>
               </>
             ) : (
@@ -241,15 +243,15 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-3 py-2 text-muted-foreground"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 ))}
                 <div className="flex flex-col gap-2 pt-3 border-t">
                   <Button variant="outline" asChild className="w-full">
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Connexion</Link>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>{t('login')}</Link>
                   </Button>
                   <Button asChild className="w-full">
-                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Essai gratuit</Link>
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>{t('signup')}</Link>
                   </Button>
                 </div>
               </>
