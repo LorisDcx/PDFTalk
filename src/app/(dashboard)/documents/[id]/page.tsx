@@ -13,6 +13,7 @@ import { PDFChat } from '@/components/pdf-chat'
 import { Flashcards } from '@/components/flashcards'
 import { Slides } from '@/components/slides'
 import { TranslateButton } from '@/components/translate-button'
+import { useLanguage } from '@/lib/i18n'
 import { 
   Sheet,
   SheetContent,
@@ -50,6 +51,7 @@ export default function DocumentPage() {
   const [translatedRisks, setTranslatedRisks] = useState<string | null>(null)
   const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
   const { toast } = useToast()
+  const { t, language } = useLanguage()
   const supabase = createClient()
 
   useEffect(() => {
