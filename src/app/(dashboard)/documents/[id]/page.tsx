@@ -57,7 +57,7 @@ export default function DocumentPage() {
         .select('*')
         .eq('id', params.id)
         .eq('user_id', user!.id)
-        .single()
+        .single() as { data: Document | null, error: any }
 
       if (docError || !doc) {
         toast({
@@ -77,7 +77,7 @@ export default function DocumentPage() {
           .from('summaries')
           .select('*')
           .eq('document_id', doc.id)
-          .single()
+          .single() as { data: Summary | null, error: any }
 
         if (summaryData) {
           setSummary(summaryData)
