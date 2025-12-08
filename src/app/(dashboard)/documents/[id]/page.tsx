@@ -349,51 +349,68 @@ export default function DocumentPage() {
                   </SheetHeader>
                 </div>
                 <div className="p-6 space-y-6">
-                  {/* Risks */}
-                  <div>
-                    <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">{t('risksIdentified')}</h4>
-                    {digest.risks.length === 0 ? (
-                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
-                        {t('noRisks')}
+                  {/* Translated Risks (if available) */}
+                  {translatedRisks ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">{t('risksIdentified')} & {t('questionsToAsk')}</h4>
+                        <Button variant="ghost" size="sm" onClick={() => setTranslatedRisks(null)} className="text-xs">
+                          ✕ {t('showOriginal') || 'Original'}
+                        </Button>
                       </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {digest.risks.map((risk, i) => (
-                          <div key={i} className="p-4 rounded-xl bg-muted/50 border">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant={getSeverityColor(risk.severity) as any} className="text-xs">
-                                {risk.severity}
-                              </Badge>
-                              <h5 className="font-medium text-sm">{risk.title}</h5>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{risk.description}</p>
+                      <div className="p-4 rounded-xl bg-muted/50 border whitespace-pre-wrap text-sm">
+                        {translatedRisks}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Risks */}
+                      <div>
+                        <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">{t('risksIdentified')}</h4>
+                        {digest.risks.length === 0 ? (
+                          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
+                            {t('noRisks')}
                           </div>
-                        ))}
+                        ) : (
+                          <div className="space-y-3">
+                            {digest.risks.map((risk, i) => (
+                              <div key={i} className="p-4 rounded-xl bg-muted/50 border">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant={getSeverityColor(risk.severity) as any} className="text-xs">
+                                    {risk.severity}
+                                  </Badge>
+                                  <h5 className="font-medium text-sm">{risk.title}</h5>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{risk.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Questions */}
-                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                      <HelpCircle className="h-4 w-4" />
-                      {t('questionsToAsk')}
-                    </h4>
-                    {digest.questions.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t('noQuestions')}</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {digest.questions.map((question, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0 font-medium">
-                              {i + 1}
-                            </span>
-                            <span className="text-sm leading-relaxed">{question}</span>
+                      {/* Questions */}
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                          <HelpCircle className="h-4 w-4" />
+                          {t('questionsToAsk')}
+                        </h4>
+                        {digest.questions.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">{t('noQuestions')}</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {digest.questions.map((question, i) => (
+                              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0 font-medium">
+                                  {i + 1}
+                                </span>
+                                <span className="text-sm leading-relaxed">{question}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
 
                   <Button 
                     variant="outline" 
