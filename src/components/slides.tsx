@@ -27,10 +27,22 @@ import { cn } from '@/lib/utils'
 
 interface Slide {
   id: number
-  type: 'title' | 'content' | 'conclusion'
-  title: string
+  type: 'title' | 'content' | 'conclusion' | 'stats' | 'timeline' | 'twoColumns' | 'quote' | 'comparison' | 'icons'
+  title?: string
   subtitle?: string
+  emoji?: string
   bullets?: string[]
+  stats?: { icon: string; value: string; label: string }[]
+  steps?: { title: string; description: string }[]
+  leftTitle?: string
+  leftBullets?: string[]
+  rightTitle?: string
+  rightBullets?: string[]
+  text?: string
+  author?: string
+  option1?: { title: string; emoji: string; points: string[] }
+  option2?: { title: string; emoji: string; points: string[] }
+  items?: { emoji: string; title: string; description: string }[]
 }
 
 interface SlidesProps {
@@ -336,41 +348,195 @@ ${slides.map((slide, i) => `
 
           {/* Slide Display */}
           <div className={cn(
-            "relative bg-gradient-to-br from-slate-900 to-slate-800",
-            isFullscreen ? "h-[calc(100vh-140px)]" : "h-[450px]"
+            "relative overflow-hidden",
+            isFullscreen ? "h-[calc(100vh-140px)]" : "h-[500px]"
           )}>
             {currentSlide && (
               <div 
                 className={cn(
                   "absolute inset-0 flex flex-col items-center justify-center p-8 text-white transition-all duration-500",
                   currentSlide.type === 'title' && "bg-gradient-to-br from-primary via-cyan-500 to-teal-500",
-                  currentSlide.type === 'conclusion' && "bg-gradient-to-br from-cyan-500 via-primary to-violet-500"
+                  currentSlide.type === 'conclusion' && "bg-gradient-to-br from-cyan-500 via-primary to-violet-500",
+                  currentSlide.type === 'quote' && "bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600",
+                  !['title', 'conclusion', 'quote'].includes(currentSlide.type) && "bg-gradient-to-br from-slate-900 to-slate-800"
                 )}
               >
-                {currentSlide.type === 'title' ? (
-                  <div className="text-center space-y-4">
-                    <h1 className="text-4xl md:text-5xl font-bold">{currentSlide.title}</h1>
+                {/* Title Slide */}
+                {currentSlide.type === 'title' && (
+                  <div className="text-center space-y-6">
+                    {currentSlide.emoji && (
+                      <span className="text-6xl md:text-7xl">{currentSlide.emoji}</span>
+                    )}
+                    <h1 className="text-4xl md:text-6xl font-bold">{currentSlide.title}</h1>
                     {currentSlide.subtitle && (
                       <p className="text-xl md:text-2xl opacity-90">{currentSlide.subtitle}</p>
                     )}
                   </div>
-                ) : (
+                )}
+
+                {/* Stats Slide */}
+                {currentSlide.type === 'stats' && (
+                  <div className="w-full max-w-4xl space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <div className="grid grid-cols-3 gap-6">
+                      {currentSlide.stats?.map((stat, i) => (
+                        <div key={i} className="text-center p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                          <span className="text-4xl mb-2 block">{stat.icon}</span>
+                          <span className="text-4xl md:text-5xl font-bold text-cyan-400 block">{stat.value}</span>
+                          <span className="text-sm md:text-base opacity-80 mt-2 block">{stat.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline Slide */}
+                {currentSlide.type === 'timeline' && (
+                  <div className="w-full max-w-4xl space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <div className="relative">
+                      <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-primary -translate-x-1/2" />
+                      <div className="space-y-6">
+                        {currentSlide.steps?.map((step, i) => (
+                          <div key={i} className={cn("flex items-center gap-4", i % 2 === 0 ? "flex-row" : "flex-row-reverse")}>
+                            <div className={cn("flex-1 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20", i % 2 === 0 ? "text-right" : "text-left")}>
+                              <h3 className="font-bold text-cyan-400">{step.title}</h3>
+                              <p className="text-sm opacity-80">{step.description}</p>
+                            </div>
+                            <div className="w-4 h-4 rounded-full bg-cyan-400 border-4 border-slate-900 z-10 shrink-0" />
+                            <div className="flex-1" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Two Columns Slide */}
+                {currentSlide.type === 'twoColumns' && (
+                  <div className="w-full max-w-4xl space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                        <h3 className="text-xl font-bold mb-4 text-cyan-400">{currentSlide.leftTitle}</h3>
+                        <ul className="space-y-2">
+                          {currentSlide.leftBullets?.map((bullet, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm">
+                              <span className="w-1.5 h-1.5 mt-2 rounded-full bg-cyan-400 shrink-0" />
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                        <h3 className="text-xl font-bold mb-4 text-primary">{currentSlide.rightTitle}</h3>
+                        <ul className="space-y-2">
+                          {currentSlide.rightBullets?.map((bullet, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm">
+                              <span className="w-1.5 h-1.5 mt-2 rounded-full bg-primary shrink-0" />
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quote Slide */}
+                {currentSlide.type === 'quote' && (
+                  <div className="text-center max-w-3xl space-y-6">
+                    <span className="text-6xl opacity-50">"</span>
+                    <p className="text-2xl md:text-3xl font-medium italic leading-relaxed">{currentSlide.text}</p>
+                    <span className="text-6xl opacity-50">"</span>
+                    {currentSlide.author && (
+                      <p className="text-lg opacity-80">— {currentSlide.author}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Comparison Slide */}
+                {currentSlide.type === 'comparison' && (
+                  <div className="w-full max-w-4xl space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <div className="grid grid-cols-2 gap-8">
+                      {currentSlide.option1 && (
+                        <div className="p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="text-2xl">{currentSlide.option1.emoji}</span>
+                            <h3 className="text-xl font-bold text-emerald-400">{currentSlide.option1.title}</h3>
+                          </div>
+                          <ul className="space-y-2">
+                            {currentSlide.option1.points.map((point, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm">
+                                <span className="text-emerald-400">•</span>
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {currentSlide.option2 && (
+                        <div className="p-6 rounded-2xl bg-orange-500/20 border border-orange-500/40">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="text-2xl">{currentSlide.option2.emoji}</span>
+                            <h3 className="text-xl font-bold text-orange-400">{currentSlide.option2.title}</h3>
+                          </div>
+                          <ul className="space-y-2">
+                            {currentSlide.option2.points.map((point, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm">
+                                <span className="text-orange-400">•</span>
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Icons Slide */}
+                {currentSlide.type === 'icons' && (
+                  <div className="w-full max-w-4xl space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                      {currentSlide.items?.map((item, i) => (
+                        <div key={i} className="p-5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-center">
+                          <span className="text-4xl mb-3 block">{item.emoji}</span>
+                          <h3 className="font-bold text-cyan-400 mb-1">{item.title}</h3>
+                          <p className="text-sm opacity-80">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Slide */}
+                {currentSlide.type === 'content' && (
                   <div className="w-full max-w-3xl space-y-8">
-                    <h2 className={cn(
-                      "text-3xl md:text-4xl font-bold",
-                      currentSlide.type === 'content' && "text-cyan-400"
-                    )}>
-                      {currentSlide.title}
-                    </h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-cyan-400">{currentSlide.title}</h2>
                     {currentSlide.bullets && (
                       <ul className="space-y-4">
                         {currentSlide.bullets.map((bullet, i) => (
-                          <li 
-                            key={i} 
-                            className="flex items-start gap-4 text-lg md:text-xl"
-                            style={{ animationDelay: `${i * 100}ms` }}
-                          >
+                          <li key={i} className="flex items-start gap-4 text-lg md:text-xl">
                             <span className="w-2 h-2 mt-2.5 rounded-full bg-cyan-400 shrink-0" />
+                            <span>{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {/* Conclusion Slide */}
+                {currentSlide.type === 'conclusion' && (
+                  <div className="w-full max-w-3xl space-y-8 text-center">
+                    <h2 className="text-3xl md:text-4xl font-bold">{currentSlide.title}</h2>
+                    {currentSlide.bullets && (
+                      <ul className="space-y-4 text-left inline-block">
+                        {currentSlide.bullets.map((bullet, i) => (
+                          <li key={i} className="flex items-start gap-4 text-lg md:text-xl">
                             <span>{bullet}</span>
                           </li>
                         ))}
