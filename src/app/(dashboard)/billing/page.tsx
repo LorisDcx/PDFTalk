@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,7 +15,32 @@ export default function BillingPage() {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
+
+  // Handle success/canceled from Stripe redirect
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const canceled = searchParams.get('canceled')
+    
+    if (success === 'true') {
+      // Refresh profile to get updated subscription data
+      refreshProfile()
+      toast({
+        title: 'Paiement réussi !',
+        description: 'Votre abonnement est maintenant actif. Merci !',
+      })
+      // Clean URL
+      router.replace('/billing')
+    } else if (canceled === 'true') {
+      toast({
+        title: 'Paiement annulé',
+        description: 'Vous pouvez réessayer quand vous le souhaitez.',
+        variant: 'destructive',
+      })
+      router.replace('/billing')
+    }
+  }, [searchParams, refreshProfile, toast, router])
 
   useEffect(() => {
     if (!authLoading && !user) {

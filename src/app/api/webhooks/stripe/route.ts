@@ -84,25 +84,34 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Determine plan from price ID
   const plan = getPlanFromPriceId(priceId)
 
-  // Update user
-  const { error } = await supabase
+  console.log('Checkout completed:', { customerId, subscriptionId, plan, priceId })
+
+  // Update user - reset usage counters on new subscription
+  const { error, data } = await supabase
     .from('users')
     .update({
       subscription_id: subscriptionId,
       subscription_status: 'active',
       current_plan: plan,
-    })
+      // Reset usage on new subscription
+      pages_processed_this_month: 0,
+      docs_processed_this_month: 0,
+      usage_reset_at: new Date().toISOString(),
+    } as any)
     .eq('stripe_customer_id', customerId)
+    .select()
 
   if (error) {
     console.error('Failed to update user after checkout:', error)
+  } else {
+    console.log('User updated successfully:', data)
   }
 
   // Track event
   await supabase.from('analytics_events').insert({
     event_type: 'subscription_created',
-    event_data: { plan, price_id: priceId },
-  })
+    event_data: { plan, price_id: priceId, customer_id: customerId },
+  } as any)
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -119,7 +128,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     .update({
       subscription_status: status,
       current_plan: subscription.status === 'canceled' ? null : plan,
-    })
+    } as any)
     .eq('stripe_customer_id', customerId)
 }
 
@@ -132,14 +141,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       subscription_id: null,
       subscription_status: null,
       current_plan: null,
-    })
+    } as any)
     .eq('stripe_customer_id', customerId)
 
   // Track event
   await supabase.from('analytics_events').insert({
     event_type: 'subscription_canceled',
     event_data: { subscription_id: subscription.id },
-  })
+  } as any)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -153,7 +162,7 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
         pages_processed_this_month: 0,
         docs_processed_this_month: 0,
         usage_reset_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('stripe_customer_id', customerId)
   }
 }
@@ -165,14 +174,14 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     .from('users')
     .update({
       subscription_status: 'past_due',
-    })
+    } as any)
     .eq('stripe_customer_id', customerId)
 
   // Track event
   await supabase.from('analytics_events').insert({
     event_type: 'payment_failed',
     event_data: { invoice_id: invoice.id },
-  })
+  } as any)
 }
 
 function getPlanFromPriceId(priceId: string): 'basic' | 'growth' | 'pro' | null {
