@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         .update({ 
           status: 'completed',
           document_type: digest.documentType,
-        })
+        } as any)
         .eq('id', document.id)
 
       // Update usage
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         .update({
           pages_processed_this_month: profile.pages_processed_this_month + pdfData.numPages,
           docs_processed_this_month: profile.docs_processed_this_month + 1,
-        })
+        } as any)
         .eq('id', user.id)
 
     } catch (aiError) {
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       // Mark document as failed
       await supabase
         .from('documents')
-        .update({ status: 'failed' })
+        .update({ status: 'failed' } as any)
         .eq('id', document.id)
 
       return NextResponse.json({ 

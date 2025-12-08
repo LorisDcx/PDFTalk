@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       // Save customer ID
       await supabase
         .from('users')
-        .update({ stripe_customer_id: customerId })
+        .update({ stripe_customer_id: customerId } as any)
         .eq('id', user.id)
     }
 

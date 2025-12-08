@@ -39,7 +39,7 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from('users')
-        .update({ name })
+        .update({ name } as any)
         .eq('id', user.id)
 
       if (error) throw error
