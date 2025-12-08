@@ -13,11 +13,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentContent } = await request.json()
+    const { documentContent, language = 'fr' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ suggestions: [] })
     }
+
+    const languageNames: Record<string, string> = {
+      fr: 'français', en: 'English', es: 'español', de: 'Deutsch',
+      it: 'italiano', pt: 'português', zh: '中文', ja: '日本語', ar: 'العربية'
+    }
+    const langName = languageNames[language] || 'français'
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -28,7 +34,7 @@ export async function POST(request: NextRequest) {
 - Directement liées au contenu du document
 - Pratiques et utiles
 - Courtes (max 8 mots)
-- En français
+- En ${langName}
 
 Réponds UNIQUEMENT avec un JSON valide dans ce format:
 {"suggestions": ["Question 1", "Question 2", "Question 3"]}`

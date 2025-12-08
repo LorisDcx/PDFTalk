@@ -35,9 +35,10 @@ interface FlashcardsProps {
   documentId: string
   documentContent: string
   documentName: string
+  language?: string
 }
 
-export function Flashcards({ documentId, documentContent, documentName }: FlashcardsProps) {
+export function Flashcards({ documentId, documentContent, documentName, language = 'fr' }: FlashcardsProps) {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -86,6 +87,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
           documentId,
           documentContent,
           count: cardCount,
+          language,
         }),
       })
 

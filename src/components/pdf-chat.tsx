@@ -16,9 +16,10 @@ interface PDFChatProps {
   documentId: string
   documentContent: string
   documentName: string
+  language?: string
 }
 
-export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
+export function PDFChat({ documentId, documentContent, documentName, language = 'fr' }: PDFChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -37,7 +38,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
       const response = await fetch('/api/chat/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000) }),
+        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000), language }),
       })
       if (response.ok) {
         const data = await response.json()

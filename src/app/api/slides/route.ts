@@ -13,15 +13,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentContent, slideCount = 8 } = await request.json()
+    const { documentContent, slideCount = 8, language = 'fr' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
     const count = Math.min(15, Math.max(5, slideCount))
+    
+    const languageNames: Record<string, string> = {
+      fr: 'français', en: 'English', es: 'español', de: 'Deutsch',
+      it: 'italiano', pt: 'português', zh: '中文', ja: '日本語', ar: 'العربية'
+    }
+    const langName = languageNames[language] || 'français'
 
     const systemPrompt = `Tu es un expert en création de présentations PowerPoint PREMIUM et visuellement impressionnantes. Analyse le document et crée une présentation professionnelle avec des layouts variés.
+
+LANGUE: Génère TOUT le contenu en ${langName}.
 
 CONTENU DU DOCUMENT:
 ${documentContent.substring(0, 15000)} ${documentContent.length > 15000 ? '... [document tronqué]' : ''}

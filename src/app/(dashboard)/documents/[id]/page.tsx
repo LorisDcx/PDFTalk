@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { PDFChat } from '@/components/pdf-chat'
 import { Flashcards } from '@/components/flashcards'
 import { Slides } from '@/components/slides'
+import { LanguageSelector } from '@/components/language-selector'
 import { 
   Sheet,
   SheetContent,
@@ -45,6 +46,7 @@ export default function DocumentPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [digest, setDigest] = useState<DocumentDigest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [language, setLanguage] = useState('fr')
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -444,6 +446,7 @@ export default function DocumentPage() {
               documentId={document.id}
               documentContent={summary?.easy_reading || digest.summary.join('\n')}
               documentName={document.file_name}
+              language={language}
             />
 
             {/* Slides / Presentation */}
@@ -451,6 +454,13 @@ export default function DocumentPage() {
               documentId={document.id}
               documentContent={summary?.easy_reading || digest.summary.join('\n')}
               documentName={document.file_name}
+              language={language}
+            />
+
+            {/* Language Selector */}
+            <LanguageSelector 
+              documentId={document.id}
+              onLanguageChange={setLanguage}
             />
           </div>
 
@@ -459,6 +469,7 @@ export default function DocumentPage() {
             documentId={document.id}
             documentContent={summary?.easy_reading || digest.summary.join('\n')}
             documentName={document.file_name}
+            language={language}
           />
         </div>
       )}
