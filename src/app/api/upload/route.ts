@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         file_size: file.size,
         pages_count: pdfData.numPages,
         status: 'processing',
-      })
+      } as any)
       .select()
       .single()
 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         pages: pdfData.numPages,
         file_size: file.size 
       },
-    })
+    } as any)
 
     // Process document with AI (async - but we'll wait for it)
     try {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         actions: digest.actions,
         easy_reading: easyReading,
         tokens_used: 0, // Could track this from OpenAI response
-      })
+      } as any)
 
       // Update document status and type
       await supabase

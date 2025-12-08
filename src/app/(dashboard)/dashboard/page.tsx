@@ -60,21 +60,21 @@ export default function DashboardPage() {
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(10) as { data: Document[] | null, error: any }
 
         if (error) throw error
 
         // Fetch summaries for completed documents
-        const completedDocs = docs?.filter(d => d.status === 'completed') || []
+        const completedDocs = (docs || []).filter(d => d.status === 'completed')
         const summaryPreviews: Record<string, string> = {}
 
         if (completedDocs.length > 0) {
           const { data: summaries } = await supabase
             .from('summaries')
             .select('document_id, summary')
-            .in('document_id', completedDocs.map(d => d.id))
+            .in('document_id', completedDocs.map(d => d.id)) as { data: any[] | null, error: any }
 
-          summaries?.forEach(s => {
+          summaries?.forEach((s: any) => {
             const summaryArray = s.summary as string[]
             if (summaryArray && summaryArray.length > 0) {
               summaryPreviews[s.document_id] = summaryArray[0]
