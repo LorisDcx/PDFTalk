@@ -44,7 +44,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [cardCount, setCardCount] = useState(5)
+  const [cardCount, setCardCount] = useState(20)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [showViewer, setShowViewer] = useState(false)
 
@@ -134,7 +134,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -151,17 +151,18 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
               <div className="flex items-center gap-4">
                 <input
                   type="range"
-                  min={3}
-                  max={15}
+                  min={10}
+                  max={100}
+                  step={10}
                   value={cardCount}
                   onChange={(e) => setCardCount(parseInt(e.target.value))}
                   className="flex-1 accent-primary"
                 />
-                <span className="text-2xl font-bold text-primary w-8">{cardCount}</span>
+                <span className="text-2xl font-bold text-primary w-12">{cardCount}</span>
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              {[5, 10, 15].map((num) => (
+              {[20, 50, 100].map((num) => (
                 <button
                   key={num}
                   onClick={() => setCardCount(num)}
@@ -181,7 +182,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
             <Button 
               onClick={generateFlashcards} 
               disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white shadow-lg"
+              className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
             >
               {isGenerating ? (
                 <>
@@ -204,10 +205,10 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
         <Dialog open={flashcards.length > 0} onOpenChange={() => setFlashcards([])}>
           <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
                     <GraduationCap className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -216,13 +217,13 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={shuffleCards} title="Mélanger" className="hover:bg-amber-500/10">
+                  <Button variant="ghost" size="icon" onClick={shuffleCards} title="Mélanger" className="hover:bg-primary/10">
                     <Shuffle className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={resetCards} title="Recommencer" className="hover:bg-amber-500/10">
+                  <Button variant="ghost" size="icon" onClick={resetCards} title="Recommencer" className="hover:bg-primary/10">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV" className="hover:bg-amber-500/10">
+                  <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV" className="hover:bg-primary/10">
                     <Download className="h-4 w-4" />
                   </Button>
                 </div>
@@ -243,7 +244,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                     isFlipped ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
                   )}
                 >
-                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-4 px-3 py-1 bg-amber-500/10 rounded-full">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-4 px-3 py-1 bg-primary/10 rounded-full">
                     Question
                   </span>
                   <p className="text-lg font-medium leading-relaxed">{currentCard?.question}</p>
@@ -290,7 +291,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                       className={cn(
                         "w-2.5 h-2.5 rounded-full transition-all shrink-0",
                         i === currentIndex 
-                          ? "bg-gradient-to-r from-amber-500 to-orange-600 scale-125" 
+                          ? "bg-gradient-to-r from-primary to-cyan-500 scale-125" 
                           : "bg-muted hover:bg-muted-foreground/30"
                       )}
                       onClick={(e) => {

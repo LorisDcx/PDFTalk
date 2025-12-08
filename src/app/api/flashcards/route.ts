@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentId, documentContent, count = 5 } = await request.json()
+    const { documentId, documentContent, count = 20 } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    const cardCount = Math.min(20, Math.max(3, count))
+    const cardCount = Math.min(100, Math.max(10, count))
 
     const systemPrompt = `Tu es un expert en création de flashcards éducatives. Analyse le document fourni et crée exactement ${cardCount} flashcards pour aider à mémoriser les concepts clés.
 
@@ -52,7 +52,7 @@ FORMAT DE RÉPONSE (JSON strict):
         { role: 'user', content: `Génère ${cardCount} flashcards à partir de ce document.` },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 4000,
       response_format: { type: 'json_object' },
     })
 
