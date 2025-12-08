@@ -19,12 +19,9 @@ interface PDFChatProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  { icon: "📝", text: "Résume en 3 points clés" },
-  { icon: "⚠️", text: "Quels sont les risques ?" },
-  { icon: "💡", text: "Explique simplement" },
-  { icon: "📅", text: "Dates importantes ?" },
-  { icon: "✅", text: "Obligations à respecter ?" },
-  { icon: "🔍", text: "Points importants ?" },
+  "Résume ce document",
+  "Quels sont les risques ?",
+  "Explique simplement",
 ]
 
 export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
@@ -142,18 +139,15 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                 Posez n'importe quelle question sur <span className="font-medium text-foreground">"{documentName}"</span> et obtenez des réponses instantanées.
               </p>
               
-              {/* Suggested questions - Grid layout */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-2xl w-full">
+              {/* Suggested questions - Rounded pills */}
+              <div className="flex flex-wrap gap-3 justify-center max-w-lg">
                 {SUGGESTED_QUESTIONS.map((question, i) => (
                   <button
                     key={i}
-                    onClick={() => sendMessage(question.text)}
-                    className="group relative p-4 rounded-xl border bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-lg"
+                    onClick={() => sendMessage(question)}
+                    className="px-5 py-2.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-sm font-medium text-foreground/80 hover:text-foreground transition-all duration-200"
                   >
-                    <span className="text-2xl mb-2 block">{question.icon}</span>
-                    <span className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors">
-                      {question.text}
-                    </span>
+                    {question}
                   </button>
                 ))}
               </div>
@@ -213,7 +207,21 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
         </div>
 
         {/* Input area */}
-        <div className="p-4 border-t bg-background/80 backdrop-blur-xl">
+        <div className="p-4 border-t bg-background/80 backdrop-blur-xl space-y-3">
+          {/* Quick suggestions - always visible */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {SUGGESTED_QUESTIONS.map((question, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(question)}
+                disabled={isLoading}
+                className="px-4 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-xs font-medium text-foreground/70 hover:text-foreground transition-all duration-200 disabled:opacity-50"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+          
           <form onSubmit={handleSubmit} className="relative">
             <div className="relative flex items-end gap-2 p-2 rounded-2xl border bg-background shadow-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
               <textarea
@@ -244,9 +252,6 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Appuyez sur Entrée pour envoyer • Shift+Entrée pour un saut de ligne
-            </p>
           </form>
         </div>
       </div>

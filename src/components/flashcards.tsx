@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
   Dialog, 
@@ -15,7 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { 
   Loader2, 
-  Layers, 
   ChevronLeft, 
   ChevronRight, 
   RotateCcw,
@@ -23,7 +21,7 @@ import {
   Shuffle,
   Sparkles,
   GraduationCap,
-  X
+  Trash2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -44,9 +42,38 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [cardCount, setCardCount] = useState(20)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [showViewer, setShowViewer] = useState(false)
+  const [isViewerOpen, setIsViewerOpen] = useState(false)
+
+  // Load existing flashcards from localStorage on mount
+  useEffect(() => {
+    loadFlashcards()
+  }, [documentId])
+
+  const loadFlashcards = () => {
+    try {
+      const stored = localStorage.getItem(`flashcards-${documentId}`)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed && parsed.length > 0) {
+          setFlashcards(parsed)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load flashcards:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Save flashcards to localStorage whenever they change
+  useEffect(() => {
+    if (flashcards.length > 0) {
+      localStorage.setItem(`flashcards-${documentId}`, JSON.stringify(flashcards))
+    }
+  }, [flashcards, documentId])
 
   const generateFlashcards = async () => {
     setIsGenerating(true)
@@ -72,11 +99,18 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
       setCurrentIndex(0)
       setIsFlipped(false)
       setIsDialogOpen(false)
+      setIsViewerOpen(true)
     } catch (error) {
       console.error('Flashcard generation error:', error)
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const deleteFlashcards = () => {
+    localStorage.removeItem(`flashcards-${documentId}`)
+    setFlashcards([])
+    setIsViewerOpen(false)
   }
 
   const nextCard = () => {
@@ -123,87 +157,101 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
 
   return (
     <>
-      {/* Trigger Button */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+      {/* Trigger Buttons */}
+      <div className="flex gap-2">
+        {/* View existing flashcards */}
+        {flashcards.length > 0 && !isLoading && (
+          <Button 
+            variant="outline" 
+            className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all"
+            onClick={() => setIsViewerOpen(true)}
+          >
             <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
-            <span>Flashcards</span>
+            <span>Voir ({flashcards.length})</span>
           </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">Générer des Flashcards</DialogTitle>
-                <DialogDescription>
-                  Créez des cartes mémoire pour réviser
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <div className="py-6 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="cardCount" className="text-sm font-medium">Nombre de flashcards</Label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min={10}
-                  max={100}
-                  step={10}
-                  value={cardCount}
-                  onChange={(e) => setCardCount(parseInt(e.target.value))}
-                  className="flex-1 accent-primary"
-                />
-                <span className="text-2xl font-bold text-primary w-12">{cardCount}</span>
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {[20, 50, 100].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => setCardCount(num)}
-                  className={cn(
-                    "px-3 py-1 rounded-full text-sm font-medium transition-all",
-                    cardCount === num 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted hover:bg-muted/80"
-                  )}
-                >
-                  {num} cartes
-                </button>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              onClick={generateFlashcards} 
-              disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Génération en cours...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Générer {cardCount} flashcards
-                </>
-              )}
+        )}
+
+        {/* Generate new flashcards */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+              <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
+              <span>{flashcards.length > 0 ? 'Regénérer' : 'Flashcards'}</span>
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                  <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">Générer des Flashcards</DialogTitle>
+                  <DialogDescription>
+                    Créez des cartes mémoire pour réviser
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            <div className="py-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cardCount" className="text-sm font-medium">Nombre de flashcards</Label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={10}
+                    max={100}
+                    step={10}
+                    value={cardCount}
+                    onChange={(e) => setCardCount(parseInt(e.target.value))}
+                    className="flex-1 accent-primary"
+                  />
+                  <span className="text-2xl font-bold text-primary w-12">{cardCount}</span>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {[20, 50, 100].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setCardCount(num)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-sm font-medium transition-all",
+                      cardCount === num 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-muted hover:bg-muted/80"
+                    )}
+                  >
+                    {num} cartes
+                  </button>
+                ))}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                onClick={generateFlashcards} 
+                disabled={isGenerating}
+                className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Génération en cours...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Générer {cardCount} flashcards
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Flashcard Viewer Modal */}
-      {flashcards.length > 0 && (
-        <Dialog open={flashcards.length > 0} onOpenChange={() => setFlashcards([])}>
-          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+      <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
+        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
             {/* Header */}
             <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
               <div className="flex items-center justify-between">
@@ -225,6 +273,9 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                   </Button>
                   <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV" className="hover:bg-primary/10">
                     <Download className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={deleteFlashcards} title="Supprimer" className="hover:bg-destructive/10 text-destructive">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -316,7 +367,6 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
             </div>
           </DialogContent>
         </Dialog>
-      )}
     </>
   )
 }

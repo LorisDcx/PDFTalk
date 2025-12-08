@@ -228,51 +228,46 @@ export default function DocumentPage() {
             {/* Summary Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <FileText className="h-4 w-4" />
+                <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+                  <FileText className="h-4 w-4 group-hover:text-primary transition-colors" />
                   Résumé
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Résumé exécutif
-                  </SheetTitle>
-                  <SheetDescription>
-                    Les points clés de votre document
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  <div>
-                    <ul className="space-y-3">
-                      {digest.summary.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => copyToClipboard(digest.summary.join('\n'))}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copier le résumé
-                    </Button>
+              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+                  <SheetHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <SheetTitle>Résumé exécutif</SheetTitle>
+                        <SheetDescription>Les points clés de votre document</SheetDescription>
+                      </div>
+                    </div>
+                  </SheetHeader>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div className="space-y-3">
+                    {digest.summary.map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm leading-relaxed">{item}</span>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Key Clauses */}
                   {digest.keyClauses && digest.keyClauses.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-3">Clauses clés</h4>
+                      <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Clauses clés</h4>
                       <div className="space-y-3">
                         {digest.keyClauses.map((clause, i) => (
-                          <div key={i} className="p-3 bg-muted rounded-lg">
+                          <div key={i} className="p-4 bg-muted/50 rounded-xl border">
                             <h5 className="font-medium text-sm">{clause.title}</h5>
-                            <p className="text-xs text-muted-foreground mt-1">{clause.description}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{clause.description}</p>
                           </div>
                         ))}
                       </div>
@@ -282,22 +277,32 @@ export default function DocumentPage() {
                   {/* Actions */}
                   {digest.actions && digest.actions.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         Actions suggérées
                       </h4>
-                      <ul className="space-y-2">
+                      <div className="space-y-2">
                         {digest.actions.map((action, i) => (
-                          <li key={i} className="flex items-start justify-between gap-2 text-sm">
-                            <span>{action.action}</span>
-                            <Badge variant={getPriorityColor(action.priority) as any} className="text-xs">
+                          <div key={i} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-muted/50 border">
+                            <span className="text-sm">{action.action}</span>
+                            <Badge variant={getPriorityColor(action.priority) as any} className="text-xs shrink-0">
                               {action.priority}
                             </Badge>
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
+
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                    onClick={() => copyToClipboard(digest.summary.join('\n'))}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copier le résumé
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>
@@ -305,76 +310,81 @@ export default function DocumentPage() {
             {/* Risks & Questions Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <AlertTriangle className="h-4 w-4" />
+                <Button variant="outline" className="gap-2 group hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">
+                  <AlertTriangle className="h-4 w-4 group-hover:text-orange-500 transition-colors" />
                   Risques & Questions
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    Risques & Questions
-                  </SheetTitle>
-                  <SheetDescription>
-                    Points d'attention et questions à poser
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 space-y-6">
+              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+                <div className="p-6 border-b bg-gradient-to-r from-orange-500/10 to-amber-500/10">
+                  <SheetHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                        <AlertTriangle className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <SheetTitle>Risques & Questions</SheetTitle>
+                        <SheetDescription>Points d'attention et questions à poser</SheetDescription>
+                      </div>
+                    </div>
+                  </SheetHeader>
+                </div>
+                <div className="p-6 space-y-6">
                   {/* Risks */}
                   <div>
-                    <h4 className="font-semibold mb-3">Risques identifiés</h4>
+                    <h4 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">Risques identifiés</h4>
                     {digest.risks.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Aucun risque significatif identifié</p>
+                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400">
+                        Aucun risque significatif identifié
+                      </div>
                     ) : (
                       <div className="space-y-3">
                         {digest.risks.map((risk, i) => (
-                          <div key={i} className="flex items-start gap-3">
-                            <Badge variant={getSeverityColor(risk.severity) as any} className="mt-0.5 shrink-0 text-xs">
-                              {risk.severity}
-                            </Badge>
-                            <div>
+                          <div key={i} className="p-4 rounded-xl bg-muted/50 border">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant={getSeverityColor(risk.severity) as any} className="text-xs">
+                                {risk.severity}
+                              </Badge>
                               <h5 className="font-medium text-sm">{risk.title}</h5>
-                              <p className="text-xs text-muted-foreground mt-1">{risk.description}</p>
                             </div>
+                            <p className="text-sm text-muted-foreground">{risk.description}</p>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
 
-                  <Separator />
-
                   {/* Questions */}
                   <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
                       <HelpCircle className="h-4 w-4" />
                       Questions à poser
                     </h4>
                     {digest.questions.length === 0 ? (
                       <p className="text-sm text-muted-foreground">Aucune question suggérée</p>
                     ) : (
-                      <ul className="space-y-2">
+                      <div className="space-y-2">
                         {digest.questions.map((question, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0">
+                          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50 border">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0 font-medium">
                               {i + 1}
                             </span>
-                            <span>{question}</span>
-                          </li>
+                            <span className="text-sm leading-relaxed">{question}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="mt-4"
-                      onClick={() => copyToClipboard(digest.questions.join('\n'))}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copier les questions
-                    </Button>
                   </div>
+
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                    onClick={() => copyToClipboard(digest.questions.join('\n'))}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copier les questions
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>
@@ -382,31 +392,37 @@ export default function DocumentPage() {
             {/* Easy Reading Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <BookOpen className="h-4 w-4" />
+                <Button variant="outline" className="gap-2 group hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all">
+                  <BookOpen className="h-4 w-4 group-hover:text-emerald-500 transition-colors" />
                   Lecture facile
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    Version simplifiée
-                  </SheetTitle>
-                  <SheetDescription>
-                    Le document expliqué simplement
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6">
+              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+                <div className="p-6 border-b bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
+                  <SheetHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <SheetTitle>Version simplifiée</SheetTitle>
+                        <SheetDescription>Le document expliqué simplement</SheetDescription>
+                      </div>
+                    </div>
+                  </SheetHeader>
+                </div>
+                <div className="p-6">
                   {summary?.easy_reading ? (
                     <>
-                      <div className="prose prose-sm max-w-none">
-                        <div className="whitespace-pre-wrap text-sm">{summary.easy_reading}</div>
+                      <div className="p-4 rounded-xl bg-muted/50 border">
+                        <div className="prose prose-sm max-w-none">
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">{summary.easy_reading}</div>
+                        </div>
                       </div>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
-                        className="mt-4"
+                        className="w-full mt-4"
                         onClick={() => copyToClipboard(summary.easy_reading || '')}
                       >
                         <Copy className="h-4 w-4 mr-2" />
@@ -414,9 +430,9 @@ export default function DocumentPage() {
                       </Button>
                     </>
                   ) : (
-                    <p className="text-sm text-muted-foreground">
+                    <div className="p-4 rounded-xl bg-muted/50 border text-sm text-muted-foreground">
                       La version simplifiée n'est pas disponible.
-                    </p>
+                    </div>
                   )}
                 </div>
               </SheetContent>
