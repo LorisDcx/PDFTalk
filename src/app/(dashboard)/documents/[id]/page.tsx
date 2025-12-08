@@ -310,16 +310,16 @@ export default function DocumentPage() {
             {/* Risks & Questions Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2 group hover:border-orange-500/50 hover:bg-orange-500/5 transition-all">
-                  <AlertTriangle className="h-4 w-4 group-hover:text-orange-500 transition-colors" />
+                <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+                  <AlertTriangle className="h-4 w-4 group-hover:text-primary transition-colors" />
                   Risques & Questions
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
-                <div className="p-6 border-b bg-gradient-to-r from-orange-500/10 to-amber-500/10">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
                         <AlertTriangle className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -392,16 +392,16 @@ export default function DocumentPage() {
             {/* Easy Reading Sheet */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2 group hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all">
-                  <BookOpen className="h-4 w-4 group-hover:text-emerald-500 transition-colors" />
+                <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+                  <BookOpen className="h-4 w-4 group-hover:text-primary transition-colors" />
                   Lecture facile
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
-                <div className="p-6 border-b bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
                         <BookOpen className="h-5 w-5 text-white" />
                       </div>
                       <div>

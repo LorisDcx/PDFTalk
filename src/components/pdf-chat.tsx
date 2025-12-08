@@ -19,9 +19,9 @@ interface PDFChatProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "Résume ce document",
-  "Quels sont les risques ?",
-  "Explique simplement",
+  "Quelles sont mes obligations ?",
+  "Que se passe-t-il si je ne respecte pas ce document ?",
+  "Quels sont les délais à retenir ?",
 ]
 
 export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
