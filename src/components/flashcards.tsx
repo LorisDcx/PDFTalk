@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
@@ -21,7 +20,10 @@ import {
   ChevronRight, 
   RotateCcw,
   Download,
-  Shuffle
+  Shuffle,
+  Sparkles,
+  GraduationCap,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -44,6 +46,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [isGenerating, setIsGenerating] = useState(false)
   const [cardCount, setCardCount] = useState(5)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [showViewer, setShowViewer] = useState(false)
 
   const generateFlashcards = async () => {
     setIsGenerating(true)
@@ -119,46 +122,75 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const currentCard = flashcards[currentIndex]
 
   return (
-    <div>
+    <>
+      {/* Trigger Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <Layers className="h-4 w-4" />
-            Flashcards
+          <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+            <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
+            <span>Flashcards</span>
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Générer des Flashcards</DialogTitle>
-            <DialogDescription>
-              Créez des cartes mémoire pour réviser les concepts clés de ce document.
-            </DialogDescription>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">Générer des Flashcards</DialogTitle>
+                <DialogDescription>
+                  Créez des cartes mémoire pour réviser
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="cardCount">Nombre de flashcards</Label>
-            <Input
-              id="cardCount"
-              type="number"
-              min={3}
-              max={20}
-              value={cardCount}
-              onChange={(e) => setCardCount(Math.min(20, Math.max(3, parseInt(e.target.value) || 5)))}
-              className="mt-2"
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              Entre 3 et 20 flashcards recommandé
-            </p>
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cardCount" className="text-sm font-medium">Nombre de flashcards</Label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min={3}
+                  max={15}
+                  value={cardCount}
+                  onChange={(e) => setCardCount(parseInt(e.target.value))}
+                  className="flex-1 accent-primary"
+                />
+                <span className="text-2xl font-bold text-primary w-8">{cardCount}</span>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[5, 10, 15].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => setCardCount(num)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-sm font-medium transition-all",
+                    cardCount === num 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-muted hover:bg-muted/80"
+                  )}
+                >
+                  {num} cartes
+                </button>
+              ))}
+            </div>
           </div>
           <DialogFooter>
-            <Button onClick={generateFlashcards} disabled={isGenerating}>
+            <Button 
+              onClick={generateFlashcards} 
+              disabled={isGenerating}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white shadow-lg"
+            >
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Génération...
+                  Génération en cours...
                 </>
               ) : (
                 <>
-                  <Layers className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-4 w-4 mr-2" />
                   Générer {cardCount} flashcards
                 </>
               )}
@@ -167,109 +199,123 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
         </DialogContent>
       </Dialog>
 
-      {/* Flashcard viewer */}
+      {/* Flashcard Viewer Modal */}
       {flashcards.length > 0 && (
-        <Card className="mt-4">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">
-                Flashcard {currentIndex + 1} / {flashcards.length}
-              </CardTitle>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={shuffleCards} title="Mélanger">
-                  <Shuffle className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={resetCards} title="Recommencer">
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Card */}
-            <div 
-              className={cn(
-                "relative h-48 cursor-pointer perspective-1000",
-                "transition-transform duration-500 transform-style-3d",
-                isFlipped && "rotate-y-180"
-              )}
-              onClick={() => setIsFlipped(!isFlipped)}
-            >
-              <div 
-                className={cn(
-                  "absolute inset-0 rounded-lg p-6 flex items-center justify-center text-center",
-                  "backface-hidden transition-all duration-300",
-                  isFlipped ? "opacity-0" : "opacity-100",
-                  "bg-gradient-to-br from-primary/10 to-primary/5 border"
-                )}
-              >
-                <div>
-                  <p className="text-xs text-muted-foreground mb-2">QUESTION</p>
-                  <p className="font-medium">{currentCard?.question}</p>
-                  <p className="text-xs text-muted-foreground mt-4">Cliquez pour voir la réponse</p>
+        <Dialog open={flashcards.length > 0} onOpenChange={() => setFlashcards([])}>
+          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+            {/* Header */}
+            <div className="p-4 border-b bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                    <GraduationCap className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Flashcards</h3>
+                    <p className="text-sm text-muted-foreground">{currentIndex + 1} / {flashcards.length}</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div 
-                className={cn(
-                  "absolute inset-0 rounded-lg p-6 flex items-center justify-center text-center",
-                  "backface-hidden transition-all duration-300",
-                  isFlipped ? "opacity-100" : "opacity-0",
-                  "bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20"
-                )}
-              >
-                <div>
-                  <p className="text-xs text-green-600 mb-2">RÉPONSE</p>
-                  <p className="text-sm">{currentCard?.answer}</p>
-                  <p className="text-xs text-muted-foreground mt-4">Cliquez pour voir la question</p>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={shuffleCards} title="Mélanger" className="hover:bg-amber-500/10">
+                    <Shuffle className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={resetCards} title="Recommencer" className="hover:bg-amber-500/10">
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={exportToCSV} title="Exporter CSV" className="hover:bg-amber-500/10">
+                    <Download className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={prevCard}
-                disabled={currentIndex === 0}
+            {/* Card */}
+            <div className="p-6">
+              <div 
+                className="relative h-64 cursor-pointer group"
+                onClick={() => setIsFlipped(!isFlipped)}
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Précédent
-              </Button>
-              
-              <div className="flex gap-1">
-                {flashcards.map((_, i) => (
-                  <button
-                    key={i}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-colors",
-                      i === currentIndex ? "bg-primary" : "bg-muted"
-                    )}
-                    onClick={() => {
-                      setCurrentIndex(i)
-                      setIsFlipped(false)
-                    }}
-                  />
-                ))}
+                {/* Question Side */}
+                <div 
+                  className={cn(
+                    "absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all duration-500",
+                    "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-2 shadow-xl",
+                    isFlipped ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
+                  )}
+                >
+                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-4 px-3 py-1 bg-amber-500/10 rounded-full">
+                    Question
+                  </span>
+                  <p className="text-lg font-medium leading-relaxed">{currentCard?.question}</p>
+                  <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                    👆 Cliquez pour révéler la réponse
+                  </p>
+                </div>
+                
+                {/* Answer Side */}
+                <div 
+                  className={cn(
+                    "absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all duration-500",
+                    "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 border-2 border-emerald-200 dark:border-emerald-800 shadow-xl",
+                    isFlipped ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                  )}
+                >
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-4 px-3 py-1 bg-emerald-500/10 rounded-full">
+                    Réponse
+                  </span>
+                  <p className="text-base leading-relaxed">{currentCard?.answer}</p>
+                  <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                    👆 Cliquez pour voir la question
+                  </p>
+                </div>
               </div>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={nextCard}
-                disabled={currentIndex === flashcards.length - 1}
-              >
-                Suivant
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={prevCard}
+                  disabled={currentIndex === 0}
+                  className="gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Précédent
+                </Button>
+                
+                {/* Progress dots */}
+                <div className="flex gap-1.5 max-w-[200px] overflow-x-auto py-2">
+                  {flashcards.map((_, i) => (
+                    <button
+                      key={i}
+                      className={cn(
+                        "w-2.5 h-2.5 rounded-full transition-all shrink-0",
+                        i === currentIndex 
+                          ? "bg-gradient-to-r from-amber-500 to-orange-600 scale-125" 
+                          : "bg-muted hover:bg-muted-foreground/30"
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setCurrentIndex(i)
+                        setIsFlipped(false)
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={nextCard}
+                  disabled={currentIndex === flashcards.length - 1}
+                  className="gap-2"
+                >
+                  Suivant
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </DialogContent>
+        </Dialog>
       )}
-    </div>
+    </>
   )
 }

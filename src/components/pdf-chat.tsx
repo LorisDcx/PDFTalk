@@ -2,10 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, Send, Bot, User, Sparkles } from 'lucide-react'
+import { Loader2, Send, Sparkles, ArrowUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Message {
@@ -17,16 +14,17 @@ interface Message {
 
 interface PDFChatProps {
   documentId: string
-  documentContent: string // Le contenu du PDF pour le contexte
+  documentContent: string
   documentName: string
 }
 
 const SUGGESTED_QUESTIONS = [
-  "Résume ce document en 3 points clés",
-  "Quels sont les risques principaux ?",
-  "Explique-moi ce document simplement",
-  "Quelles sont les dates importantes ?",
-  "Y a-t-il des obligations à respecter ?",
+  { icon: "📝", text: "Résume en 3 points clés" },
+  { icon: "⚠️", text: "Quels sont les risques ?" },
+  { icon: "💡", text: "Explique simplement" },
+  { icon: "📅", text: "Dates importantes ?" },
+  { icon: "✅", text: "Obligations à respecter ?" },
+  { icon: "🔍", text: "Points importants ?" },
 ]
 
 export function PDFChat({ documentId, documentContent, documentName }: PDFChatProps) {
@@ -34,7 +32,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -43,6 +41,14 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto'
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px'
+    }
+  }, [input])
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
@@ -66,7 +72,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
           documentId,
           documentContent,
           question: content.trim(),
-          history: messages.slice(-6), // Garder les 6 derniers messages pour le contexte
+          history: messages.slice(-6),
         }),
       })
 
@@ -104,83 +110,99 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
     sendMessage(input)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage(input)
+    }
+  }
+
   return (
-    <Card className="flex flex-col h-[600px]">
-      <CardContent className="flex flex-col h-full p-4">
+    <div className="relative rounded-2xl border bg-gradient-to-b from-background to-muted/20 shadow-xl overflow-hidden">
+      {/* Decorative gradient blob */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      
+      <div className="relative flex flex-col h-[600px]">
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Bot className="h-8 w-8 text-primary" />
+            <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
+              {/* Animated icon */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 rounded-full blur-xl opacity-50 animate-pulse" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-2xl">
+                  <Sparkles className="h-10 w-10 text-white" />
+                </div>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Discutez avec votre PDF</h3>
-              <p className="text-muted-foreground text-sm mb-6 max-w-sm">
-                Posez n'importe quelle question sur "{documentName}" et obtenez des réponses instantanées.
+              
+              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                Discutez avec votre PDF
+              </h3>
+              <p className="text-muted-foreground mb-8 max-w-md">
+                Posez n'importe quelle question sur <span className="font-medium text-foreground">"{documentName}"</span> et obtenez des réponses instantanées.
               </p>
               
-              {/* Suggested questions */}
-              <div className="flex flex-wrap gap-2 justify-center max-w-md">
+              {/* Suggested questions - Grid layout */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-2xl w-full">
                 {SUGGESTED_QUESTIONS.map((question, i) => (
-                  <Button
+                  <button
                     key={i}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => sendMessage(question)}
+                    onClick={() => sendMessage(question.text)}
+                    className="group relative p-4 rounded-xl border bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 text-left hover:scale-[1.02] hover:shadow-lg"
                   >
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    {question}
-                  </Button>
+                    <span className="text-2xl mb-2 block">{question.icon}</span>
+                    <span className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors">
+                      {question.text}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
           ) : (
             <>
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "flex gap-3",
+                    "flex gap-4 animate-slide-up",
                     message.role === 'user' ? "justify-end" : "justify-start"
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {message.role === 'assistant' && (
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarFallback className="bg-primary/10">
-                        <Bot className="h-4 w-4 text-primary" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
                   )}
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-2xl px-4 py-2 text-sm",
+                      "max-w-[75%] rounded-2xl px-5 py-3 shadow-md",
                       message.role === 'user'
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-md"
+                        : "bg-background border rounded-bl-md"
                     )}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{message.content}</p>
                   </div>
                   {message.role === 'user' && (
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarFallback className="bg-secondary">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
+                      <span className="text-white text-sm font-medium">Moi</span>
+                    </div>
                   )}
                 </div>
               ))}
               
               {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="bg-primary/10">
-                      <Bot className="h-4 w-4 text-primary" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="bg-muted rounded-2xl px-4 py-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                <div className="flex gap-4 justify-start animate-slide-up">
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="bg-background border rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -191,24 +213,43 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
         </div>
 
         {/* Input area */}
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Posez une question sur ce document..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={isLoading || !input.trim()}>
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="p-4 border-t bg-background/80 backdrop-blur-xl">
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="relative flex items-end gap-2 p-2 rounded-2xl border bg-background shadow-lg focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Posez votre question..."
+                disabled={isLoading}
+                rows={1}
+                className="flex-1 bg-transparent border-0 resize-none focus:outline-none focus:ring-0 text-[15px] px-3 py-2 max-h-32 placeholder:text-muted-foreground/60"
+              />
+              <Button 
+                type="submit" 
+                disabled={isLoading || !input.trim()}
+                size="icon"
+                className={cn(
+                  "h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
+                  input.trim() 
+                    ? "bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 shadow-lg" 
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ArrowUp className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Appuyez sur Entrée pour envoyer • Shift+Entrée pour un saut de ligne
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }
