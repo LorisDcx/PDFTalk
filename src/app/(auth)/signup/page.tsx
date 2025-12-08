@@ -1,0 +1,240 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/use-toast'
+import { FileText, Loader2, CheckCircle, Sparkles } from 'lucide-react'
+import { formatFileSize } from '@/lib/utils'
+
+interface PendingDocument {
+  name: string
+  size: number
+  type: string
+}
+
+export default function SignupPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [pendingDoc, setPendingDoc] = useState<PendingDocument | null>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const supabase = createClient()
+  const isDemo = searchParams.get('demo') === 'true'
+
+  useEffect(() => {
+    // Check for pending document from demo
+    if (isDemo && typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('pendingDocument')
+      if (stored) {
+        setPendingDoc(JSON.parse(stored))
+      }
+    }
+  }, [isDemo])
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      // Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      })
+
+      if (authError) {
+        toast({
+          title: 'Signup failed',
+          description: authError.message,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (authData.user) {
+        // Create user profile with 7-day trial
+        const trialEndAt = new Date()
+        trialEndAt.setDate(trialEndAt.getDate() + 7)
+
+        const { error: profileError } = await supabase.from('users').insert({
+          id: authData.user.id,
+          email: authData.user.email!,
+          name,
+          trial_end_at: trialEndAt.toISOString(),
+          subscription_status: 'trialing',
+        })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+        }
+
+        // Track signup event
+        await supabase.from('analytics_events').insert({
+          user_id: authData.user.id,
+          event_type: 'signup',
+          event_data: { source: 'web' },
+        })
+      }
+
+      toast({
+        title: 'Compte créé !',
+        description: pendingDoc 
+          ? 'Votre document va être analysé...'
+          : 'Votre essai gratuit de 7 jours a commencé.',
+      })
+
+      // If there's a pending document, redirect to dashboard with flag
+      if (pendingDoc) {
+        sessionStorage.setItem('processPendingDocument', 'true')
+      }
+      
+      router.push('/dashboard')
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-b from-background to-secondary/20">
+      <div className="w-full max-w-md">
+        {/* Pending document banner */}
+        {pendingDoc && (
+          <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/20 animate-fade-in-down">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-primary">Document prêt à analyser</p>
+                <p className="text-xs text-muted-foreground truncate">{pendingDoc.name}</p>
+              </div>
+              <span className="text-xs text-muted-foreground">{formatFileSize(pendingDoc.size)}</span>
+            </div>
+          </div>
+        )}
+        
+        <Card className="animate-fade-in-up">
+          <CardHeader className="text-center">
+            <Link href="/" className="flex items-center justify-center gap-2 mb-4">
+              <FileText className="h-8 w-8 text-primary" />
+              <span className="text-2xl font-bold">PDFTalk</span>
+            </Link>
+            <CardTitle>{pendingDoc ? 'Créez votre compte' : 'Essai gratuit'}</CardTitle>
+            <CardDescription>
+              {pendingDoc 
+                ? 'Inscrivez-vous pour voir l\'analyse de votre document'
+                : '7 jours d\'accès premium, sans carte bancaire'}
+            </CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSignup}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Votre nom"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="vous@exemple.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+              </div>
+
+              <div className="rounded-lg bg-primary/5 p-4 space-y-2">
+                <p className="text-sm font-medium">Votre essai inclut :</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Accès complet à toutes les fonctionnalités
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Jusqu'à 1 500 pages analysées
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Comparaison de documents
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    Support prioritaire
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Création en cours...
+                  </>
+                ) : pendingDoc ? (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Créer et analyser
+                  </>
+                ) : (
+                  'Créer mon compte'
+                )}
+              </Button>
+              <p className="text-sm text-muted-foreground text-center">
+                Déjà un compte ?{' '}
+                <Link href="/login" className="text-primary hover:underline">
+                  Se connecter
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    </div>
+  )
+}
