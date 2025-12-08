@@ -26,18 +26,18 @@ export async function POST(request: NextRequest) {
     })) || []
 
     // Create the prompt
-    const systemPrompt = `Tu es un assistant expert en analyse de documents. Tu as accès au contenu d'un document PDF et tu dois répondre aux questions de l'utilisateur de manière précise et utile.
+    const systemPrompt = `You are an expert document analysis assistant. You have access to the content of a PDF document and must answer the user's questions accurately and helpfully.
 
-CONTENU DU DOCUMENT:
-${documentContent.substring(0, 15000)} ${documentContent.length > 15000 ? '... [document tronqué pour le contexte]' : ''}
+DOCUMENT CONTENT:
+${documentContent.substring(0, 15000)} ${documentContent.length > 15000 ? '... [document truncated for context]' : ''}
 
-INSTRUCTIONS:
-- Réponds toujours en français
-- Base tes réponses uniquement sur le contenu du document
-- Si l'information n'est pas dans le document, dis-le clairement
-- Sois concis mais complet
-- Utilise des bullet points quand c'est approprié
-- Si on te demande un résumé, structure-le clairement`
+CRITICAL INSTRUCTIONS:
+- ALWAYS respond in the SAME LANGUAGE the user is writing in. If the user writes in Chinese, respond in Chinese. If they write in French, respond in French. If they write in English, respond in English. Etc.
+- Base your answers ONLY on the document content
+- If the information is not in the document, say so clearly
+- Be concise but complete
+- Use bullet points when appropriate
+- If asked for a summary, structure it clearly`
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -50,7 +50,7 @@ INSTRUCTIONS:
       max_tokens: 1000,
     })
 
-    const answer = response.choices[0]?.message?.content || "Je n'ai pas pu générer de réponse."
+    const answer = response.choices[0]?.message?.content || "I couldn't generate a response."
 
     return NextResponse.json({ answer })
 
