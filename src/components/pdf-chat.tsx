@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2, Sparkles, ArrowUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n'
 
 interface Message {
   id: string
@@ -26,6 +27,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { t } = useLanguage()
 
   // Generate AI suggestions on mount
   useEffect(() => {
@@ -111,7 +113,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "Désolé, je n'ai pas pu traiter votre question. Veuillez réessayer.",
+        content: t('chatError'),
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, errorMessage])
@@ -152,10 +154,10 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
               </div>
               
               <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                Discutez avec votre PDF
+                {t('chatWithPdf')}
               </h3>
               <p className="text-muted-foreground max-w-md">
-                Posez n'importe quelle question sur <span className="font-medium text-foreground">"{documentName}"</span> et obtenez des réponses instantanées.
+                {t('askAnyQuestion')} <span className="font-medium text-foreground">"{documentName}"</span> {t('getInstantAnswers')}
               </p>
             </div>
           ) : (
@@ -186,7 +188,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                   </div>
                   {message.role === 'user' && (
                     <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
-                      <span className="text-white text-sm font-medium">Moi</span>
+                      <span className="text-white text-sm font-medium">{t('me')}</span>
                     </div>
                   )}
                 </div>
@@ -237,7 +239,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Posez votre question..."
+                placeholder={t('askYourQuestion')}
                 disabled={isLoading}
                 rows={1}
                 className="flex-1 bg-transparent border-0 resize-none focus:outline-none focus:ring-0 text-[15px] px-3 py-2 max-h-32 placeholder:text-muted-foreground/60"
