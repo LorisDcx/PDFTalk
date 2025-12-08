@@ -76,7 +76,7 @@ export default function SignupPage() {
           name,
           trial_end_at: trialEndAt.toISOString(),
           subscription_status: 'trialing',
-        })
+        } as any)
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
@@ -87,7 +87,7 @@ export default function SignupPage() {
           user_id: authData.user.id,
           event_type: 'signup',
           event_data: { source: 'web' },
-        })
+        } as any)
       }
 
       toast({
