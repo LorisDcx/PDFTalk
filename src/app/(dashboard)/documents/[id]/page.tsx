@@ -7,10 +7,18 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { TextTranslator } from '@/components/text-translator'
+import { PDFChat } from '@/components/pdf-chat'
+import { Flashcards } from '@/components/flashcards'
+import { 
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { 
   Loader2, 
   ArrowLeft, 
@@ -20,7 +28,9 @@ import {
   HelpCircle,
   CheckCircle,
   Clock,
-  BookOpen
+  BookOpen,
+  ListChecks,
+  MessageSquare
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
@@ -210,211 +220,223 @@ export default function DocumentPage() {
         </Card>
       )}
 
-      {/* Completed State - Tabs */}
+      {/* Completed State - Chat First with Secondary Actions */}
       {document.status === 'completed' && digest && (
-        <Tabs defaultValue="summary" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="summary">Résumé</TabsTrigger>
-            <TabsTrigger value="risks">Risques & Questions</TabsTrigger>
-            <TabsTrigger value="easy">Lecture facile</TabsTrigger>
-          </TabsList>
-
-          {/* Summary Tab */}
-          <TabsContent value="summary" className="space-y-6">
-            {/* Executive Summary */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Résumé exécutif
-                </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => copyToClipboard(digest.summary.join('\n'))}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copier
+        <div className="space-y-6">
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2">
+            {/* Summary Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Résumé
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {digest.summary.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Translation for summary */}
-            <TextTranslator text={digest.summary.join('\n\n')} />
-
-            {/* Key Clauses */}
-            {digest.keyClauses && digest.keyClauses.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Clauses et sections clés</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {digest.keyClauses.map((clause, i) => (
-                      <div key={i}>
-                        <h4 className="font-medium mb-1">{clause.title}</h4>
-                        <p className="text-sm text-muted-foreground">{clause.description}</p>
-                        {i < digest.keyClauses.length - 1 && <Separator className="mt-4" />}
-                      </div>
-                    ))}
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Résumé exécutif
+                  </SheetTitle>
+                  <SheetDescription>
+                    Les points clés de votre document
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6 space-y-6">
+                  <div>
+                    <ul className="space-y-3">
+                      {digest.summary.map((item, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                          <span className="text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="mt-4"
+                      onClick={() => copyToClipboard(digest.summary.join('\n'))}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copier le résumé
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Suggested Actions */}
-            {digest.actions && digest.actions.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Actions suggérées
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {digest.actions.map((action, i) => (
-                      <li key={i} className="flex items-start justify-between gap-4">
-                        <span>{action.action}</span>
-                        <Badge variant={getPriorityColor(action.priority) as any}>
-                          {action.priority}
-                        </Badge>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Risks & Questions Tab */}
-          <TabsContent value="risks" className="space-y-6">
-            {/* Risks */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Risques & points d'attention
-                </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => copyToClipboard(
-                    digest.risks.map(r => `[${r.severity.toUpperCase()}] ${r.title}: ${r.description}`).join('\n')
+                  {/* Key Clauses */}
+                  {digest.keyClauses && digest.keyClauses.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-3">Clauses clés</h4>
+                      <div className="space-y-3">
+                        {digest.keyClauses.map((clause, i) => (
+                          <div key={i} className="p-3 bg-muted rounded-lg">
+                            <h5 className="font-medium text-sm">{clause.title}</h5>
+                            <p className="text-xs text-muted-foreground mt-1">{clause.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
+
+                  {/* Actions */}
+                  {digest.actions && digest.actions.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Actions suggérées
+                      </h4>
+                      <ul className="space-y-2">
+                        {digest.actions.map((action, i) => (
+                          <li key={i} className="flex items-start justify-between gap-2 text-sm">
+                            <span>{action.action}</span>
+                            <Badge variant={getPriorityColor(action.priority) as any} className="text-xs">
+                              {action.priority}
+                            </Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Risks & Questions Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Risques & Questions
                 </Button>
-              </CardHeader>
-              <CardContent>
-                {digest.risks.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    No significant risks identified
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {digest.risks.map((risk, i) => (
-                      <div key={i} className="flex items-start gap-4">
-                        <Badge variant={getSeverityColor(risk.severity) as any} className="mt-1 shrink-0">
-                          {risk.severity}
-                        </Badge>
-                        <div>
-                          <h4 className="font-medium">{risk.title}</h4>
-                          <p className="text-sm text-muted-foreground mt-1">{risk.description}</p>
-                        </div>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Risques & Questions
+                  </SheetTitle>
+                  <SheetDescription>
+                    Points d'attention et questions à poser
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6 space-y-6">
+                  {/* Risks */}
+                  <div>
+                    <h4 className="font-semibold mb-3">Risques identifiés</h4>
+                    {digest.risks.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucun risque significatif identifié</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {digest.risks.map((risk, i) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <Badge variant={getSeverityColor(risk.severity) as any} className="mt-0.5 shrink-0 text-xs">
+                              {risk.severity}
+                            </Badge>
+                            <div>
+                              <h5 className="font-medium text-sm">{risk.title}</h5>
+                              <p className="text-xs text-muted-foreground mt-1">{risk.description}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Questions */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5" />
-                  Questions à poser
-                </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => copyToClipboard(digest.questions.join('\n'))}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
+                  <Separator />
+
+                  {/* Questions */}
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4" />
+                      Questions à poser
+                    </h4>
+                    {digest.questions.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucune question suggérée</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {digest.questions.map((question, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs shrink-0">
+                              {i + 1}
+                            </span>
+                            <span>{question}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="mt-4"
+                      onClick={() => copyToClipboard(digest.questions.join('\n'))}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copier les questions
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Easy Reading Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Lecture facile
                 </Button>
-              </CardHeader>
-              <CardContent>
-                {digest.questions.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    No questions suggested
-                  </p>
-                ) : (
-                  <ul className="space-y-3">
-                    {digest.questions.map((question, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-sm shrink-0">
-                          {i + 1}
-                        </span>
-                        <span>{question}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Version simplifiée
+                  </SheetTitle>
+                  <SheetDescription>
+                    Le document expliqué simplement
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6">
+                  {summary?.easy_reading ? (
+                    <>
+                      <div className="prose prose-sm max-w-none">
+                        <div className="whitespace-pre-wrap text-sm">{summary.easy_reading}</div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => copyToClipboard(summary.easy_reading || '')}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copier
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      La version simplifiée n'est pas disponible.
+                    </p>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
 
-          {/* Easy Reading Tab */}
-          <TabsContent value="easy" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Version simplifiée
-                </CardTitle>
-                {summary?.easy_reading && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => copyToClipboard(summary.easy_reading || '')}
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copier
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                {summary?.easy_reading ? (
-                  <div className="prose prose-sm max-w-none">
-                    <div className="whitespace-pre-wrap">{summary.easy_reading}</div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    La version simplifiée est en cours de génération...
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            {/* Flashcards */}
+            <Flashcards 
+              documentId={document.id}
+              documentContent={summary?.easy_reading || digest.summary.join('\n')}
+              documentName={document.file_name}
+            />
+          </div>
 
-            {/* Translation component for easy reading */}
-            {summary?.easy_reading && (
-              <TextTranslator text={summary.easy_reading} />
-            )}
-          </TabsContent>
-        </Tabs>
+          {/* Main Chat Interface */}
+          <PDFChat 
+            documentId={document.id}
+            documentContent={summary?.easy_reading || digest.summary.join('\n')}
+            documentName={document.file_name}
+          />
+        </div>
       )}
     </div>
   )
