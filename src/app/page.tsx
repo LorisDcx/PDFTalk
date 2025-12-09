@@ -19,7 +19,14 @@ import {
   Layers,
   Presentation,
   Globe,
-  Sparkles
+  Sparkles,
+  Lock,
+  Trash2,
+  ShieldCheck,
+  Eye,
+  Users,
+  GraduationCap,
+  Briefcase
 } from 'lucide-react'
 
 export default function LandingPage() {
@@ -162,28 +169,72 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Use Cases Section */}
-      <section className="py-20 px-4 bg-secondary/30">
+      {/* Security Section */}
+      <section className="py-16 px-4 bg-secondary/30">
         <div className="container max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
+              <ShieldCheck className="h-4 w-4" />
+              {t('securityTitle')}
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {t('securitySubtitle')}
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <SecurityCard
+              icon={<Lock className="h-5 w-5" />}
+              title={t('securityEncryption')}
+              description={t('securityEncryptionDesc')}
+            />
+            <SecurityCard
+              icon={<Trash2 className="h-5 w-5" />}
+              title={t('securityNoStorage')}
+              description={t('securityNoStorageDesc')}
+            />
+            <SecurityCard
+              icon={<ShieldCheck className="h-5 w-5" />}
+              title={t('securityGDPR')}
+              description={t('securityGDPRDesc')}
+            />
+            <SecurityCard
+              icon={<Eye className="h-5 w-5" />}
+              title={t('securityPrivate')}
+              description={t('securityPrivateDesc')}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* B2B Use Cases Section */}
+      <section className="py-20 px-4">
+        <div className="container max-w-6xl">
+          <h2 className="text-3xl font-bold text-center mb-4">
             {t('useCasesTitle')}
           </h2>
+          <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
+            {t('useCasesSubtitle')}
+          </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <UseCaseCard
-              title={t('useCaseContracts')}
-              description={t('useCaseContractsDesc')}
-              items={['Service agreements', 'NDAs', 'Employment contracts', 'Partnership deals']}
+            <B2BUseCaseCard
+              icon={<Users className="h-6 w-6" />}
+              title={t('useCaseOnboarding')}
+              description={t('useCaseOnboardingDesc')}
+              color="blue"
             />
-            <UseCaseCard
-              title={t('useCaseQuotes')}
-              description={t('useCaseQuotesDesc')}
-              items={['Vendor quotes', 'Project proposals', 'Pricing documents', 'RFP responses']}
+            <B2BUseCaseCard
+              icon={<GraduationCap className="h-6 w-6" />}
+              title={t('useCaseCompliance')}
+              description={t('useCaseComplianceDesc')}
+              color="purple"
             />
-            <UseCaseCard
-              title={t('useCaseTerms')}
-              description={t('useCaseTermsDesc')}
-              items={['Terms of service', 'Privacy policies', 'CGV documents', 'Compliance docs']}
+            <B2BUseCaseCard
+              icon={<Briefcase className="h-6 w-6" />}
+              title={t('useCaseSales')}
+              description={t('useCaseSalesDesc')}
+              color="orange"
             />
           </div>
         </div>
@@ -284,20 +335,34 @@ function ExampleCard({ icon, text }: { icon: React.ReactNode; text: string }) {
   )
 }
 
-function UseCaseCard({ title, description, items }: { title: string; description: string; items: string[] }) {
+function SecurityCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="group">
-      <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">{title}</h3>
-      <p className="text-muted-foreground mb-4">{description}</p>
-      <ul className="space-y-2">
-        {items.map((item, index) => (
-          <li key={item} className="flex items-center gap-2 text-sm group-hover:translate-x-1 transition-transform" style={{ transitionDelay: `${index * 50}ms` }}>
-            <CheckCircle className="h-4 w-4 text-primary" />
-            {item}
-          </li>
-        ))}
-      </ul>
+    <div className="text-center p-6 rounded-xl bg-background border hover:border-emerald-500/30 transition-colors group">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+        {icon}
+      </div>
+      <h4 className="font-semibold mb-2">{title}</h4>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
+  )
+}
+
+function B2BUseCaseCard({ icon, title, description, color }: { icon: React.ReactNode; title: string; description: string; color: 'blue' | 'purple' | 'orange' }) {
+  const colorClasses = {
+    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+    purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+    orange: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+  }
+  return (
+    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow group">
+      <CardContent className="p-6">
+        <div className={`w-14 h-14 rounded-xl ${colorClasses[color]} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+          {icon}
+        </div>
+        <h3 className="font-semibold text-lg mb-2">{title}</h3>
+        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+      </CardContent>
+    </Card>
   )
 }
 
