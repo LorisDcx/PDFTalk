@@ -36,7 +36,7 @@ import {
 
 interface Slide {
   id: number
-  type: 'title' | 'content' | 'conclusion' | 'stats' | 'timeline' | 'twoColumns' | 'quote' | 'comparison' | 'icons'
+  type: 'title' | 'content' | 'conclusion' | 'stats' | 'timeline' | 'twoColumns' | 'quote' | 'comparison' | 'icons' | 'image' | 'agenda' | 'bigNumber' | 'threeColumns'
   title?: string
   subtitle?: string
   emoji?: string
@@ -52,7 +52,59 @@ interface Slide {
   option1?: { title: string; emoji: string; points: string[] }
   option2?: { title: string; emoji: string; points: string[] }
   items?: { emoji: string; title: string; description: string }[]
+  imageUrl?: string
+  imageQuery?: string
+  number?: string
+  numberLabel?: string
+  agendaItems?: { number: string; title: string }[]
+  columns?: { title: string; items: string[] }[]
 }
+
+// Theme configurations
+const THEMES = {
+  modern: {
+    name: 'Moderne',
+    titleBg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
+    contentBg: 'bg-gradient-to-br from-slate-900 to-slate-800',
+    conclusionBg: 'bg-gradient-to-br from-primary via-cyan-600 to-teal-500',
+    accent: 'text-cyan-400',
+    accentBg: 'bg-cyan-500/20',
+  },
+  corporate: {
+    name: 'Corporate',
+    titleBg: 'bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900',
+    contentBg: 'bg-gradient-to-br from-gray-900 to-gray-800',
+    conclusionBg: 'bg-gradient-to-br from-blue-600 to-indigo-700',
+    accent: 'text-blue-400',
+    accentBg: 'bg-blue-500/20',
+  },
+  creative: {
+    name: 'Créatif',
+    titleBg: 'bg-gradient-to-br from-purple-900 via-pink-800 to-rose-900',
+    contentBg: 'bg-gradient-to-br from-slate-900 to-purple-900/50',
+    conclusionBg: 'bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600',
+    accent: 'text-pink-400',
+    accentBg: 'bg-pink-500/20',
+  },
+  nature: {
+    name: 'Nature',
+    titleBg: 'bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900',
+    contentBg: 'bg-gradient-to-br from-slate-900 to-emerald-900/50',
+    conclusionBg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+    accent: 'text-emerald-400',
+    accentBg: 'bg-emerald-500/20',
+  },
+  minimal: {
+    name: 'Minimal',
+    titleBg: 'bg-gradient-to-br from-neutral-100 to-neutral-200 text-neutral-900',
+    contentBg: 'bg-white text-neutral-900',
+    conclusionBg: 'bg-gradient-to-br from-neutral-800 to-neutral-900',
+    accent: 'text-neutral-600',
+    accentBg: 'bg-neutral-200',
+  },
+}
+
+type ThemeKey = keyof typeof THEMES
 
 interface SlidesProps {
   documentId: string
@@ -71,8 +123,13 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
+  const [theme, setTheme] = useState<ThemeKey>('modern')
+  const [includeImages, setIncludeImages] = useState(true)
+  const [presentationStyle, setPresentationStyle] = useState<'professional' | 'academic' | 'creative'>('professional')
   const { t, language } = useLanguage()
   const { toast } = useToast()
+  
+  const currentTheme = THEMES[theme]
 
   // Load existing slides from localStorage on mount
   useEffect(() => {
@@ -118,6 +175,9 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
           documentContent,
           slideCount,
           language,
+          theme,
+          includeImages,
+          presentationStyle,
         }),
       })
 
@@ -341,9 +401,10 @@ ${slides.map((slide, i) => `
                 </div>
               </div>
             </DialogHeader>
-            <div className="py-6 space-y-4">
+            <div className="py-4 space-y-5 max-h-[60vh] overflow-y-auto">
+              {/* Number of slides */}
               <div className="space-y-2">
-                <Label htmlFor="slideCount" className="text-sm font-medium">{t('numberOfSlides')}</Label>
+                <Label className="text-sm font-medium">{t('numberOfSlides')}</Label>
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
@@ -356,23 +417,102 @@ ${slides.map((slide, i) => `
                   />
                   <span className="text-2xl font-bold text-primary w-12">{slideCount}</span>
                 </div>
+                <div className="flex gap-2 flex-wrap">
+                  {[5, 8, 12].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setSlideCount(num)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-sm font-medium transition-all",
+                        slideCount === num 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted hover:bg-muted/80"
+                      )}
+                    >
+                      {num} slides
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                {[5, 8, 12].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => setSlideCount(num)}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-sm font-medium transition-all",
-                      slideCount === num 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-muted hover:bg-muted/80"
-                    )}
-                  >
-                    {num} {t('slides')}
-                  </button>
-                ))}
+
+              {/* Theme selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('theme')}</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {(Object.keys(THEMES) as ThemeKey[]).map((themeKey) => (
+                    <button
+                      key={themeKey}
+                      onClick={() => setTheme(themeKey)}
+                      className={cn(
+                        "p-2 rounded-lg border-2 transition-all text-xs font-medium",
+                        theme === themeKey 
+                          ? "border-primary bg-primary/10" 
+                          : "border-transparent bg-muted hover:bg-muted/80"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-full h-6 rounded mb-1",
+                        themeKey === 'modern' && "bg-gradient-to-r from-slate-800 to-cyan-600",
+                        themeKey === 'corporate' && "bg-gradient-to-r from-blue-800 to-indigo-600",
+                        themeKey === 'creative' && "bg-gradient-to-r from-purple-600 to-pink-500",
+                        themeKey === 'nature' && "bg-gradient-to-r from-emerald-600 to-teal-500",
+                        themeKey === 'minimal' && "bg-gradient-to-r from-neutral-200 to-neutral-400",
+                      )} />
+                      {THEMES[themeKey].name}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Presentation style */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t('presentationStyle')}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: 'professional', label: t('professional'), icon: '💼' },
+                    { key: 'academic', label: t('academic'), icon: '🎓' },
+                    { key: 'creative', label: t('creativeStyle'), icon: '🎨' },
+                  ].map((style) => (
+                    <button
+                      key={style.key}
+                      onClick={() => setPresentationStyle(style.key as any)}
+                      className={cn(
+                        "p-3 rounded-lg border-2 transition-all text-sm font-medium flex flex-col items-center gap-1",
+                        presentationStyle === style.key 
+                          ? "border-primary bg-primary/10" 
+                          : "border-transparent bg-muted hover:bg-muted/80"
+                      )}
+                    >
+                      <span className="text-xl">{style.icon}</span>
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Include images toggle */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🖼️</span>
+                  <div>
+                    <Label className="text-sm font-medium">{t('includeImages')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('includeImagesDesc')}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIncludeImages(!includeImages)}
+                  className={cn(
+                    "w-12 h-6 rounded-full transition-all relative",
+                    includeImages ? "bg-primary" : "bg-muted-foreground/30"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                    includeImages ? "left-7" : "left-1"
+                  )} />
+                </button>
+              </div>
+
               {/* Page cost indicator */}
               <div className="flex items-center justify-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                 <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
@@ -481,12 +621,12 @@ ${slides.map((slide, i) => `
                 {/* Stats Slide */}
                 {currentSlide.type === 'stats' && (
                   <div className="w-full max-w-4xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
                     <div className="grid grid-cols-3 gap-6">
                       {currentSlide.stats?.map((stat, i) => (
                         <div key={i} className="text-center p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
                           <span className="text-4xl mb-2 block">{stat.icon}</span>
-                          <span className="text-4xl md:text-5xl font-bold text-cyan-400 block">{stat.value}</span>
+                          <span className={cn("text-4xl md:text-5xl font-bold block", currentTheme.accent)}>{stat.value}</span>
                           <span className="text-sm md:text-base opacity-80 mt-2 block">{stat.label}</span>
                         </div>
                       ))}
@@ -497,17 +637,17 @@ ${slides.map((slide, i) => `
                 {/* Timeline Slide */}
                 {currentSlide.type === 'timeline' && (
                   <div className="w-full max-w-4xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
                     <div className="relative">
-                      <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-primary -translate-x-1/2" />
+                      <div className={cn("absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2", currentTheme.accent.replace('text-', 'bg-'))} />
                       <div className="space-y-6">
                         {currentSlide.steps?.map((step, i) => (
                           <div key={i} className={cn("flex items-center gap-4", i % 2 === 0 ? "flex-row" : "flex-row-reverse")}>
                             <div className={cn("flex-1 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20", i % 2 === 0 ? "text-right" : "text-left")}>
-                              <h3 className="font-bold text-cyan-400">{step.title}</h3>
+                              <h3 className={cn("font-bold", currentTheme.accent)}>{step.title}</h3>
                               <p className="text-sm opacity-80">{step.description}</p>
                             </div>
-                            <div className="w-4 h-4 rounded-full bg-cyan-400 border-4 border-slate-900 z-10 shrink-0" />
+                            <div className={cn("w-4 h-4 rounded-full border-4 border-slate-900 z-10 shrink-0", currentTheme.accent.replace('text-', 'bg-'))} />
                             <div className="flex-1" />
                           </div>
                         ))}
@@ -519,14 +659,14 @@ ${slides.map((slide, i) => `
                 {/* Two Columns Slide */}
                 {currentSlide.type === 'twoColumns' && (
                   <div className="w-full max-w-4xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
                     <div className="grid grid-cols-2 gap-8">
                       <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                        <h3 className="text-xl font-bold mb-4 text-cyan-400">{currentSlide.leftTitle}</h3>
+                        <h3 className={cn("text-xl font-bold mb-4", currentTheme.accent)}>{currentSlide.leftTitle}</h3>
                         <ul className="space-y-2">
                           {currentSlide.leftBullets?.map((bullet, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm">
-                              <span className="w-1.5 h-1.5 mt-2 rounded-full bg-cyan-400 shrink-0" />
+                              <span className={cn("w-1.5 h-1.5 mt-2 rounded-full shrink-0", currentTheme.accent.replace('text-', 'bg-'))} />
                               <span>{bullet}</span>
                             </li>
                           ))}
@@ -603,13 +743,96 @@ ${slides.map((slide, i) => `
                 {/* Icons Slide */}
                 {currentSlide.type === 'icons' && (
                   <div className="w-full max-w-4xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                       {currentSlide.items?.map((item, i) => (
                         <div key={i} className="p-5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-center">
                           <span className="text-4xl mb-3 block">{item.emoji}</span>
-                          <h3 className="font-bold text-cyan-400 mb-1">{item.title}</h3>
+                          <h3 className={cn("font-bold mb-1", currentTheme.accent)}>{item.title}</h3>
                           <p className="text-sm opacity-80">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Big Number Slide */}
+                {currentSlide.type === 'bigNumber' && (
+                  <div className="text-center space-y-6">
+                    <h2 className={cn("text-2xl md:text-3xl font-medium opacity-80", currentTheme.accent)}>{currentSlide.title}</h2>
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-cyan-400/30 to-primary/30 blur-3xl" />
+                      <span className="relative text-7xl md:text-9xl font-black bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+                        {currentSlide.number}
+                      </span>
+                    </div>
+                    <p className="text-xl md:text-2xl opacity-90">{currentSlide.numberLabel}</p>
+                  </div>
+                )}
+
+                {/* Agenda Slide */}
+                {currentSlide.type === 'agenda' && (
+                  <div className="w-full max-w-3xl space-y-8">
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
+                    <div className="space-y-4">
+                      {currentSlide.agendaItems?.map((item, i) => (
+                        <div key={i} className="flex items-center gap-6 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                          <span className={cn("text-3xl font-black", currentTheme.accent)}>{item.number}</span>
+                          <span className="text-xl font-medium">{item.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Image Slide */}
+                {currentSlide.type === 'image' && (
+                  <div className="w-full h-full flex">
+                    {/* Image side */}
+                    <div className="w-1/2 h-full relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/80 z-10" />
+                      <img 
+                        src={currentSlide.imageUrl || `https://source.unsplash.com/800x600/?${encodeURIComponent(currentSlide.imageQuery || 'business')}`}
+                        alt={currentSlide.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&h=600&fit=crop`
+                        }}
+                      />
+                    </div>
+                    {/* Content side */}
+                    <div className="w-1/2 flex flex-col justify-center p-8 space-y-6">
+                      <h2 className={cn("text-3xl md:text-4xl font-bold", currentTheme.accent)}>{currentSlide.title}</h2>
+                      {currentSlide.bullets && (
+                        <ul className="space-y-4">
+                          {currentSlide.bullets.map((bullet, i) => (
+                            <li key={i} className="flex items-start gap-4 text-lg">
+                              <span className={cn("w-2 h-2 mt-2.5 rounded-full shrink-0", currentTheme.accent.replace('text-', 'bg-'))} />
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Three Columns Slide */}
+                {currentSlide.type === 'threeColumns' && (
+                  <div className="w-full max-w-5xl space-y-8">
+                    <h2 className={cn("text-3xl md:text-4xl font-bold text-center", currentTheme.accent)}>{currentSlide.title}</h2>
+                    <div className="grid grid-cols-3 gap-6">
+                      {currentSlide.columns?.map((col, i) => (
+                        <div key={i} className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                          <h3 className={cn("text-xl font-bold mb-4 text-center", currentTheme.accent)}>{col.title}</h3>
+                          <ul className="space-y-2">
+                            {col.items.map((item, j) => (
+                              <li key={j} className="flex items-start gap-2 text-sm">
+                                <span className={cn("w-1.5 h-1.5 mt-2 rounded-full shrink-0", currentTheme.accent.replace('text-', 'bg-'))} />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       ))}
                     </div>
@@ -619,12 +842,12 @@ ${slides.map((slide, i) => `
                 {/* Content Slide */}
                 {currentSlide.type === 'content' && (
                   <div className="w-full max-w-3xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className={cn("text-3xl md:text-4xl font-bold", currentTheme.accent)}>{currentSlide.title}</h2>
                     {currentSlide.bullets && (
                       <ul className="space-y-4">
                         {currentSlide.bullets.map((bullet, i) => (
                           <li key={i} className="flex items-start gap-4 text-lg md:text-xl">
-                            <span className="w-2 h-2 mt-2.5 rounded-full bg-cyan-400 shrink-0" />
+                            <span className={cn("w-2 h-2 mt-2.5 rounded-full shrink-0", currentTheme.accent.replace('text-', 'bg-'))} />
                             <span>{bullet}</span>
                           </li>
                         ))}

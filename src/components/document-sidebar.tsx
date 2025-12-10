@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
+import { useLanguage } from '@/lib/i18n'
+import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +52,8 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   const router = useRouter()
   const { user } = useAuth()
   const supabase = createClient()
+  const { t } = useLanguage()
+  const { toast } = useToast()
   
   const [documents, setDocuments] = useState<DocumentItem[]>([])
   const [folders, setFolders] = useState<FolderItem[]>([])
@@ -61,6 +65,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   const [newFolderName, setNewFolderName] = useState('')
   const [newFolderColor, setNewFolderColor] = useState(FOLDER_COLORS[0].value)
   const [editingFolder, setEditingFolder] = useState<FolderItem | null>(null)
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) loadData()
@@ -141,6 +146,63 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
     saveDocumentAssignments(updatedDocs)
   }
 
+  const deleteDocument = async (docId: string) => {
+    if (!confirm(t('confirmDelete'))) return
+    
+    setDeletingDocId(docId)
+    try {
+      const doc = documents.find(d => d.id === docId)
+      
+      // Delete from storage
+      if (doc) {
+        const { data: docData } = await supabase
+          .from('documents')
+          .select('file_path')
+          .eq('id', docId)
+          .single()
+        
+        if (docData?.file_path) {
+          await supabase.storage.from('documents').remove([docData.file_path])
+        }
+      }
+      
+      // Delete from database
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', docId)
+      
+      if (error) throw error
+      
+      // Clean up localStorage
+      localStorage.removeItem(`flashcards-${docId}`)
+      localStorage.removeItem(`quiz-sessions-${docId}`)
+      localStorage.removeItem(`slides-${docId}`)
+      
+      // Update local state
+      setDocuments(docs => docs.filter(d => d.id !== docId))
+      
+      toast({
+        title: t('documentDeleted'),
+        description: t('documentDeletedDesc'),
+      })
+      
+      // If deleting current document, redirect to dashboard
+      if (docId === currentDocumentId) {
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      toast({
+        title: t('error'),
+        description: t('unexpectedError'),
+        variant: 'destructive',
+      })
+    } finally {
+      setDeletingDocId(null)
+    }
+  }
+
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders)
     if (newExpanded.has(folderId)) newExpanded.delete(folderId)
@@ -172,7 +234,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
             <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
             <Loader2 className="h-8 w-8 animate-spin text-primary relative" />
           </div>
-          <span className="text-sm text-muted-foreground">Chargement...</span>
+          <span className="text-sm text-muted-foreground">{t('processing')}</span>
         </div>
       </div>
     )
@@ -188,7 +250,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg shadow-primary/25">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold text-sm">Mes Documents</span>
+              <span className="font-semibold text-sm">{t('myDocuments')}</span>
             </div>
             <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
               <DialogTrigger asChild>
@@ -200,13 +262,13 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Folder className="h-5 w-5 text-primary" />
-                    Nouveau dossier
+                    {t('newFolder')}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <Input placeholder="Nom du dossier" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} className="border-2 focus:border-primary" />
+                  <Input placeholder={t('folderName')} value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} className="border-2 focus:border-primary" />
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Couleur</label>
+                    <label className="text-sm font-medium">{t('color')}</label>
                     <div className="flex flex-wrap gap-2">
                       {FOLDER_COLORS.map((color) => (
                         <button key={color.value} onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all shadow-md hover:scale-110", newFolderColor === color.value && "ring-2 ring-offset-2 ring-primary scale-110")} style={{ backgroundColor: color.value }} title={color.name} />
@@ -217,7 +279,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                 <DialogFooter>
                   <Button onClick={createFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90">
                     <FolderPlus className="h-4 w-4 mr-2" />
-                    Créer le dossier
+                    {t('createFolder')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -225,7 +287,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           </div>
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input placeholder="Rechercher..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 pl-9 text-sm bg-background/80 backdrop-blur-sm border-2 focus:border-primary focus:shadow-lg focus:shadow-primary/10 transition-all" />
+            <Input placeholder={t('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 pl-9 text-sm bg-background/80 backdrop-blur-sm border-2 focus:border-primary focus:shadow-lg focus:shadow-primary/10 transition-all" />
           </div>
         </div>
       </div>
@@ -252,11 +314,11 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuItem onClick={() => { setEditingFolder(folder); setNewFolderName(folder.name); setNewFolderColor(folder.color) }}>
-                      <Pencil className="h-4 w-4 mr-2" />Modifier
+                      <Pencil className="h-4 w-4 mr-2" />{t('edit')}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => deleteFolder(folder.id)} className="text-destructive focus:text-destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />Supprimer
+                      <Trash2 className="h-4 w-4 mr-2" />{t('delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -264,10 +326,10 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
               {isExpanded && (
                 <div className="ml-3 pl-3 border-l-2 space-y-1" style={{ borderColor: `${folder.color}30` }}>
                   {docsInFolder.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-2 px-2">Aucun document</p>
+                    <p className="text-xs text-muted-foreground py-2 px-2">{t('noDocuments')}</p>
                   ) : (
                     docsInFolder.map((doc) => (
-                      <DocumentCard key={doc.id} doc={doc} isActive={doc.id === currentDocumentId} isExpanded={expandedDocs.has(doc.id)} folders={folders} onNavigate={navigateToDocument} onAssign={assignDocumentToFolder} onToggleExpand={toggleDocExpand} formatDate={formatDate} />
+                      <DocumentCard key={doc.id} doc={doc} isActive={doc.id === currentDocumentId} isExpanded={expandedDocs.has(doc.id)} folders={folders} onNavigate={navigateToDocument} onAssign={assignDocumentToFolder} onToggleExpand={toggleDocExpand} onDelete={deleteDocument} deletingDocId={deletingDocId} formatDate={formatDate} t={t} />
                     ))
                   )}
                 </div>
@@ -281,12 +343,12 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
             {folders.length > 0 && (
               <div className="flex items-center gap-2 px-3 py-2">
                 <FileCheck className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Non classés</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('uncategorized')}</span>
               </div>
             )}
             <div className="space-y-1">
               {unassignedDocs.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} isActive={doc.id === currentDocumentId} isExpanded={expandedDocs.has(doc.id)} folders={folders} onNavigate={navigateToDocument} onAssign={assignDocumentToFolder} onToggleExpand={toggleDocExpand} formatDate={formatDate} />
+                <DocumentCard key={doc.id} doc={doc} isActive={doc.id === currentDocumentId} isExpanded={expandedDocs.has(doc.id)} folders={folders} onNavigate={navigateToDocument} onAssign={assignDocumentToFolder} onToggleExpand={toggleDocExpand} onDelete={deleteDocument} deletingDocId={deletingDocId} formatDate={formatDate} t={t} />
               ))}
             </div>
           </div>
@@ -297,7 +359,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
             <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
               <FileText className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm text-muted-foreground">{searchQuery ? 'Aucun résultat' : 'Aucun document'}</p>
+            <p className="text-sm text-muted-foreground">{searchQuery ? t('noResults') : t('noDocuments')}</p>
           </div>
         )}
       </div>
@@ -306,17 +368,17 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
         <div className="flex items-center justify-around text-center">
           <div>
             <p className="text-lg font-bold text-primary">{documents.length}</p>
-            <p className="text-xs text-muted-foreground">Documents</p>
+            <p className="text-xs text-muted-foreground">{t('documents')}</p>
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
             <p className="text-lg font-bold text-cyan-500">{folders.length}</p>
-            <p className="text-xs text-muted-foreground">Dossiers</p>
+            <p className="text-xs text-muted-foreground">{t('folders')}</p>
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
             <p className="text-lg font-bold text-violet-500">{documents.reduce((acc, d) => acc + d.flashcardsCount, 0)}</p>
-            <p className="text-xs text-muted-foreground">Flashcards</p>
+            <p className="text-xs text-muted-foreground">{t('flashcards')}</p>
           </div>
         </div>
       </div>
@@ -326,13 +388,13 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="h-5 w-5 text-primary" />
-              Modifier le dossier
+              {t('editFolder')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input placeholder="Nom du dossier" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} className="border-2 focus:border-primary" />
+            <Input placeholder={t('folderName')} value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} className="border-2 focus:border-primary" />
             <div className="space-y-2">
-              <label className="text-sm font-medium">Couleur</label>
+              <label className="text-sm font-medium">{t('color')}</label>
               <div className="flex flex-wrap gap-2">
                 {FOLDER_COLORS.map((color) => (
                   <button key={color.value} onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all shadow-md hover:scale-110", newFolderColor === color.value && "ring-2 ring-offset-2 ring-primary scale-110")} style={{ backgroundColor: color.value }} title={color.name} />
@@ -341,7 +403,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90">Enregistrer</Button>
+            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90">{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -349,20 +411,21 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   )
 }
 
-function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign, onToggleExpand, formatDate }: { doc: DocumentItem; isActive: boolean; isExpanded: boolean; folders: FolderItem[]; onNavigate: (id: string) => void; onAssign: (docId: string, folderId: string | null) => void; onToggleExpand: (id: string) => void; formatDate: (date: string) => string }) {
+function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign, onToggleExpand, onDelete, deletingDocId, formatDate, t }: { doc: DocumentItem; isActive: boolean; isExpanded: boolean; folders: FolderItem[]; onNavigate: (id: string) => void; onAssign: (docId: string, folderId: string | null) => void; onToggleExpand: (id: string) => void; onDelete: (id: string) => void; deletingDocId: string | null; formatDate: (date: string) => string; t: (key: string) => string }) {
   const hasData = doc.flashcardsCount > 0 || doc.quizSessionsCount > 0 || doc.slidesCount > 0
+  const isDeleting = deletingDocId === doc.id
 
   return (
-    <div className={cn("rounded-xl transition-all overflow-hidden", isActive ? "bg-gradient-to-r from-primary/10 to-cyan-500/10 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "hover:bg-white/50 dark:hover:bg-white/5")}>
+    <div className={cn("rounded-xl transition-all overflow-hidden", isActive ? "bg-gradient-to-r from-primary/10 to-cyan-500/10 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "hover:bg-white/50 dark:hover:bg-white/5", isDeleting && "opacity-50")}>
       <div className="flex items-center group">
-        <button onClick={() => hasData ? onToggleExpand(doc.id) : onNavigate(doc.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-left min-w-0">
+        <button onClick={() => hasData ? onToggleExpand(doc.id) : onNavigate(doc.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-left min-w-0" disabled={isDeleting}>
           {hasData && (
             <div className="shrink-0">
               {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
             </div>
           )}
           <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all", isActive ? "bg-gradient-to-br from-primary to-cyan-500 shadow-md shadow-primary/25" : "bg-muted/50")}>
-            <FileText className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <FileText className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />}
           </div>
           <div className="min-w-0 flex-1">
             <p className={cn("text-sm truncate font-medium", isActive && "text-primary")}>{doc.file_name.replace(/\.pdf$/i, '')}</p>
@@ -375,18 +438,18 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity mr-1 shrink-0">
+            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity mr-1 shrink-0" disabled={isDeleting}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={() => onNavigate(doc.id)}>
-              <FileText className="h-4 w-4 mr-2" />Ouvrir
+              <FileText className="h-4 w-4 mr-2" />{t('open')}
             </DropdownMenuItem>
             {folders.length > 0 && (
               <>
                 <DropdownMenuSeparator />
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Déplacer vers</div>
+                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t('moveTo')}</div>
                 {folders.map((folder) => (
                   <DropdownMenuItem key={folder.id} onClick={() => onAssign(doc.id, folder.id)}>
                     <div className="w-3 h-3 rounded-sm mr-2" style={{ backgroundColor: folder.color }} />
@@ -397,12 +460,16 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => onAssign(doc.id, null)}>
-                      <Trash2 className="h-4 w-4 mr-2" />Retirer du dossier
+                      <Folder className="h-4 w-4 mr-2" />{t('removeFromFolder')}
                     </DropdownMenuItem>
                   </>
                 )}
               </>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onDelete(doc.id)} className="text-destructive focus:text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" />{t('delete')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -428,7 +495,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
               </div>
             )}
           </div>
-          <Button variant="ghost" size="sm" className="w-full h-7 text-xs" onClick={() => onNavigate(doc.id)}>Ouvrir le document</Button>
+          <Button variant="ghost" size="sm" className="w-full h-7 text-xs" onClick={() => onNavigate(doc.id)}>{t('openDocument')}</Button>
         </div>
       )}
     </div>

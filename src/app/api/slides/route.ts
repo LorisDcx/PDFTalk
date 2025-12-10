@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentContent, slideCount = 8, language = 'fr' } = await request.json()
+    const { documentContent, slideCount = 8, language = 'fr', theme = 'modern', includeImages = true, presentationStyle = 'professional' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
@@ -46,7 +46,15 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    const systemPrompt = `You are an expert in creating PREMIUM and visually impressive PowerPoint presentations. Analyze the document and create a professional presentation with varied layouts.
+    // Style descriptions
+    const styleDescriptions: Record<string, string> = {
+      professional: 'formal, business-oriented, clear and concise, data-driven',
+      academic: 'scholarly, detailed, with citations and references, educational',
+      creative: 'engaging, storytelling, visual metaphors, innovative layouts'
+    }
+    const styleDesc = styleDescriptions[presentationStyle] || styleDescriptions.professional
+
+    const systemPrompt = `You are an expert in creating PREMIUM, visually impressive, and ${styleDesc} PowerPoint presentations. Analyze the document and create a professional presentation with varied layouts.
 
 DOCUMENT CONTENT:
 ${documentContent.substring(0, 15000)} ${documentContent.length > 15000 ? '... [document truncated]' : ''}
@@ -54,22 +62,29 @@ ${documentContent.substring(0, 15000)} ${documentContent.length > 15000 ? '... [
 CRITICAL INSTRUCTIONS:
 - Create exactly ${count} slides with VARIED LAYOUTS
 - ALL text content MUST be written in ${targetLanguage}
-- MUST use different slide types to make the presentation dynamic
+- MUST use different slide types to make the presentation dynamic and engaging
 - Add relevant emojis for visual illustration
-- Statistics should have impactful numbers
+- Statistics should have impactful, realistic numbers from the document
 - Timelines should have 3-5 chronological steps
-- Comparisons should contrast 2 elements
+- Comparisons should contrast 2 elements clearly
+- Make content concise but informative
+- Style: ${styleDesc}
+${includeImages ? '- For "image" type slides, provide an imageQuery (2-3 English keywords for stock photo search)' : ''}
 
-AVAILABLE SLIDE TYPES:
-1. "title" - Title slide (title + subtitle + emoji)
+AVAILABLE SLIDE TYPES (use variety!):
+1. "title" - Title slide (title + subtitle + emoji) - USE FIRST
 2. "content" - Classic content (title + bullets with emojis)
 3. "stats" - Key statistics (title + 3 stats with icon, value, label)
-4. "timeline" - Timeline (title + ordered steps)
-5. "twoColumns" - 2 columns (title + left/right columns with bullets)
+4. "timeline" - Timeline (title + ordered steps with title and description)
+5. "twoColumns" - 2 columns comparison (title + leftTitle/leftBullets + rightTitle/rightBullets)
 6. "quote" - Important quote (text + author)
-7. "comparison" - Comparison (title + 2 options with pros/cons)
-8. "icons" - Points with icons (title + items with emoji and description)
-9. "conclusion" - Conclusion slide (title + key points)
+7. "comparison" - Pros/Cons comparison (title + option1 + option2 with emoji, title, points)
+8. "icons" - Points with icons (title + items array with emoji, title, description)
+9. "bigNumber" - Highlight a key number (number + numberLabel + title)
+10. "agenda" - Agenda/Table of contents (title + agendaItems with number and title)
+${includeImages ? '11. "image" - Image with text (title + bullets + imageQuery for stock photo)' : ''}
+12. "threeColumns" - 3 columns (title + columns array with title and items)
+13. "conclusion" - Conclusion slide (title + key points) - USE LAST
 
 STRICT JSON FORMAT (write all text in ${targetLanguage}):
 {
@@ -84,6 +99,23 @@ STRICT JSON FORMAT (write all text in ${targetLanguage}):
     },
     {
       "id": 2,
+      "type": "agenda",
+      "title": "Agenda",
+      "agendaItems": [
+        { "number": "01", "title": "First topic" },
+        { "number": "02", "title": "Second topic" },
+        { "number": "03", "title": "Third topic" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "bigNumber",
+      "number": "85%",
+      "numberLabel": "of users agree",
+      "title": "Key Insight"
+    },
+    {
+      "id": 4,
       "type": "stats",
       "title": "Key Figures",
       "stats": [
@@ -92,54 +124,51 @@ STRICT JSON FORMAT (write all text in ${targetLanguage}):
         { "icon": "💰", "value": "10K", "label": "Stat description" }
       ]
     },
+    ${includeImages ? `{
+      "id": 5,
+      "type": "image",
+      "title": "Visual Concept",
+      "bullets": ["Key point 1", "Key point 2"],
+      "imageQuery": "business teamwork office"
+    },` : ''}
     {
-      "id": 3,
+      "id": 6,
       "type": "timeline",
-      "title": "The Steps",
+      "title": "The Process",
       "steps": [
         { "title": "Step 1", "description": "Description" },
-        { "title": "Step 2", "description": "Description" }
+        { "title": "Step 2", "description": "Description" },
+        { "title": "Step 3", "description": "Description" }
       ]
     },
     {
-      "id": 4,
-      "type": "twoColumns",
-      "title": "Comparison",
-      "leftTitle": "Option A",
-      "leftBullets": ["Point 1", "Point 2"],
-      "rightTitle": "Option B", 
-      "rightBullets": ["Point 1", "Point 2"]
+      "id": 7,
+      "type": "threeColumns",
+      "title": "Three Key Areas",
+      "columns": [
+        { "title": "Area 1", "items": ["Point A", "Point B"] },
+        { "title": "Area 2", "items": ["Point A", "Point B"] },
+        { "title": "Area 3", "items": ["Point A", "Point B"] }
+      ]
     },
     {
-      "id": 5,
+      "id": 8,
       "type": "icons",
       "title": "Essential Points",
       "items": [
         { "emoji": "✅", "title": "Point 1", "description": "Detail" },
-        { "emoji": "⚡", "title": "Point 2", "description": "Detail" }
+        { "emoji": "⚡", "title": "Point 2", "description": "Detail" },
+        { "emoji": "🎯", "title": "Point 3", "description": "Detail" }
       ]
     },
     {
-      "id": 6,
+      "id": 9,
       "type": "quote",
       "text": "Important quote from the document",
       "author": "Source or context"
     },
     {
-      "id": 7,
-      "type": "comparison",
-      "title": "Pros vs Cons",
-      "option1": { "title": "Pros", "emoji": "✅", "points": ["Point 1", "Point 2"] },
-      "option2": { "title": "Cons", "emoji": "⚠️", "points": ["Point 1", "Point 2"] }
-    },
-    {
-      "id": 8,
-      "type": "content",
-      "title": "Important Details",
-      "bullets": ["📌 Detailed point 1", "📌 Detailed point 2"]
-    },
-    {
-      "id": 9,
+      "id": 10,
       "type": "conclusion",
       "title": "Key Takeaways",
       "bullets": ["🎯 Key point 1", "🎯 Key point 2", "🎯 Key point 3"]
@@ -147,7 +176,14 @@ STRICT JSON FORMAT (write all text in ${targetLanguage}):
   ]
 }
 
-IMPORTANT: Vary slide types! Don't only use "content". The presentation must be visually diverse and professional. ALL TEXT MUST BE IN ${targetLanguage}.`
+IMPORTANT RULES:
+1. ALWAYS start with a "title" slide
+2. ALWAYS end with a "conclusion" slide  
+3. Vary slide types - don't use the same type twice in a row
+4. Use "bigNumber" for impressive statistics
+5. Use "agenda" early to outline the presentation
+6. Make bullet points concise (max 10 words each)
+7. ALL TEXT MUST BE IN ${targetLanguage}`
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',

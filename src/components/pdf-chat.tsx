@@ -140,7 +140,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
       {/* Decorative gradient blob */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-primary/20 via-cyan-400/20 to-teal-400/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
       
-      <div className="relative flex flex-col h-[00px]">
+      <div className="relative flex flex-col h-[560px]">
         {/* Messages area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
