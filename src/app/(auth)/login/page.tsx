@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { FileText, Loader2 } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -31,7 +33,7 @@ export default function LoginPage() {
 
       if (error) {
         toast({
-          title: 'Login failed',
+          title: t('loginFailed'),
           description: error.message,
           variant: 'destructive',
         })
@@ -42,8 +44,8 @@ export default function LoginPage() {
       router.refresh()
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
+        title: t('error'),
+        description: t('unexpectedError'),
         variant: 'destructive',
       })
     } finally {
@@ -59,13 +61,13 @@ export default function LoginPage() {
             <FileText className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold">PDFTalk</span>
           </Link>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle>{t('welcomeBack')}</CardTitle>
+          <CardDescription>{t('signInToContinue')}</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -77,7 +79,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -94,16 +96,16 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  {t('signingIn')}
                 </>
               ) : (
-                'Sign in'
+                t('signIn')
               )}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Don't have an account?{' '}
+              {t('noAccount')}{' '}
               <Link href="/signup" className="text-primary hover:underline">
-                Start free trial
+                {t('startFreeTrial')}
               </Link>
             </p>
           </CardFooter>

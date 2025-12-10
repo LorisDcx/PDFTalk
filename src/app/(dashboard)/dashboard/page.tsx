@@ -229,7 +229,7 @@ export default function DashboardPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="container max-w-6xl py-8 px-4">
+      <div className="w-full py-8 px-4 lg:px-6 xl:px-8">
         <div className="mb-8">
           <Skeleton className="h-9 w-48 mb-2" />
           <Skeleton className="h-5 w-72" />
@@ -253,7 +253,7 @@ export default function DashboardPage() {
   const showTrialExpired = profile && !profile.subscription_status && profile.trial_end_at && isTrialExpired(profile.trial_end_at)
 
   return (
-    <div className="container max-w-7xl py-8 px-4">
+    <div className="w-full py-8 px-4 lg:px-6 xl:px-8">
       {/* Header with usage inline */}
       <div className="mb-8 animate-fade-in-down">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

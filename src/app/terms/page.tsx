@@ -15,69 +15,83 @@ export default function TermsPage() {
       lastUpdate: 'Dernière mise à jour : Décembre 2024',
       sections: [
         {
-          title: '1. Acceptation des conditions',
-          content: `En utilisant PDFTalk, vous acceptez les présentes conditions générales d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.`
+          title: '1. Objet',
+          content: `Les présentes CGU régissent l'utilisation de PDFTalk, service d'aide à la révision pour étudiants. En créant un compte, vous acceptez ces conditions.`
         },
         {
-          title: '2. Description du service',
-          content: `PDFTalk est une plateforme d'analyse de documents PDF par intelligence artificielle. Nous fournissons :
-          - Résumés automatiques de documents
-          - Analyse des risques et points d'attention
-          - Version simplifiée des contenus complexes
-          - Génération de flashcards et présentations
-          - Chat interactif avec vos documents`
+          title: '2. Le service PDFTalk',
+          content: `PDFTalk permet de :
+
+• Uploader des cours au format PDF
+• Générer automatiquement des flashcards de révision
+• Créer des quiz QCM pour tester ses connaissances
+• Obtenir des résumés structurés
+• Générer des présentations
+• Discuter avec le contenu de vos documents
+
+Le service utilise l'intelligence artificielle pour analyser et transformer vos cours.`
         },
         {
-          title: '3. Compte utilisateur',
-          content: `Pour utiliser PDFTalk, vous devez :
-          - Créer un compte avec une adresse email valide
-          - Fournir des informations exactes et à jour
-          - Protéger vos identifiants de connexion
-          - Nous informer de toute utilisation non autorisée
-          
-          Vous êtes responsable de toutes les activités sur votre compte.`
+          title: '3. Inscription et compte',
+          content: `Pour utiliser PDFTalk :
+
+• Vous devez avoir au moins 13 ans
+• Créer un compte avec une adresse email valide
+• Garder vos identifiants confidentiels
+• Ne pas partager votre compte
+
+Vous êtes responsable de l'activité sur votre compte.`
         },
         {
-          title: '4. Utilisation acceptable',
-          content: `Vous vous engagez à ne pas :
-          - Utiliser le service à des fins illégales
-          - Uploader des contenus malveillants ou illicites
-          - Tenter de contourner les mesures de sécurité
-          - Revendre ou redistribuer le service
-          - Utiliser le service pour du harcèlement ou de la fraude`
+          title: '4. Utilisation du service',
+          content: `Vous vous engagez à :
+
+• Uploader uniquement des documents dont vous avez les droits
+• Ne pas utiliser le service à des fins illégales
+• Ne pas tenter de contourner les limites du service
+• Respecter les droits d'auteur
+
+PDFTalk est un outil d'aide à la révision. Les contenus générés ne remplacent pas vos cours et peuvent contenir des erreurs.`
         },
         {
-          title: '5. Propriété intellectuelle',
-          content: `- PDFTalk et son contenu sont protégés par le droit d'auteur
-          - Vous conservez tous les droits sur vos documents
-          - Les analyses générées peuvent être utilisées librement
-          - Vous nous accordez une licence limitée pour traiter vos documents`
+          title: '5. Abonnements',
+          content: `• Essai gratuit : 7 jours sur tous les plans
+• Facturation : mensuelle, à date anniversaire
+• Annulation : possible à tout moment, effective à la fin de la période
+• Remboursement : non applicable pour les périodes entamées
+
+Les prix peuvent évoluer avec un préavis de 30 jours.`
         },
         {
-          title: '6. Abonnements et paiements',
-          content: `- Période d'essai gratuite de 7 jours
-          - Facturation mensuelle automatique
-          - Annulation possible à tout moment
-          - Pas de remboursement pour les périodes en cours
-          - Prix susceptibles de changer avec préavis de 30 jours`
+          title: '6. Propriété intellectuelle',
+          content: `• Vos documents : vous restez propriétaire de vos cours
+• Contenus générés : vous pouvez les utiliser librement pour vos révisions
+• PDFTalk : le service, son code et son design nous appartiennent
+• Licence : vous nous accordez le droit de traiter vos documents pour fournir le service`
         },
         {
-          title: '7. Limitation de responsabilité',
-          content: `PDFTalk est fourni "tel quel". Nous ne garantissons pas :
-          - L'exactitude des analyses générées
-          - La disponibilité continue du service
-          - L'adéquation à un usage particulier
-          
-          Notre responsabilité est limitée au montant de votre abonnement mensuel.`
+          title: '7. Responsabilité',
+          content: `PDFTalk est fourni "en l'état". Nous ne garantissons pas :
+
+• L'exactitude à 100% des contenus générés par l'IA
+• La disponibilité permanente du service
+• L'adéquation aux examens spécifiques
+
+Vérifiez toujours les informations générées avec vos cours originaux.`
         },
         {
-          title: '8. Modifications',
-          content: `Nous nous réservons le droit de modifier ces conditions. Les modifications importantes seront notifiées par email. L'utilisation continue du service vaut acceptation des nouvelles conditions.`
+          title: '8. Résiliation',
+          content: `• Par vous : suppression du compte depuis les paramètres
+• Par nous : en cas de violation des CGU, avec préavis
+
+La résiliation entraîne la suppression de vos données.`
         },
         {
           title: '9. Contact',
-          content: `Pour toute question concernant ces conditions :
-          Email : legal@pdftalk.app`
+          content: `Questions sur les CGU : contact@pdftalk.fr
+
+Droit applicable : droit français
+Juridiction : tribunaux compétents de Paris`
         }
       ]
     },
@@ -86,69 +100,83 @@ export default function TermsPage() {
       lastUpdate: 'Last updated: December 2024',
       sections: [
         {
-          title: '1. Acceptance of Terms',
-          content: `By using PDFTalk, you agree to these terms of service. If you do not accept these terms, please do not use our service.`
+          title: '1. Purpose',
+          content: `These Terms govern the use of PDFTalk, a study aid service for students. By creating an account, you accept these terms.`
         },
         {
-          title: '2. Service Description',
-          content: `PDFTalk is an AI-powered PDF document analysis platform. We provide:
-          - Automatic document summaries
-          - Risk analysis and attention points
-          - Simplified version of complex content
-          - Flashcard and presentation generation
-          - Interactive chat with your documents`
+          title: '2. The PDFTalk service',
+          content: `PDFTalk allows you to:
+
+• Upload courses in PDF format
+• Automatically generate revision flashcards
+• Create MCQ quizzes to test your knowledge
+• Get structured summaries
+• Generate presentations
+• Chat with your document content
+
+The service uses artificial intelligence to analyze and transform your courses.`
         },
         {
-          title: '3. User Account',
-          content: `To use PDFTalk, you must:
-          - Create an account with a valid email address
-          - Provide accurate and up-to-date information
-          - Protect your login credentials
-          - Notify us of any unauthorized use
-          
-          You are responsible for all activities on your account.`
+          title: '3. Registration and account',
+          content: `To use PDFTalk:
+
+• You must be at least 13 years old
+• Create an account with a valid email address
+• Keep your credentials confidential
+• Do not share your account
+
+You are responsible for activity on your account.`
         },
         {
-          title: '4. Acceptable Use',
-          content: `You agree not to:
-          - Use the service for illegal purposes
-          - Upload malicious or illicit content
-          - Attempt to circumvent security measures
-          - Resell or redistribute the service
-          - Use the service for harassment or fraud`
+          title: '4. Use of service',
+          content: `You agree to:
+
+• Only upload documents you have rights to
+• Not use the service for illegal purposes
+• Not attempt to bypass service limits
+• Respect copyright
+
+PDFTalk is a study aid tool. Generated content does not replace your courses and may contain errors.`
         },
         {
-          title: '5. Intellectual Property',
-          content: `- PDFTalk and its content are protected by copyright
-          - You retain all rights to your documents
-          - Generated analyses can be used freely
-          - You grant us a limited license to process your documents`
+          title: '5. Subscriptions',
+          content: `• Free trial: 7 days on all plans
+• Billing: monthly, on anniversary date
+• Cancellation: possible at any time, effective at end of period
+• Refund: not applicable for started periods
+
+Prices may change with 30 days notice.`
         },
         {
-          title: '6. Subscriptions and Payments',
-          content: `- 7-day free trial period
-          - Automatic monthly billing
-          - Cancellation possible at any time
-          - No refunds for current periods
-          - Prices subject to change with 30-day notice`
+          title: '6. Intellectual property',
+          content: `• Your documents: you remain owner of your courses
+• Generated content: you can use freely for your studies
+• PDFTalk: the service, code and design belong to us
+• License: you grant us the right to process your documents to provide the service`
         },
         {
-          title: '7. Limitation of Liability',
+          title: '7. Liability',
           content: `PDFTalk is provided "as is". We do not guarantee:
-          - Accuracy of generated analyses
-          - Continuous service availability
-          - Suitability for a particular purpose
-          
-          Our liability is limited to the amount of your monthly subscription.`
+
+• 100% accuracy of AI-generated content
+• Permanent service availability
+• Suitability for specific exams
+
+Always verify generated information with your original courses.`
         },
         {
-          title: '8. Modifications',
-          content: `We reserve the right to modify these terms. Significant changes will be notified by email. Continued use of the service constitutes acceptance of the new terms.`
+          title: '8. Termination',
+          content: `• By you: account deletion from settings
+• By us: in case of Terms violation, with notice
+
+Termination results in deletion of your data.`
         },
         {
           title: '9. Contact',
-          content: `For any questions about these terms:
-          Email: legal@pdftalk.app`
+          content: `Questions about Terms: contact@pdftalk.fr
+
+Applicable law: French law
+Jurisdiction: Paris courts`
         }
       ]
     }

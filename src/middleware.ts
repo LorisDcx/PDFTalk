@@ -37,9 +37,9 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // Refresh session if expired
-  const { data: { session } } = await supabase.auth.getSession()
-  console.log('🛡️ MIDDLEWARE session:', !!session)
+  // Use getUser() instead of deprecated getSession() for security
+  const { data: { user }, error } = await supabase.auth.getUser()
+  console.log('🛡️ MIDDLEWARE user:', !!user, error?.message || '')
 
   // Protected routes
   const protectedPaths = ['/dashboard', '/documents', '/billing', '/settings']
@@ -53,15 +53,15 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname === path
   )
 
-  if (isProtectedPath && !session) {
-    console.log('🛡️ MIDDLEWARE -> redirect to /login (no session)')
+  if (isProtectedPath && !user) {
+    console.log('🛡️ MIDDLEWARE -> redirect to /login (no user)')
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirect', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (isAuthPath && session) {
-    console.log('🛡️ MIDDLEWARE -> redirect to /dashboard (has session)')
+  if (isAuthPath && user) {
+    console.log('🛡️ MIDDLEWARE -> redirect to /dashboard (has user)')
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 

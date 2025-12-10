@@ -7,6 +7,7 @@ import { Upload, FileText, ArrowRight, Sparkles } from 'lucide-react'
 import { Button } from './ui/button'
 import { cn, formatFileSize } from '@/lib/utils'
 import { useToast } from './ui/use-toast'
+import { useLanguage } from '@/lib/i18n'
 
 const MAX_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -15,15 +16,16 @@ export function DemoUpload() {
   const [isDragging, setIsDragging] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
       toast({
-        title: 'Fichier invalide',
+        title: t('invalidFile'),
         description: error.code === 'file-too-large' 
-          ? `Le fichier doit faire moins de ${formatFileSize(MAX_SIZE)}` 
-          : 'Seuls les fichiers PDF sont acceptés',
+          ? t('fileTooLarge').replace('{size}', formatFileSize(MAX_SIZE))
+          : t('onlyPdfAccepted'),
         variant: 'destructive',
       })
       return
@@ -32,7 +34,7 @@ export function DemoUpload() {
     if (acceptedFiles.length > 0) {
       setSelectedFile(acceptedFiles[0])
     }
-  }, [toast])
+  }, [toast, t])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -55,11 +57,10 @@ export function DemoUpload() {
     }
     sessionStorage.setItem('pendingDocument', JSON.stringify(fileInfo))
     
-    // Store the actual file in IndexedDB for larger files
+    // Store the actual file data
     const reader = new FileReader()
     reader.onload = () => {
       sessionStorage.setItem('pendingDocumentData', reader.result as string)
-      // Redirect to signup with demo flag
       router.push('/signup?demo=true')
     }
     reader.readAsDataURL(selectedFile)
@@ -97,19 +98,19 @@ export function DemoUpload() {
           </div>
           
           <p className="text-lg font-semibold mb-1 relative z-10">
-            {isDragActive ? '🎯 Déposez votre PDF ici' : 'Testez gratuitement'}
+            {isDragActive ? `🎯 ${t('dropPdfHere')}` : t('tryForFree')}
           </p>
           <p className="text-sm text-muted-foreground mb-4 relative z-10">
-            Glissez un PDF ou cliquez pour sélectionner
+            {t('dragOrClickToSelect')}
           </p>
           
           <Button variant="outline" size="sm" className="relative z-10">
             <FileText className="mr-2 h-4 w-4" />
-            Sélectionner un PDF
+            {t('selectPdf')}
           </Button>
           
           <p className="text-xs text-muted-foreground mt-3 relative z-10">
-            Max {formatFileSize(MAX_SIZE)} • Vos données restent privées
+            Max {formatFileSize(MAX_SIZE)} • {t('dataStaysPrivate')}
           </p>
         </div>
       ) : (
@@ -123,18 +124,18 @@ export function DemoUpload() {
               <p className="text-sm text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={clearFile} className="text-muted-foreground hover:text-destructive">
-              Changer
+              {t('change')}
             </Button>
           </div>
           
           <Button onClick={handleAnalyze} size="lg" className="w-full group">
             <Sparkles className="mr-2 h-5 w-5 group-hover:animate-pulse" />
-            Analyser mon document
+            {t('analyzeMyDocument')}
             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Button>
           
           <p className="text-xs text-center text-muted-foreground mt-3">
-            Créez un compte gratuit pour voir les résultats
+            {t('createFreeAccountToSeeResults')}
           </p>
         </div>
       )}

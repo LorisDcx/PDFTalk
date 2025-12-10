@@ -22,10 +22,12 @@ import {
   Sparkles,
   GraduationCap,
   Trash2,
-  Languages
+  Languages,
+  AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
+import { useToast } from '@/components/ui/use-toast'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,15 +39,17 @@ interface Flashcard {
   id: string
   question: string
   answer: string
+  sourceRef?: string // e.g., "Page 5, ligne 12"
 }
 
 interface FlashcardsProps {
   documentId: string
   documentContent: string
   documentName: string
+  onFlashcardsChange?: (flashcards: Flashcard[]) => void
 }
 
-export function Flashcards({ documentId, documentContent, documentName }: FlashcardsProps) {
+export function Flashcards({ documentId, documentContent, documentName, onFlashcardsChange }: FlashcardsProps) {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -56,6 +60,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
   const { t, language } = useLanguage()
+  const { toast } = useToast()
 
   // Load existing flashcards from localStorage on mount
   useEffect(() => {
@@ -82,8 +87,9 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
   useEffect(() => {
     if (flashcards.length > 0) {
       localStorage.setItem(`flashcards-${documentId}`, JSON.stringify(flashcards))
+      onFlashcardsChange?.(flashcards)
     }
-  }, [flashcards, documentId])
+  }, [flashcards, documentId, onFlashcardsChange])
 
   const generateFlashcards = async () => {
     setIsGenerating(true)
@@ -103,6 +109,16 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
       const data = await response.json()
 
       if (!response.ok) {
+        // Handle quota errors
+        if (response.status === 403) {
+          toast({
+            title: t('insufficientPages'),
+            description: data.error,
+            variant: 'destructive',
+          })
+          setIsDialogOpen(false)
+          return
+        }
         throw new Error(data.error || 'Failed to generate flashcards')
       }
 
@@ -113,6 +129,11 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
       setIsViewerOpen(true)
     } catch (error) {
       console.error('Flashcard generation error:', error)
+      toast({
+        title: t('error'),
+        description: t('unexpectedError'),
+        variant: 'destructive',
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -213,7 +234,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
             onClick={() => setIsViewerOpen(true)}
           >
             <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
-            <span>{t('view')} ({flashcards.length})</span>
+            <span>Flashcards ({flashcards.length})</span>
           </Button>
         )}
 
@@ -247,7 +268,7 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                     type="range"
                     min={10}
                     max={100}
-                    step={10}
+                    step={5}
                     value={cardCount}
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
                     className="flex-1 accent-primary"
@@ -270,6 +291,12 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                     {num} {t('cards')}
                   </button>
                 ))}
+              </div>
+              {/* Page cost indicator */}
+              <div className="flex items-center justify-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                  💰 {t('pageCost').replace('{count}', String(Math.ceil(cardCount / 5)))}
+                </span>
               </div>
             </div>
             <DialogFooter>
@@ -377,7 +404,12 @@ export function Flashcards({ documentId, documentContent, documentName }: Flashc
                     {t('answer')}
                   </span>
                   <p className="text-base leading-relaxed">{currentCard?.answer}</p>
-                  <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {currentCard?.sourceRef && (
+                    <p className="text-xs text-muted-foreground mt-4 px-2 py-1 bg-muted/50 rounded">
+                      📍 {currentCard.sourceRef}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     👆 {t('clickToShowQuestion')}
                   </p>
                 </div>

@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { FileText, Loader2, CheckCircle, Sparkles } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n'
 
 interface PendingDocument {
   name: string
@@ -27,6 +28,7 @@ export default function SignupPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const supabase = createClient()
   const isDemo = searchParams.get('demo') === 'true'
 
@@ -58,7 +60,7 @@ export default function SignupPage() {
 
       if (authError) {
         toast({
-          title: 'Signup failed',
+          title: t('signupFailed'),
           description: authError.message,
           variant: 'destructive',
         })
@@ -91,10 +93,10 @@ export default function SignupPage() {
       }
 
       toast({
-        title: 'Compte créé !',
+        title: t('accountCreated'),
         description: pendingDoc 
-          ? 'Votre document va être analysé...'
-          : 'Votre essai gratuit de 7 jours a commencé.',
+          ? t('documentWillBeAnalyzed')
+          : t('trialStarted'),
       })
 
       // If there's a pending document, redirect to dashboard with flag
@@ -106,8 +108,8 @@ export default function SignupPage() {
       router.refresh()
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
+        title: t('error'),
+        description: t('unexpectedError'),
         variant: 'destructive',
       })
     } finally {
@@ -126,7 +128,7 @@ export default function SignupPage() {
                 <Sparkles className="h-5 w-5 text-primary animate-pulse" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-primary">Document prêt à analyser</p>
+                <p className="text-sm font-medium text-primary">{t('documentReadyToAnalyze')}</p>
                 <p className="text-xs text-muted-foreground truncate">{pendingDoc.name}</p>
               </div>
               <span className="text-xs text-muted-foreground">{formatFileSize(pendingDoc.size)}</span>
@@ -140,32 +142,32 @@ export default function SignupPage() {
               <FileText className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold">PDFTalk</span>
             </Link>
-            <CardTitle>{pendingDoc ? 'Créez votre compte' : 'Essai gratuit'}</CardTitle>
+            <CardTitle>{pendingDoc ? t('createYourAccount') : t('freeTrial')}</CardTitle>
             <CardDescription>
               {pendingDoc 
-                ? 'Inscrivez-vous pour voir l\'analyse de votre document'
-                : '7 jours d\'accès premium, sans carte bancaire'}
+                ? t('signupToSeeAnalysis')
+                : t('trialDescription')}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSignup}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nom</Label>
+                <Label htmlFor="name">{t('name')}</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Votre nom"
+                  placeholder={t('yourName')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="vous@exemple.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -173,7 +175,7 @@ export default function SignupPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
+                <Label htmlFor="password">{t('password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -184,27 +186,27 @@ export default function SignupPage() {
                   minLength={8}
                   disabled={isLoading}
                 />
-                <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+                <p className="text-xs text-muted-foreground">{t('minCharacters')}</p>
               </div>
 
               <div className="rounded-lg bg-primary/5 p-4 space-y-2">
-                <p className="text-sm font-medium">Votre essai inclut :</p>
+                <p className="text-sm font-medium">{t('trialIncludes')}</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary" />
-                    Accès complet à toutes les fonctionnalités
+                    {t('trialFeature1')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary" />
-                    Jusqu'à 1 500 pages analysées
+                    {t('trialFeature2')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary" />
-                    Comparaison de documents
+                    {t('trialFeature3')}
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-primary" />
-                    Support prioritaire
+                    {t('trialFeature4')}
                   </li>
                 </ul>
               </div>
@@ -214,21 +216,21 @@ export default function SignupPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Création en cours...
+                    {t('creating')}
                   </>
                 ) : pendingDoc ? (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Créer et analyser
+                    {t('createAndAnalyze')}
                   </>
                 ) : (
-                  'Créer mon compte'
+                  t('createMyAccount')
                 )}
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Déjà un compte ?{' '}
+                {t('alreadyHaveAccount')}{' '}
                 <Link href="/login" className="text-primary hover:underline">
-                  Se connecter
+                  {t('signIn')}
                 </Link>
               </p>
             </CardFooter>

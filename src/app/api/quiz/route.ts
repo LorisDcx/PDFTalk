@@ -14,16 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentId, documentContent, count = 20, language = 'fr' } = await request.json()
+    const { documentId, documentContent, count = 10, language = 'fr' } = await request.json()
 
     if (!documentContent) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    const cardCount = Math.min(100, Math.max(10, count))
+    const questionCount = Math.min(30, Math.max(5, count))
 
-    // Calculate page cost (5 flashcards = 1 page)
-    const pageCost = calculatePageCost('flashcards', cardCount)
+    // Calculate page cost (5 questions = 1 page)
+    const pageCost = calculatePageCost('quiz', questionCount)
 
     // Check if user has enough pages
     const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
@@ -44,30 +44,31 @@ export async function POST(request: NextRequest) {
       fr: 'French', en: 'English', es: 'Spanish', de: 'German',
       it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic'
     }
-    const targetLanguage = languageNames[language] || 'English'
+    const targetLanguage = languageNames[language] || 'French'
 
-    const systemPrompt = `You are an expert in creating educational flashcards. Analyze the provided document and create exactly ${cardCount} flashcards to help memorize key concepts.
+    const systemPrompt = `You are an expert quiz creator for students. Analyze the provided document and create exactly ${questionCount} multiple choice questions to test knowledge.
 
 DOCUMENT CONTENT:
 ${documentContent.substring(0, 12000)} ${documentContent.length > 12000 ? '... [document truncated]' : ''}
 
 CRITICAL INSTRUCTIONS:
-- Create exactly ${cardCount} flashcards
+- Create exactly ${questionCount} multiple choice questions
 - ALL questions and answers MUST be written in ${targetLanguage}
-- Each question must be clear and specific
-- Each answer must be concise (2-3 sentences max)
+- Each question must have exactly 4 options (A, B, C, D)
+- Only ONE option should be correct
+- Include a source reference (approximate page/section) for each question
 - Cover the most important concepts from the document
-- Vary question types (definitions, dates, processes, concepts)
-- Include a source reference (approximate page/section) for each flashcard
+- Vary difficulty levels
 - Respond ONLY with valid JSON
 
 RESPONSE FORMAT (strict JSON):
 {
-  "flashcards": [
+  "questions": [
     {
       "id": "1",
-      "question": "Clear and precise question in ${targetLanguage}",
-      "answer": "Concise and informative answer in ${targetLanguage}",
+      "question": "Clear question in ${targetLanguage}?",
+      "correctAnswer": "The correct answer text",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
       "sourceRef": "Page X, Section Y"
     }
   ]
@@ -77,7 +78,7 @@ RESPONSE FORMAT (strict JSON):
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
+        { role: 'user', content: `Generate ${questionCount} quiz questions from this document. Write them in ${targetLanguage}.` },
       ],
       temperature: 0.7,
       max_tokens: 4000,
@@ -92,19 +93,28 @@ RESPONSE FORMAT (strict JSON):
 
     const parsed = JSON.parse(content)
     
+    // Ensure correctAnswer is in options array
+    const questions = (parsed.questions || []).map((q: any) => {
+      if (!q.options.includes(q.correctAnswer)) {
+        q.options[0] = q.correctAnswer
+        q.options = q.options.sort(() => Math.random() - 0.5)
+      }
+      return q
+    })
+    
     // Deduct pages from user's quota after successful generation
-    const actualCardCount = parsed.flashcards?.length || 0
-    const actualPageCost = calculatePageCost('flashcards', actualCardCount)
+    const actualQuestionCount = questions.length
+    const actualPageCost = calculatePageCost('quiz', actualQuestionCount)
     await deductPages(supabase, user.id, actualPageCost)
     
     return NextResponse.json({ 
-      flashcards: parsed.flashcards || [],
-      count: actualCardCount,
+      questions,
+      count: actualQuestionCount,
       pagesUsed: actualPageCost
     })
 
   } catch (error) {
-    console.error('Flashcards generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate flashcards' }, { status: 500 })
+    console.error('Quiz generation error:', error)
+    return NextResponse.json({ error: 'Failed to generate quiz' }, { status: 500 })
   }
 }

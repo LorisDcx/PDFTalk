@@ -116,6 +116,21 @@ export default function BillingPage() {
   const isInTrial = profile?.trial_end_at && !isTrialExpired(profile.trial_end_at) && !profile.subscription_status
   const trialDays = profile?.trial_end_at ? getTrialDaysRemaining(profile.trial_end_at) : 0
   const hasActiveSubscription = profile?.subscription_status === 'active'
+  
+  // Map old plan names to new ones for backwards compatibility
+  const getPlanName = (planId: string | null | undefined): string => {
+    if (!planId) return 'Starter'
+    // Map old plan names to new ones
+    const planMapping: Record<string, string> = {
+      'basic': 'Starter',
+      'growth': 'Student', 
+      'pro': 'Intense',
+      'starter': 'Starter',
+      'student': 'Student',
+      'intense': 'Intense'
+    }
+    return planMapping[planId] || planId
+  }
 
   return (
     <div className="container max-w-5xl py-8 px-4">
@@ -132,7 +147,7 @@ export default function BillingPage() {
               <h3 className="font-semibold">{t('currentPlan')}</h3>
               <p className="text-muted-foreground">
                 {hasActiveSubscription ? (
-                  <>{t('youAreOnPlan')} <span className="font-medium text-foreground">{PLANS[profile.current_plan!].name}</span></>
+                  <>{t('youAreOnPlan')} <span className="font-medium text-foreground">{getPlanName(profile.current_plan)}</span></>
                 ) : isInTrial ? (
                   <><span className="font-medium text-foreground">{trialDays}</span> {t('daysLeftInTrial')}</>
                 ) : (
@@ -156,8 +171,13 @@ export default function BillingPage() {
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-3 gap-6">
         {(Object.entries(PLANS) as [PlanId, typeof PLANS[PlanId]][]).map(([planId, plan]) => {
-          const isCurrentPlan = profile?.current_plan === planId && hasActiveSubscription
-          const isPopular = planId === 'growth'
+          // Map old plan IDs to new ones for comparison
+          const oldToNewPlanMap: Record<string, string> = {
+            'basic': 'starter', 'growth': 'student', 'pro': 'intense'
+          }
+          const currentPlanMapped = profile?.current_plan ? (oldToNewPlanMap[profile.current_plan] || profile.current_plan) : null
+          const isCurrentPlan = currentPlanMapped === planId && hasActiveSubscription
+          const isPopular = planId === 'student'
 
           return (
             <Card key={planId} className={isPopular ? 'border-primary shadow-md relative' : ''}>
@@ -177,11 +197,17 @@ export default function BillingPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Pages highlight */}
+                <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
+                  <span className="text-2xl font-bold text-primary">{plan.pagesPerMonth}</span>
+                  <span className="text-sm text-muted-foreground ml-1">{t('pagesPerMonth')}</span>
+                </div>
+                
                 <ul className="space-y-2">
-                  {plan.features.map((feature, i) => (
+                  {plan.featureKeys.map((featureKey, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>{feature}</span>
+                      <span>{t(featureKey)}</span>
                     </li>
                   ))}
                 </ul>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
+import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +21,23 @@ export async function POST(request: NextRequest) {
     }
 
     const count = Math.min(15, Math.max(5, slideCount))
+
+    // Calculate page cost (1 slide = 1 page)
+    const pageCost = calculatePageCost('slides', count)
+
+    // Check if user has enough pages
+    const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
+    
+    if (!usageCheck.allowed) {
+      return NextResponse.json({ 
+        error: usageCheck.error === 'subscription_expired' 
+          ? 'Your subscription has expired. Please upgrade to continue.'
+          : `Insufficient pages. You need ${pageCost} pages but only have ${usageCheck.pagesRemaining} remaining.`,
+        code: usageCheck.error,
+        pagesRequired: pageCost,
+        pagesRemaining: usageCheck.pagesRemaining
+      }, { status: 403 })
+    }
 
     // Language names for the prompt
     const languageNames: Record<string, string> = {
@@ -150,10 +168,16 @@ IMPORTANT: Vary slide types! Don't only use "content". The presentation must be 
 
     const parsed = JSON.parse(content)
     
+    // Deduct pages from user's quota after successful generation
+    const actualSlideCount = parsed.slides?.length || 0
+    const actualPageCost = calculatePageCost('slides', actualSlideCount)
+    await deductPages(supabase, user.id, actualPageCost)
+    
     return NextResponse.json({ 
       title: parsed.title,
       slides: parsed.slides || [],
-      count: parsed.slides?.length || 0 
+      count: actualSlideCount,
+      pagesUsed: actualPageCost
     })
 
   } catch (error) {

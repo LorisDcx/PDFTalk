@@ -17,7 +17,7 @@ export interface Database {
           created_at: string
           trial_end_at: string
           stripe_customer_id: string | null
-          current_plan: 'basic' | 'growth' | 'pro' | null
+          current_plan: 'starter' | 'student' | 'intense' | null
           subscription_status: 'active' | 'canceled' | 'past_due' | 'trialing' | null
           subscription_id: string | null
           pages_processed_this_month: number

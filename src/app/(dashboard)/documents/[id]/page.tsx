@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import { PDFChat } from '@/components/pdf-chat'
 import { Flashcards } from '@/components/flashcards'
 import { Slides } from '@/components/slides'
+import { Quiz } from '@/components/quiz'
+import { DocumentSidebar } from '@/components/document-sidebar'
 import { TranslateButton } from '@/components/translate-button'
 import { useLanguage } from '@/lib/i18n'
 import { 
@@ -23,6 +25,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { 
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog'
+import { 
   Loader2, 
   ArrowLeft, 
   Copy, 
@@ -33,7 +39,10 @@ import {
   Clock,
   BookOpen,
   ListChecks,
-  MessageSquare
+  MessageSquare,
+  Eye,
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
@@ -50,6 +59,10 @@ export default function DocumentPage() {
   const [translatedSummary, setTranslatedSummary] = useState<string[] | null>(null)
   const [translatedRisks, setTranslatedRisks] = useState<string | null>(null)
   const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
+  const [flashcards, setFlashcards] = useState<{ id: string; question: string; answer: string; sourceRef?: string }[]>([])
+  const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [showSidebar, setShowSidebar] = useState(true)
   const { toast } = useToast()
   const { t, language } = useLanguage()
   const supabase = createClient()
@@ -128,6 +141,27 @@ export default function DocumentPage() {
     })
   }
 
+  const loadPdfUrl = async () => {
+    if (!document) return
+    try {
+      const { data } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(document.file_path, 3600) // 1 hour
+      
+      if (data?.signedUrl) {
+        setPdfUrl(data.signedUrl)
+        setShowPdfViewer(true)
+      }
+    } catch (error) {
+      console.error('Error loading PDF:', error)
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger le PDF',
+        variant: 'destructive',
+      })
+    }
+  }
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'destructive'
@@ -159,49 +193,67 @@ export default function DocumentPage() {
   }
 
   return (
-    <div className="container max-w-5xl py-8 px-4">
-      {/* Header */}
-      <div className="mb-8">
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/dashboard">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Link>
-        </Button>
-        
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <FileText className="h-7 w-7" />
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Document Sidebar */}
+      {showSidebar && (
+        <DocumentSidebar currentDocumentId={document.id} />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full py-4 px-4 lg:px-6 xl:px-8">
+          {/* Header */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setShowSidebar(!showSidebar)}
+              >
+                {showSidebar ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">{document.file_name}</h1>
-              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                <span>{document.pages_count} pages</span>
-                <span>{formatDate(document.created_at)}</span>
-                {document.document_type && (
-                  <Badge variant="outline">{document.document_type}</Badge>
-                )}
+            
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-xl font-semibold leading-snug line-clamp-2">{document.file_name}</h1>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                    <span>{document.pages_count} pages</span>
+                    <span>{formatDate(document.created_at)}</span>
+                    {document.document_type && (
+                      <Badge variant="outline">{document.document_type}</Badge>
+                    )}
+                  </div>
+                </div>
               </div>
+              
+              {document.status === 'processing' && (
+                <Badge variant="warning" className="flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Processing
+                </Badge>
+              )}
+              {document.status === 'failed' && (
+                <Badge variant="destructive">Failed</Badge>
+              )}
             </div>
           </div>
-          
-          {document.status === 'processing' && (
-            <Badge variant="warning" className="flex items-center gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Processing
-            </Badge>
-          )}
-          {document.status === 'failed' && (
-            <Badge variant="destructive">Failed</Badge>
-          )}
-        </div>
-      </div>
 
       {/* Processing State */}
       {document.status === 'processing' && (
         <Card>
-          <CardContent className="py-16 text-center">
+          <CardContent className="py-8 text-center">
             <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
             <h2 className="text-xl font-semibold mb-2">Analyzing your document...</h2>
             <p className="text-muted-foreground">
@@ -214,7 +266,7 @@ export default function DocumentPage() {
       {/* Failed State */}
       {document.status === 'failed' && (
         <Card className="border-destructive">
-          <CardContent className="py-16 text-center">
+          <CardContent className="py-8 text-center">
             <AlertTriangle className="h-12 w-12 mx-auto text-destructive mb-4" />
             <h2 className="text-xl font-semibold mb-2">Analysis failed</h2>
             <p className="text-muted-foreground mb-4">
@@ -230,17 +282,43 @@ export default function DocumentPage() {
       {/* Completed State - Chat First with Secondary Actions */}
       {document.status === 'completed' && digest && (
         <div className="space-y-6">
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-2">
-            {/* Summary Sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
-                  <FileText className="h-4 w-4 group-hover:text-primary transition-colors" />
-                  {t('summary')}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+          {/* Tools Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Primary Tools - Document Analysis */}
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{t('documentAnalysis')}</CardTitle>
+                    <p className="text-xs text-muted-foreground">{t('viewContentAndAnalysis')}</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap gap-2">
+                  {/* View PDF */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all"
+                    onClick={loadPdfUrl}
+                  >
+                    <Eye className="h-4 w-4 group-hover:text-primary transition-colors" />
+                    {t('viewPdf')}
+                  </Button>
+
+                  {/* Summary Sheet */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+                        <FileText className="h-4 w-4 group-hover:text-primary transition-colors" />
+                        {t('summary')}
+                      </Button>
+                    </SheetTrigger>
+                  <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
                 <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <SheetHeader>
                     <div className="flex items-center justify-between">
@@ -480,22 +558,87 @@ export default function DocumentPage() {
                   )}
                 </div>
               </SheetContent>
-            </Sheet>
+                </Sheet>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Flashcards */}
-            <Flashcards 
-              documentId={document.id}
-              documentContent={summary?.easy_reading || digest.summary.join('\n')}
-              documentName={document.file_name}
-            />
+            {/* Secondary Tools - Study Tools */}
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                    <ListChecks className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">{t('studyTools')}</CardTitle>
+                    <p className="text-xs text-muted-foreground">{t('studyToolsDesc')}</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap gap-2">
+                  {/* Flashcards */}
+                  <Flashcards 
+                    documentId={document.id}
+                    documentContent={summary?.easy_reading || digest.summary.join('\n')}
+                    documentName={document.file_name}
+                    onFlashcardsChange={setFlashcards}
+                  />
 
-            {/* Slides / Presentation */}
-            <Slides 
-              documentId={document.id}
-              documentContent={summary?.easy_reading || digest.summary.join('\n')}
-              documentName={document.file_name}
-            />
+                  {/* Quiz */}
+                  <Quiz 
+                    documentId={document.id}
+                    documentContent={summary?.easy_reading || digest.summary.join('\n')}
+                    documentName={document.file_name}
+                    flashcards={flashcards}
+                  />
+
+                  {/* Slides / Presentation */}
+                  <Slides 
+                    documentId={document.id}
+                    documentContent={summary?.easy_reading || digest.summary.join('\n')}
+                    documentName={document.file_name}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* PDF Viewer Dialog */}
+          {showPdfViewer && pdfUrl && (
+            <Dialog open={showPdfViewer} onOpenChange={setShowPdfViewer}>
+              <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950">
+                {/* Header */}
+                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-primary/10 via-cyan-500/10 to-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg shadow-primary/25">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{document.file_name}</h3>
+                      <p className="text-xs text-white/60">{document.pages_count} pages</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-white/10 text-white border-0">
+                      PDF
+                    </Badge>
+                  </div>
+                </div>
+                {/* PDF Content */}
+                <div className="flex-1 h-[calc(90vh-80px)] relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
+                  <iframe 
+                    src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                    className="w-full h-full border-0"
+                    title="PDF Viewer"
+                    style={{ background: 'white' }}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* Main Chat Interface */}
           <PDFChat 
@@ -505,6 +648,8 @@ export default function DocumentPage() {
           />
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

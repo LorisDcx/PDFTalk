@@ -6,6 +6,7 @@ import { Upload, File, X, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { cn, formatFileSize } from '@/lib/utils'
 import { useToast } from './ui/use-toast'
+import { useLanguage } from '@/lib/i18n'
 
 interface FileUploadProps {
   onUpload: (file: File) => Promise<void>
@@ -17,14 +18,15 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
       toast({
-        title: 'Invalid file',
+        title: t('invalidFile'),
         description: error.code === 'file-too-large' 
-          ? `File must be smaller than ${formatFileSize(maxSize)}` 
+          ? t('fileTooLarge').replace('{size}', formatFileSize(maxSize))
           : error.message,
         variant: 'destructive',
       })
@@ -34,7 +36,7 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
     if (acceptedFiles.length > 0) {
       setSelectedFile(acceptedFiles[0])
     }
-  }, [maxSize, toast])
+  }, [maxSize, toast, t])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -56,8 +58,8 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
     } catch (error) {
       console.error('Upload error:', error)
       toast({
-        title: 'Upload failed',
-        description: 'There was an error uploading your file. Please try again.',
+        title: t('uploadFailed'),
+        description: t('uploadFailedDesc'),
         variant: 'destructive',
       })
     } finally {
@@ -88,13 +90,13 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
             <Upload className="h-12 w-12 text-muted-foreground mb-4 mx-auto" />
           </div>
           <p className="text-lg font-medium mb-1">
-            {isDragActive ? 'Déposez votre PDF ici' : 'Glissez-déposez votre PDF ici'}
+            {isDragActive ? t('dropPdfHere') : t('dragDropPdf')}
           </p>
           <p className="text-sm text-muted-foreground mb-4">
-            ou cliquez pour parcourir (max {formatFileSize(maxSize)})
+            {t('orClickToBrowse')} (max {formatFileSize(maxSize)})
           </p>
           <Button variant="outline" disabled={disabled || isUploading} className="btn-press">
-            Sélectionner un PDF
+            {t('selectPdf')}
           </Button>
         </div>
       ) : (
@@ -116,14 +118,14 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
               {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyse en cours...
+                  {t('analyzing')}
                 </>
               ) : (
-                'Analyser le document'
+                t('analyzeDocument')
               )}
             </Button>
             <Button variant="outline" onClick={clearFile} disabled={isUploading} className="btn-press">
-              Annuler
+              {t('cancel')}
             </Button>
           </div>
         </div>

@@ -6,67 +6,72 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 export const PLANS = {
-  basic: {
-    id: 'basic',
-    name: 'Basic',
+  starter: {
+    id: 'starter',
+    name: 'Starter',
     price: 3.99,
     pagesPerMonth: 150,
-    maxPagesPerDocument: 20,
+    maxPagesPerDocument: 30,
     documentHistory: 30,
-    features: [
-      'Up to 150 pages/month',
-      'Max 20 pages per document',
-      'Summary & Key Clauses',
-      'Risks & Questions',
-      'Easy Reading Mode',
-      '30 documents history',
+    // Feature keys for i18n translation
+    featureKeys: [
+      'planFeaturePages150',
+      'planFeatureFlashcards',
+      'planFeatureQuiz',
+      'planFeatureSlides',
+      'planFeatureChat',
+      'planFeatureExportCSV',
+      'planFeatureSummary',
     ],
-    stripePriceId: process.env.STRIPE_BASIC_PRICE_ID,
+    stripePriceId: process.env.STRIPE_STARTER_PRICE_ID,
   },
-  growth: {
-    id: 'growth',
-    name: 'Growth',
+  student: {
+    id: 'student',
+    name: 'Student',
+    price: 7.99,
+    pagesPerMonth: 400,
+    maxPagesPerDocument: 50,
+    documentHistory: 100,
+    featureKeys: [
+      'planFeaturePages400',
+      'planFeatureAllStarter',
+      'planFeatureMaxPages50',
+      'planFeatureHistory100',
+    ],
+    stripePriceId: process.env.STRIPE_STUDENT_PRICE_ID,
+  },
+  intense: {
+    id: 'intense',
+    name: 'Intense',
     price: 12.99,
-    pagesPerMonth: 600,
-    maxPagesPerDocument: 60,
-    documentHistory: 200,
-    features: [
-      'Up to 600 pages/month',
-      'Max 60 pages per document',
-      'Everything in Basic',
-      'Multi-document comparison (2 PDFs)',
-      'Priority processing',
-      'Custom prompt presets',
-      '200 documents history',
-    ],
-    stripePriceId: process.env.STRIPE_GROWTH_PRICE_ID,
-  },
-  pro: {
-    id: 'pro',
-    name: 'Pro',
-    price: 20.99,
-    pagesPerMonth: 1500,
+    pagesPerMonth: 1000,
     maxPagesPerDocument: 100,
     documentHistory: -1, // unlimited
-    features: [
-      'Up to 1,500 pages/month',
-      'Max 100 pages per document',
-      'Everything in Growth',
-      'Multi-document comparison (3 PDFs)',
-      'Team access (5 seats)',
-      'API access',
-      'Priority support',
-      'Unlimited history',
+    featureKeys: [
+      'planFeaturePages1000',
+      'planFeatureAllStudent',
+      'planFeatureMaxPages100',
+      'planFeaturePriority',
+      'planFeatureHistoryUnlimited',
     ],
-    stripePriceId: process.env.STRIPE_PRO_PRICE_ID,
+    stripePriceId: process.env.STRIPE_INTENSE_PRICE_ID,
   },
 } as const
 
 export type PlanId = keyof typeof PLANS
 
-export function getPlanLimits(planId: PlanId | null) {
-  if (!planId) return PLANS.basic // Default to basic for trial
-  return PLANS[planId] || PLANS.basic
+export function getPlanLimits(planId: PlanId | string | null) {
+  if (!planId) return PLANS.starter // Default to starter for trial
+  
+  // Map old plan IDs to new ones for backwards compatibility
+  const oldToNewPlanMap: Record<string, PlanId> = {
+    'basic': 'starter',
+    'growth': 'student', 
+    'pro': 'intense'
+  }
+  
+  const mappedPlanId = oldToNewPlanMap[planId] || planId
+  return PLANS[mappedPlanId as PlanId] || PLANS.starter
 }
 
 export async function createCheckoutSession(

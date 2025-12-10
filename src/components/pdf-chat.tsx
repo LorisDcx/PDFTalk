@@ -136,15 +136,15 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   }
 
   return (
-    <div className="relative rounded-2xl border bg-gradient-to-b from-background to-muted/20 shadow-xl overflow-hidden">
+    <div className="relative rounded-2xl border bg-gradient-to-b from-background to-muted/10 shadow-md overflow-hidden">
       {/* Decorative gradient blob */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-primary/20 via-cyan-400/20 to-teal-400/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
       
-      <div className="relative flex flex-col h-[600px]">
+      <div className="relative flex flex-col h-[00px]">
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
+            <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in text-sm">
               {/* Animated icon */}
               <div className="relative mb-6">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-400 to-teal-400 rounded-full blur-xl opacity-50 animate-pulse" />
@@ -153,10 +153,10 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                 </div>
               </div>
               
-              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              <h3 className="text-xl font-bold mb-1 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                 {t('chatWithPdf')}
               </h3>
-              <p className="text-muted-foreground max-w-md">
+              <p className="text-muted-foreground max-w-md text-sm">
                 {t('askAnyQuestion')} <span className="font-medium text-foreground">"{documentName}"</span> {t('getInstantAnswers')}
               </p>
             </div>
@@ -178,7 +178,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                   )}
                   <div
                     className={cn(
-                      "max-w-[75%] rounded-2xl px-5 py-3 shadow-md",
+                      "max-w-[75%] rounded-2xl px-4 py-2.5 shadow-md text-sm",
                       message.role === 'user'
                         ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-br-md"
                         : "bg-background border rounded-bl-md"
@@ -215,7 +215,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
         </div>
 
         {/* Input area */}
-        <div className="p-4 border-t bg-background/80 backdrop-blur-xl space-y-3">
+        <div className="p-3 border-t bg-background/80 backdrop-blur-xl space-y-2">
           {/* Quick suggestions - AI generated */}
           {suggestions.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center">

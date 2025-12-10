@@ -15,51 +15,73 @@ export default function PrivacyPage() {
       lastUpdate: 'Dernière mise à jour : Décembre 2024',
       sections: [
         {
-          title: '1. Collecte des données',
-          content: `Nous collectons les données suivantes :
-          - Informations de compte (email, nom)
-          - Documents PDF que vous uploadez pour analyse
-          - Données d'utilisation et analytiques
-          
-          Vos documents sont traités de manière sécurisée et ne sont jamais partagés avec des tiers.`
+          title: '1. Qui sommes-nous ?',
+          content: `PDFTalk est un service d'aide à la révision pour étudiants. Nous utilisons l'intelligence artificielle pour transformer vos cours PDF en outils de révision (flashcards, quiz, résumés).
+
+Responsable du traitement : PDFTalk
+Contact : contact@pdftalk.fr`
         },
         {
-          title: '2. Utilisation des données',
-          content: `Nous utilisons vos données pour :
-          - Fournir nos services d'analyse de documents
-          - Améliorer notre IA et nos algorithmes
-          - Vous contacter concernant votre compte
-          - Assurer la sécurité de la plateforme`
+          title: '2. Données collectées',
+          content: `Nous collectons uniquement les données nécessaires au fonctionnement du service :
+
+• Données de compte : email, mot de passe (chiffré)
+• Documents PDF : vos cours uploadés pour analyse
+• Données générées : flashcards, quiz, résumés créés
+• Données techniques : logs de connexion, préférences
+
+Nous ne collectons PAS de données sensibles (santé, opinions, etc.).`
         },
         {
-          title: '3. Stockage et sécurité',
-          content: `Vos données sont stockées de manière sécurisée avec :
-          - Chiffrement SSL/TLS pour toutes les transmissions
-          - Stockage chiffré pour les documents
-          - Accès restreint aux données personnelles
-          - Suppression automatique des documents après 30 jours`
+          title: '3. Utilisation des données',
+          content: `Vos données sont utilisées exclusivement pour :
+
+• Analyser vos PDF et générer les outils de révision
+• Sauvegarder votre progression et vos créations
+• Améliorer la qualité de notre IA
+• Vous envoyer des notifications liées à votre compte
+
+Nous ne vendons JAMAIS vos données à des tiers.`
         },
         {
-          title: '4. Vos droits',
-          content: `Conformément au RGPD, vous avez le droit de :
-          - Accéder à vos données personnelles
-          - Rectifier vos données
-          - Supprimer vos données
-          - Exporter vos données
-          
-          Contactez-nous à privacy@pdftalk.app pour exercer ces droits.`
+          title: '4. Stockage et sécurité',
+          content: `Vos données sont protégées par :
+
+• Chiffrement SSL/TLS pour toutes les communications
+• Stockage sécurisé sur des serveurs européens (Supabase)
+• Accès restreint aux données personnelles
+• Mots de passe hashés (non lisibles)
+
+Vos PDF sont stockés de manière chiffrée et ne sont accessibles que par vous.`
         },
         {
-          title: '5. Cookies',
-          content: `Nous utilisons des cookies essentiels pour :
-          - Maintenir votre session de connexion
-          - Mémoriser vos préférences de langue
-          - Analyser l'utilisation du site (analytics anonymisés)`
+          title: '5. Conservation des données',
+          content: `• Données de compte : conservées tant que votre compte est actif
+• Documents PDF : conservés jusqu'à suppression manuelle
+• Flashcards et quiz : conservés localement dans votre navigateur
+
+Vous pouvez supprimer votre compte et toutes vos données à tout moment depuis les paramètres.`
         },
         {
-          title: '6. Contact',
-          content: `Pour toute question concernant cette politique, contactez-nous :
-          Email : privacy@pdftalk.app`
+          title: '6. Vos droits (RGPD)',
+          content: `Conformément au RGPD, vous disposez des droits suivants :
+
+• Accès : consulter vos données personnelles
+• Rectification : corriger vos informations
+• Suppression : effacer votre compte et données
+• Portabilité : exporter vos données
+• Opposition : refuser certains traitements
+
+Pour exercer ces droits : contact@pdftalk.fr`
+        },
+        {
+          title: '7. Cookies',
+          content: `Nous utilisons uniquement des cookies essentiels :
+
+• Session : maintenir votre connexion
+• Préférences : langue, thème
+
+Aucun cookie publicitaire ou de tracking tiers.`
         }
       ]
     },
@@ -68,51 +90,73 @@ export default function PrivacyPage() {
       lastUpdate: 'Last updated: December 2024',
       sections: [
         {
-          title: '1. Data Collection',
-          content: `We collect the following data:
-          - Account information (email, name)
-          - PDF documents you upload for analysis
-          - Usage data and analytics
-          
-          Your documents are processed securely and never shared with third parties.`
+          title: '1. Who are we?',
+          content: `PDFTalk is a study aid service for students. We use artificial intelligence to transform your PDF courses into revision tools (flashcards, quizzes, summaries).
+
+Data controller: PDFTalk
+Contact: contact@pdftalk.fr`
         },
         {
-          title: '2. Data Usage',
-          content: `We use your data to:
-          - Provide our document analysis services
-          - Improve our AI and algorithms
-          - Contact you about your account
-          - Ensure platform security`
+          title: '2. Data collected',
+          content: `We only collect data necessary for the service:
+
+• Account data: email, password (encrypted)
+• PDF documents: your courses uploaded for analysis
+• Generated data: flashcards, quizzes, summaries created
+• Technical data: connection logs, preferences
+
+We do NOT collect sensitive data (health, opinions, etc.).`
         },
         {
-          title: '3. Storage and Security',
-          content: `Your data is stored securely with:
-          - SSL/TLS encryption for all transmissions
-          - Encrypted storage for documents
-          - Restricted access to personal data
-          - Automatic document deletion after 30 days`
+          title: '3. Data usage',
+          content: `Your data is used exclusively to:
+
+• Analyze your PDFs and generate revision tools
+• Save your progress and creations
+• Improve the quality of our AI
+• Send you account-related notifications
+
+We NEVER sell your data to third parties.`
         },
         {
-          title: '4. Your Rights',
-          content: `Under GDPR, you have the right to:
-          - Access your personal data
-          - Rectify your data
-          - Delete your data
-          - Export your data
-          
-          Contact us at privacy@pdftalk.app to exercise these rights.`
+          title: '4. Storage and security',
+          content: `Your data is protected by:
+
+• SSL/TLS encryption for all communications
+• Secure storage on European servers (Supabase)
+• Restricted access to personal data
+• Hashed passwords (not readable)
+
+Your PDFs are stored encrypted and only accessible by you.`
         },
         {
-          title: '5. Cookies',
-          content: `We use essential cookies to:
-          - Maintain your login session
-          - Remember your language preferences
-          - Analyze site usage (anonymized analytics)`
+          title: '5. Data retention',
+          content: `• Account data: kept as long as your account is active
+• PDF documents: kept until manual deletion
+• Flashcards and quizzes: stored locally in your browser
+
+You can delete your account and all data at any time from settings.`
         },
         {
-          title: '6. Contact',
-          content: `For any questions about this policy, contact us:
-          Email: privacy@pdftalk.app`
+          title: '6. Your rights (GDPR)',
+          content: `Under GDPR, you have the following rights:
+
+• Access: view your personal data
+• Rectification: correct your information
+• Deletion: erase your account and data
+• Portability: export your data
+• Opposition: refuse certain processing
+
+To exercise these rights: contact@pdftalk.fr`
+        },
+        {
+          title: '7. Cookies',
+          content: `We only use essential cookies:
+
+• Session: maintain your login
+• Preferences: language, theme
+
+No advertising or third-party tracking cookies.`
         }
       ]
     }

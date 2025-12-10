@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
+import { useToast } from '@/components/ui/use-toast'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +72,7 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
   const { t, language } = useLanguage()
+  const { toast } = useToast()
 
   // Load existing slides from localStorage on mount
   useEffect(() => {
@@ -122,6 +124,16 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
       const data = await response.json()
 
       if (!response.ok) {
+        // Handle quota errors
+        if (response.status === 403) {
+          toast({
+            title: t('insufficientPages'),
+            description: data.error,
+            variant: 'destructive',
+          })
+          setIsDialogOpen(false)
+          return
+        }
         throw new Error(data.error || 'Failed to generate slides')
       }
 
@@ -132,6 +144,11 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
       setIsViewerOpen(true)
     } catch (error) {
       console.error('Slides generation error:', error)
+      toast({
+        title: t('error'),
+        description: t('unexpectedError'),
+        variant: 'destructive',
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -317,16 +334,16 @@ ${slides.map((slide, i) => `
                   <Presentation className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">Générer une Présentation</DialogTitle>
+                  <DialogTitle className="text-xl">{t('generatePresentation')}</DialogTitle>
                   <DialogDescription>
-                    Créez des slides pro en quelques secondes
+                    {t('createSlidesDesc')}
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
             <div className="py-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="slideCount" className="text-sm font-medium">Nombre de slides</Label>
+                <Label htmlFor="slideCount" className="text-sm font-medium">{t('numberOfSlides')}</Label>
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
@@ -355,6 +372,12 @@ ${slides.map((slide, i) => `
                     {num} {t('slides')}
                   </button>
                 ))}
+              </div>
+              {/* Page cost indicator */}
+              <div className="flex items-center justify-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                  💰 {t('pageCost').replace('{count}', String(slideCount))}
+                </span>
               </div>
             </div>
             <DialogFooter>

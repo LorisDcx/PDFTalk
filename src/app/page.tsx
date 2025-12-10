@@ -8,301 +8,344 @@ import { DemoUpload } from '@/components/demo-upload'
 import { useLanguage } from '@/lib/i18n'
 import { 
   FileText, 
-  Shield, 
   Zap, 
-  MessageSquare, 
-  BookOpen, 
   ArrowRight,
   CheckCircle,
   Clock,
-  FileSearch,
   Layers,
   Presentation,
-  Globe,
   Sparkles,
   Lock,
-  Trash2,
   ShieldCheck,
-  Eye,
-  Users,
+  BookOpen,
   GraduationCap,
-  Briefcase
+  Target,
+  MessageSquare,
+  Brain,
+  Play,
+  Coins
 } from 'lucide-react'
 
 export default function LandingPage() {
   const { t } = useLanguage()
+  
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-background relative overflow-hidden">
+      {/* Background Blobs */}
+      <div className="blob blob-primary w-[600px] h-[600px] -top-[200px] -left-[200px] fixed" />
+      <div className="blob blob-cyan w-[500px] h-[500px] top-[40%] -right-[150px] fixed" />
+      
+      {/* Noise overlay */}
+      <div className="noise-overlay" />
+      
       <Navbar />
       
       {/* Hero Section */}
-      <section className="flex-1 flex items-center justify-center px-4 py-12 md:py-20 bg-gradient-to-b from-background to-secondary/20 overflow-hidden">
-        <div className="container max-w-6xl text-center">
-          <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm mb-6 bg-background animate-fade-in-down">
-            <Zap className="h-4 w-4 mr-2 text-primary animate-pulse" />
-            {t('heroTagline')}
+      <section className="relative flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 md:py-16 overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="section-card p-6 md:p-12 lg:p-16 relative z-10">
+            <div className="text-center">
+              <div className="inline-flex items-center rounded-full border bg-background px-4 py-1.5 text-sm mb-6 animate-fade-in-down">
+                <Zap className="h-4 w-4 mr-2 text-primary animate-pulse" />
+                {t('heroTagline')}
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 animate-fade-in-up">
+                {t('heroTitle')}
+                <br />
+                <span className="gradient-text">{t('heroTitleHighlight')}</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up">
+                {t('heroDescription')}
+              </p>
+              
+              {/* Demo Upload Zone */}
+              <div className="mb-10 animate-fade-in-up max-w-2xl mx-auto">
+                <DemoUpload />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up">
+                <Button size="lg" asChild className="btn-press hover-lift text-base px-8 py-6">
+                  <Link href="/signup">
+                    {t('freeTrial7Days')}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild className="btn-press bg-background text-base px-8 py-6">
+                  <Link href="#how-it-works">
+                    <Play className="mr-2 h-5 w-5" />
+                    {t('discover')}
+                  </Link>
+                </Button>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mt-6">
+                {t('noCreditCard')}
+              </p>
+            </div>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 animate-fade-in-up stagger-1">
-            {t('heroTitle')}
-            <br />
-            <span className="gradient-text">{t('heroTitleHighlight')}</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up stagger-2">
-            {t('heroDescription')}
-          </p>
-          
-          {/* Demo Upload Zone */}
-          <div className="mb-8">
-            <DemoUpload />
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-12 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="section-card p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-center mb-8">
+              {t('howItWorksTitle')}
+            </h2>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <StepCard 
+                number="1" 
+                title={t('step1Title')}
+                description={t('step1Desc')}
+              />
+              <StepCard 
+                number="2" 
+                title={t('step2Title')}
+                description={t('step2Desc')}
+              />
+              <StepCard 
+                number="3" 
+                title={t('step3Title')}
+                description={t('step3Desc')}
+              />
+            </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up stagger-4">
-            <Button size="lg" asChild className="btn-press hover-lift">
-              <Link href="/signup">
-                {t('freeTrial7Days')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild className="btn-press">
-              <Link href="#features">{t('discover')}</Link>
-            </Button>
-          </div>
-          
-          <p className="text-sm text-muted-foreground mt-4 animate-fade-in stagger-5">
-            {t('noCreditCard')}
-          </p>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4">
-        <div className="container max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4 animate-fade-in-up">
-            {t('featuresTitle')}
-          </h2>
-          <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto animate-fade-in-up stagger-1">
-            {t('featuresSubtitle')}
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<FileSearch className="h-6 w-6" />}
-              title={t('featureExecutiveSummary')}
-              description={t('featureExecutiveSummaryDesc')}
-            />
-            <FeatureCard
-              icon={<Shield className="h-6 w-6" />}
-              title={t('featureRiskAnalysis')}
-              description={t('featureRiskAnalysisDesc')}
-            />
-            <FeatureCard
-              icon={<MessageSquare className="h-6 w-6" />}
-              title={t('featureQuestionsToAsk')}
-              description={t('featureQuestionsToAskDesc')}
-            />
-            <FeatureCard
-              icon={<BookOpen className="h-6 w-6" />}
-              title={t('featureEasyReading')}
-              description={t('featureEasyReadingDesc')}
-            />
-            <FeatureCard
-              icon={<Clock className="h-6 w-6" />}
-              title={t('featureInstantProcessing')}
-              description={t('featureInstantProcessingDesc')}
-            />
-            <FeatureCard
-              icon={<FileText className="h-6 w-6" />}
-              title={t('featureDocComparison')}
-              description={t('featureDocComparisonDesc')}
-            />
-            <FeatureCard
-              icon={<Layers className="h-6 w-6" />}
-              title={t('featureFlashcards')}
-              description={t('featureFlashcardsDesc')}
-              highlighted
-            />
-            <FeatureCard
-              icon={<Presentation className="h-6 w-6" />}
-              title={t('featureSlides')}
-              description={t('featureSlidesDesc')}
-              highlighted
-            />
-            <FeatureCard
-              icon={<Globe className="h-6 w-6" />}
-              title={t('featureMultilingual')}
-              description={t('featureMultilingualDesc')}
-              highlighted
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Generation Tools Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-primary/5">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-              <Sparkles className="h-4 w-4" />
-              {t('generationToolsTitle')}
-            </div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              {t('generationToolsSubtitle')}
+      <section id="features" className="py-12 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="section-card p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-center mb-2">
+              {t('featuresTitle')}
+            </h2>
+            <p className="text-muted-foreground text-center mb-8 max-w-lg mx-auto">
+              {t('featuresSubtitle')}
             </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <ExampleCard
-              icon={<Layers className="h-5 w-5" />}
-              text={t('exampleFlashcards')}
-            />
-            <ExampleCard
-              icon={<Presentation className="h-5 w-5" />}
-              text={t('exampleSlides')}
-            />
-            <ExampleCard
-              icon={<Globe className="h-5 w-5" />}
-              text={t('exampleMultilingual')}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Security Section */}
-      <section className="py-16 px-4 bg-secondary/30">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
-              <ShieldCheck className="h-4 w-4" />
-              {t('securityTitle')}
+            
+            <div className="grid md:grid-cols-2 gap-5">
+              <FeatureCard
+                icon={<Layers className="h-5 w-5" />}
+                title={t('featureFlashcards')}
+                description={t('featureFlashcardsDesc')}
+                highlighted
+              />
+              <FeatureCard
+                icon={<Target className="h-5 w-5" />}
+                title={t('featureQuiz')}
+                description={t('featureQuizDesc')}
+                highlighted
+              />
+              <FeatureCard
+                icon={<Presentation className="h-5 w-5" />}
+                title={t('featureSlides')}
+                description={t('featureSlidesDesc')}
+                highlighted
+              />
+              <FeatureCard
+                icon={<MessageSquare className="h-5 w-5" />}
+                title={t('featureChat')}
+                description={t('featureChatDesc')}
+                highlighted
+              />
+              <FeatureCard
+                icon={<BookOpen className="h-5 w-5" />}
+                title={t('featureExecutiveSummary')}
+                description={t('featureExecutiveSummaryDesc')}
+              />
+              <FeatureCard
+                icon={<Brain className="h-5 w-5" />}
+                title={t('featureRiskAnalysis')}
+                description={t('featureRiskAnalysisDesc')}
+              />
             </div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              {t('securitySubtitle')}
+          </div>
+        </div>
+      </section>
+
+      {/* Credits explanation */}
+      <section className="py-8 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="section-card p-6 md:p-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Coins className="h-5 w-5 text-primary" />
+              <span className="font-semibold">{t('creditsTitle')}</span>
+            </div>
+            <p className="text-center text-muted-foreground text-sm mb-6">
+              {t('creditsSubtitle')}
             </p>
-          </div>
-          
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <SecurityCard
-              icon={<Lock className="h-5 w-5" />}
-              title={t('securityEncryption')}
-              description={t('securityEncryptionDesc')}
-            />
-            <SecurityCard
-              icon={<Trash2 className="h-5 w-5" />}
-              title={t('securityNoStorage')}
-              description={t('securityNoStorageDesc')}
-            />
-            <SecurityCard
-              icon={<ShieldCheck className="h-5 w-5" />}
-              title={t('securityGDPR')}
-              description={t('securityGDPRDesc')}
-            />
-            <SecurityCard
-              icon={<Eye className="h-5 w-5" />}
-              title={t('securityPrivate')}
-              description={t('securityPrivateDesc')}
-            />
+            <div className="grid sm:grid-cols-3 gap-4 text-center">
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <Layers className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium">{t('credits5Flashcards')}</p>
+                <p className="text-xs text-muted-foreground">= 1 {t('page')}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <Target className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium">{t('credits5Questions')}</p>
+                <p className="text-xs text-muted-foreground">= 1 {t('page')}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <Presentation className="h-6 w-6 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium">{t('credits1Slide')}</p>
+                <p className="text-xs text-muted-foreground">= 1 {t('page')}</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* B2B Use Cases Section */}
-      <section className="py-20 px-4">
-        <div className="container max-w-6xl">
-          <h2 className="text-3xl font-bold text-center mb-4">
-            {t('useCasesTitle')}
-          </h2>
-          <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            {t('useCasesSubtitle')}
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <B2BUseCaseCard
-              icon={<Users className="h-6 w-6" />}
-              title={t('useCaseOnboarding')}
-              description={t('useCaseOnboardingDesc')}
-              color="blue"
-            />
-            <B2BUseCaseCard
-              icon={<GraduationCap className="h-6 w-6" />}
-              title={t('useCaseCompliance')}
-              description={t('useCaseComplianceDesc')}
-              color="purple"
-            />
-            <B2BUseCaseCard
-              icon={<Briefcase className="h-6 w-6" />}
-              title={t('useCaseSales')}
-              description={t('useCaseSalesDesc')}
-              color="orange"
-            />
+      {/* Social proof */}
+      <section className="py-8 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="section-card p-4 text-center">
+              <div className="text-2xl font-bold text-primary">2 min</div>
+              <div className="text-xs text-muted-foreground">{t('avgAnalysisTime')}</div>
+            </div>
+            <div className="section-card p-4 text-center">
+              <div className="text-2xl font-bold text-primary">500+</div>
+              <div className="text-xs text-muted-foreground">{t('coursesAnalyzed')}</div>
+            </div>
+            <div className="section-card p-4 text-center">
+              <div className="text-2xl font-bold text-primary">4.8/5</div>
+              <div className="text-xs text-muted-foreground">{t('avgRating')}</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Preview */}
-      <section id="pricing" className="py-20 px-4">
-        <div className="container max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">{t('pricingTitle')}</h2>
-          <p className="text-muted-foreground mb-8">
-            {t('pricingSubtitle')}
-          </p>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <PricingCard
-              name="Basic"
-              price="3.99"
-              pages="150"
-              highlighted={false}
-              popularText={t('popular')}
-              perMonthText={t('perMonth')}
-              pagesPerMonthText={t('pagesPerMonth')}
-              label={t('planBasicLabel')}
-              features={[t('flashcardsIncluded'), t('slidesIncluded')]}
-            />
-            <PricingCard
-              name="Growth"
-              price="12.99"
-              pages="600"
-              highlighted={true}
-              popularText={t('popular')}
-              perMonthText={t('perMonth')}
-              pagesPerMonthText={t('pagesPerMonth')}
-              label={t('planGrowthLabel')}
-              features={[t('flashcardsIncluded'), t('slidesIncluded'), t('multilingualIncluded')]}
-            />
-            <PricingCard
-              name="Pro"
-              price="20.99"
-              pages="1,500"
-              highlighted={false}
-              popularText={t('popular')}
-              perMonthText={t('perMonth')}
-              pagesPerMonthText={t('pagesPerMonth')}
-              label={t('planProLabel')}
-              features={[t('flashcardsIncluded'), t('slidesIncluded'), t('multilingualIncluded')]}
-            />
+      {/* Pricing */}
+      <section id="pricing" className="py-12 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="section-card p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-center mb-2">{t('pricingTitle')}</h2>
+            <p className="text-muted-foreground text-center mb-8">
+              {t('pricingSubtitle')}
+            </p>
+            
+            <div className="grid md:grid-cols-3 gap-5">
+              <PricingCard
+                name="Starter"
+                price="3.99"
+                pages="150"
+                description={t('planStarterDesc')}
+                popularText={t('popular')}
+                perMonthText={t('perMonth')}
+              />
+              <PricingCard
+                name="Student"
+                price="7.99"
+                pages="400"
+                description={t('planStudentDesc')}
+                highlighted
+                popularText={t('popular')}
+                perMonthText={t('perMonth')}
+              />
+              <PricingCard
+                name="Intense"
+                price="12.99"
+                pages="1000"
+                description={t('planIntenseDesc')}
+                popularText={t('popular')}
+                perMonthText={t('perMonth')}
+              />
+            </div>
+            
+            {/* All plans include */}
+            <div className="mt-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-center text-sm font-medium mb-3">{t('allPlansInclude')}</p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> {t('flashcardsIncluded')}</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> {t('quizIncluded')}</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> {t('slidesIncluded')}</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> {t('exportCsvIncluded')}</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> {t('chatPDF')}</span>
+              </div>
+            </div>
+            
+            <div className="text-center mt-8">
+              <Button size="lg" asChild>
+                <Link href="/signup">{t('startFreeTrial')}</Link>
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                {t('noCreditCard')}
+              </p>
+            </div>
           </div>
-          
-          <Button size="lg" className="mt-8" asChild>
-            <Link href="/signup">{t('startFreeTrial')}</Link>
-          </Button>
+        </div>
+      </section>
+
+      {/* Trust */}
+      <section className="py-12 px-4 relative z-10">
+        <div className="container max-w-5xl">
+          <div className="section-card p-6 md:p-8">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
+              <span className="font-semibold">{t('securityTitle')}</span>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-4 text-center">
+              <div className="p-4">
+                <Lock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">{t('securityEncryption')}</p>
+                <p className="text-xs text-muted-foreground">{t('securityEncryptionDesc')}</p>
+              </div>
+              <div className="p-4">
+                <ShieldCheck className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">{t('securityGDPR')}</p>
+                <p className="text-xs text-muted-foreground">{t('securityGDPRDesc')}</p>
+              </div>
+              <div className="p-4">
+                <GraduationCap className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">{t('securityPrivate')}</p>
+                <p className="text-xs text-muted-foreground">{t('securityPrivateDesc')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-12 px-4 relative z-10">
+        <div className="container max-w-3xl">
+          <div className="section-card p-8 text-center bg-gradient-to-br from-primary/5 via-background to-cyan-500/5">
+            <h2 className="text-2xl font-bold mb-3">
+              {t('ctaTitle')}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {t('ctaSubtitle')}
+            </p>
+            <Button size="lg" asChild className="btn-press hover-lift">
+              <Link href="/signup">
+                {t('startFreeTrial')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 px-4">
-        <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <span className="font-semibold">PDFTalk</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
-          </p>
-          <div className="flex gap-4 text-sm text-muted-foreground">
-            <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
-            <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
+      <footer className="relative z-10 border-t border-border/50 py-8 px-4 bg-background/80 backdrop-blur-sm">
+        <div className="container max-w-5xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <span className="font-semibold">PDFTalk</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
+            </p>
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
+              <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
+              <Link href="mailto:contact@pdftalk.fr" className="hover:text-foreground">Contact</Link>
+            </div>
           </div>
         </div>
       </footer>
@@ -312,92 +355,52 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description, highlighted }: { icon: React.ReactNode; title: string; description: string; highlighted?: boolean }) {
   return (
-    <Card className={`border-0 shadow-sm card-hover group ${highlighted ? 'ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-cyan-500/5' : ''}`}>
-      <CardContent className="p-6">
-        <div className={`h-12 w-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${highlighted ? 'bg-gradient-to-br from-primary to-cyan-500 text-white' : 'bg-primary/10 text-primary'}`}>
-          {icon}
-        </div>
-        <h3 className="font-semibold text-lg mb-2">{title}</h3>
-        <p className="text-muted-foreground text-sm">{description}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function ExampleCard({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div className="flex items-start gap-4 p-5 rounded-xl bg-background border shadow-sm hover:shadow-md transition-shadow">
-      <div className="shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-white">
+    <div className={`p-5 rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:shadow-sm transition-all duration-200 group ${highlighted ? 'ring-1 ring-primary/30 bg-gradient-to-br from-primary/5 to-cyan-500/5' : ''}`}>
+      <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-200 ${highlighted ? 'bg-gradient-to-br from-primary to-cyan-500 text-white' : 'bg-primary/10 text-primary'}`}>
         {icon}
       </div>
-      <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+      <h3 className="font-semibold mb-1.5">{title}</h3>
+      <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>
   )
 }
 
-function SecurityCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="text-center p-6 rounded-xl bg-background border hover:border-emerald-500/30 transition-colors group">
-      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-        {icon}
+    <div className="text-center p-5 rounded-xl bg-background/50 border border-border/50 hover:border-primary/30 transition-all group">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/25 group-hover:scale-110 transition-transform">
+        {number}
       </div>
-      <h4 className="font-semibold mb-2">{title}</h4>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h3 className="font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   )
 }
 
-function B2BUseCaseCard({ icon, title, description, color }: { icon: React.ReactNode; title: string; description: string; color: 'blue' | 'purple' | 'orange' }) {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-    purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-    orange: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
-  }
-  return (
-    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow group">
-      <CardContent className="p-6">
-        <div className={`w-14 h-14 rounded-xl ${colorClasses[color]} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-          {icon}
-        </div>
-        <h3 className="font-semibold text-lg mb-2">{title}</h3>
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function PricingCard({ name, price, pages, highlighted, popularText, perMonthText, pagesPerMonthText, label, features }: { 
-  name: string; price: string; pages: string; highlighted: boolean;
-  popularText: string; perMonthText: string; pagesPerMonthText: string;
-  label?: string; features?: string[];
+function PricingCard({ name, price, pages, description, highlighted, popularText, perMonthText }: { 
+  name: string; price: string; pages: string; description: string; highlighted?: boolean;
+  popularText: string; perMonthText: string;
 }) {
   return (
-    <Card className={`card-hover ${highlighted ? 'border-primary shadow-lg scale-105' : ''}`}>
-      <CardContent className="p-6 text-center">
+    <Card className={`card-hover relative ${highlighted ? 'border-primary shadow-lg scale-105 z-10' : ''}`}>
+      <CardContent className="p-6">
         {highlighted && (
-          <span className="inline-block px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full mb-3 animate-pulse-soft">
+          <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-full">
             {popularText}
           </span>
         )}
-        <h3 className="font-semibold text-lg">{name}</h3>
-        {label && (
-          <p className="text-xs text-muted-foreground mt-1">{label}</p>
-        )}
-        <div className="my-4">
-          <span className="text-3xl font-bold gradient-text">{price}€</span>
-          <span className="text-muted-foreground">{perMonthText}</span>
+        <div className="text-center mb-4">
+          <h3 className="font-semibold text-lg">{name}</h3>
+          <p className="text-xs text-muted-foreground">{description}</p>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">{pages} {pagesPerMonthText}</p>
-        {features && features.length > 0 && (
-          <div className="space-y-1.5 pt-4 border-t">
-            {features.map((feature, i) => (
-              <div key={i} className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle className="h-3 w-3 text-primary" />
-                {feature}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="text-center mb-4">
+          <span className="text-3xl font-bold gradient-text">{price}€</span>
+          <span className="text-muted-foreground text-sm">{perMonthText}</span>
+        </div>
+        <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <span className="text-2xl font-bold text-primary">{pages}</span>
+          <span className="text-sm text-muted-foreground ml-1">pages/mois</span>
+        </div>
       </CardContent>
     </Card>
   )
