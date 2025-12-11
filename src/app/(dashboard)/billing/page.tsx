@@ -66,7 +66,17 @@ export default function BillingPage() {
         throw new Error(data.error || 'Failed to create checkout session')
       }
 
-      // Redirect to Stripe Checkout
+      // Check if plan was switched (no redirect needed)
+      if (data.switched) {
+        toast({
+          title: t('planSwitched'),
+          description: t('planSwitchedDesc'),
+        })
+        refreshProfile()
+        return
+      }
+
+      // Redirect to Stripe Checkout for new subscription
       window.location.href = data.url
     } catch (error: any) {
       toast({
