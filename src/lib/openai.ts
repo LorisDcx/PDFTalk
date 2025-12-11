@@ -55,7 +55,7 @@ Return your analysis in the following JSON format:
 
 export async function generateEasyReading(text: string) {
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-nano',
     messages: [
       {
         role: 'system',
@@ -76,8 +76,7 @@ Return a well-formatted, easy-to-read version that anyone can understand.`
         content: `Please simplify this document:\n\n${text}`
       }
     ],
-    temperature: 0.4,
-    max_tokens: 4000,
+    max_completion_tokens: 6000,
   })
 
   return response.choices[0].message.content || ''
@@ -85,7 +84,7 @@ Return a well-formatted, easy-to-read version that anyone can understand.`
 
 export async function compareDocuments(text1: string, text2: string) {
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-nano',
     messages: [
       {
         role: 'system',
@@ -112,8 +111,7 @@ Return your analysis in JSON format:
         content: `Compare these two documents:\n\n--- DOCUMENT 1 ---\n${text1}\n\n--- DOCUMENT 2 ---\n${text2}`
       }
     ],
-    temperature: 0.3,
-    max_tokens: 4000,
+    max_completion_tokens: 6000,
     response_format: { type: 'json_object' }
   })
 
@@ -140,7 +138,7 @@ export async function translateText(text: string, targetLanguage: string = 'fr')
   }
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-nano',
     messages: [
       {
         role: 'system',
@@ -158,8 +156,7 @@ Guidelines:
         content: text
       }
     ],
-    temperature: 0.3,
-    max_tokens: 4000,
+    max_completion_tokens: 6000,
   })
 
   return response.choices[0].message.content || ''

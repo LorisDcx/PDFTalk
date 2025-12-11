@@ -22,7 +22,8 @@ import {
   Maximize2,
   Minimize2,
   X,
-  Languages
+  Languages,
+  AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
@@ -394,7 +395,10 @@ ${slides.map((slide, i) => `
                   <Presentation className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">{t('generatePresentation')}</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2 text-xl">
+                    {t('generatePresentation')}
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">Beta</span>
+                  </DialogTitle>
                   <DialogDescription>
                     {t('createSlidesDesc')}
                   </DialogDescription>
@@ -433,6 +437,16 @@ ${slides.map((slide, i) => `
                     </button>
                   ))}
                 </div>
+                
+                {/* Beta warning when > 10 slides */}
+                {slideCount > 10 && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      <span className="font-semibold">Beta :</span> La génération de plus de 10 slides peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 5 ou 8 slides.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Theme selection */}

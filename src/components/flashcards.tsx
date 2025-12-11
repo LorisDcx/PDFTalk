@@ -253,7 +253,10 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">{t('generateFlashcards')}</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2 text-xl">
+                    {t('generateFlashcards')}
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">Beta</span>
+                  </DialogTitle>
                   <DialogDescription>
                     {t('flashcardsDesc')}
                   </DialogDescription>
@@ -267,7 +270,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                   <input
                     type="range"
                     min={10}
-                    max={100}
+                    max={50}
                     step={5}
                     value={cardCount}
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
@@ -277,11 +280,22 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </div>
                 {/* Estimated time indicator */}
                 <p className="text-xs text-muted-foreground text-center">
-                  ⏱️ {cardCount >= 80 ? t('canTakeUpTo4Min') : cardCount >= 50 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
+                  ⏱️ {cardCount >= 50 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
                 </p>
               </div>
+              
+              {/* Beta warning when > 20 cards */}
+              {cardCount > 20 && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    <span className="font-semibold">Beta :</span> La génération de plus de 20 flashcards peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 10 ou 20 cartes.
+                  </p>
+                </div>
+              )}
+              
               <div className="flex gap-2 flex-wrap">
-                {[20, 50, 100].map((num) => (
+                {[10, 20, 50].map((num) => (
                   <button
                     key={num}
                     onClick={() => setCardCount(num)}

@@ -40,14 +40,13 @@ CRITICAL INSTRUCTIONS:
 - If asked for a summary, structure it clearly`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-nano',
       messages: [
         { role: 'system', content: systemPrompt },
         ...conversationHistory,
         { role: 'user', content: question },
       ],
-      temperature: 0.7,
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
     })
 
     const answer = response.choices[0]?.message?.content || "I couldn't generate a response."

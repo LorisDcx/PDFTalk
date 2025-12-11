@@ -98,7 +98,7 @@ RESPONSE FORMAT (strict JSON):
           { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
         ],
         temperature: 0.7,
-        max_tokens: 8000,
+        max_tokens: 6000,
         response_format: { type: 'json_object' },
       }),
       timeoutMs

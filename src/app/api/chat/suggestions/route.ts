@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const targetLanguage = languageNames[language] || 'English'
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-nano',
       messages: [
         { 
           role: 'system', 
@@ -45,8 +45,7 @@ Respond ONLY with valid JSON in this format:
           content: `Document:\n${documentContent}` 
         },
       ],
-      temperature: 0.7,
-      max_tokens: 200,
+      max_completion_tokens: 200,
       response_format: { type: 'json_object' },
     })
 
