@@ -260,7 +260,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </div>
               </div>
             </DialogHeader>
-            <div className="py-6 space-y-4">
+            <div className="py-4 space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="cardCount" className="text-sm font-medium">{t('numberOfCards')}</Label>
                 <div className="flex items-center gap-4">
@@ -275,6 +275,10 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                   />
                   <span className="text-2xl font-bold text-primary w-12">{cardCount}</span>
                 </div>
+                {/* Estimated time indicator */}
+                <p className="text-xs text-muted-foreground text-center">
+                  ⏱️ {cardCount >= 80 ? t('canTakeUpTo4Min') : cardCount >= 50 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
+                </p>
               </div>
               <div className="flex gap-2 flex-wrap">
                 {[20, 50, 100].map((num) => (
@@ -293,7 +297,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 ))}
               </div>
               {/* Page cost indicator */}
-              <div className="flex items-center justify-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <div className="flex items-center justify-center p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                 <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
                   💰 {t('pageCost').replace('{count}', String(Math.ceil(cardCount / 5)))}
                 </span>
