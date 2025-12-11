@@ -22,8 +22,7 @@ import {
   Sparkles,
   GraduationCap,
   Trash2,
-  Languages,
-  AlertCircle
+  Languages
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
@@ -316,16 +315,6 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                   ⏱️ {cardCount >= 50 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
                 </p>
               </div>
-              
-              {/* Beta warning when > 30 cards */}
-              {cardCount > 30 && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <span className="font-semibold">Beta :</span> La génération de nombreuses flashcards peut prendre plus de temps. Pour plus de rapidité, utilisez 10 ou 20 cartes.
-                  </p>
-                </div>
-              )}
               
               <div className="flex gap-2 flex-wrap">
                 {[10, 20, 50].map((num) => (

@@ -22,8 +22,7 @@ import {
   Maximize2,
   Minimize2,
   X,
-  Languages,
-  AlertCircle
+  Languages
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
@@ -437,16 +436,6 @@ ${slides.map((slide, i) => `
                     </button>
                   ))}
                 </div>
-                
-                {/* Beta warning when > 10 slides */}
-                {slideCount > 10 && (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      <span className="font-semibold">Beta :</span> La génération de plus de 10 slides peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 5 ou 8 slides.
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Theme selection */}
