@@ -184,9 +184,13 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   } as any)
 }
 
-function getPlanFromPriceId(priceId: string): 'basic' | 'growth' | 'pro' | null {
-  if (priceId === process.env.STRIPE_BASIC_PRICE_ID) return 'basic'
-  if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return 'growth'
-  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'pro'
+function getPlanFromPriceId(priceId: string): 'starter' | 'student' | 'graduate' | null {
+  if (priceId === process.env.STRIPE_STARTER_PRICE_ID) return 'starter'
+  if (priceId === process.env.STRIPE_STUDENT_PRICE_ID) return 'student'
+  if (priceId === process.env.STRIPE_GRADUATE_PRICE_ID) return 'graduate'
+  // Legacy mapping for older env vars (basic/growth/pro or intense)
+  if (priceId === process.env.STRIPE_BASIC_PRICE_ID) return 'starter'
+  if (priceId === process.env.STRIPE_GROWTH_PRICE_ID) return 'student'
+  if (priceId === process.env.STRIPE_PRO_PRICE_ID) return 'graduate'
   return null
 }

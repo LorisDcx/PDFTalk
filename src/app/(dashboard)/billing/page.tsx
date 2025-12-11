@@ -134,10 +134,12 @@ export default function BillingPage() {
     const planMapping: Record<string, string> = {
       'basic': 'Starter',
       'growth': 'Student', 
-      'pro': 'Intense',
+      'pro': 'Graduate',
       'starter': 'Starter',
       'student': 'Student',
-      'intense': 'Intense'
+      'graduate': 'Graduate',
+      // Legacy name
+      'intense': 'Graduate',
     }
     return planMapping[planId] || planId
   }
@@ -183,7 +185,7 @@ export default function BillingPage() {
         {(Object.entries(PLANS) as [PlanId, typeof PLANS[PlanId]][]).map(([planId, plan]) => {
           // Map old plan IDs to new ones for comparison
           const oldToNewPlanMap: Record<string, string> = {
-            'basic': 'starter', 'growth': 'student', 'pro': 'intense'
+            'basic': 'starter', 'growth': 'student', 'pro': 'graduate', 'intense': 'graduate'
           }
           const currentPlanMapped = profile?.current_plan ? (oldToNewPlanMap[profile.current_plan] || profile.current_plan) : null
           const isCurrentPlan = currentPlanMapped === planId && hasActiveSubscription
