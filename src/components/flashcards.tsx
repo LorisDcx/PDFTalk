@@ -129,9 +129,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
 
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
+        
+        if (value) {
+          buffer += decoder.decode(value, { stream: true })
+        }
+        
+        // Process all complete events in buffer
         const lines = buffer.split('\n\n')
         buffer = lines.pop() || ''
 
@@ -155,6 +158,32 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
               // Ignore parse errors for incomplete chunks
               if (parseError instanceof SyntaxError) continue
               throw parseError
+            }
+          }
+        }
+        
+        if (done) break
+      }
+      
+      // Process any remaining data in buffer after stream ends
+      if (buffer.trim()) {
+        const remainingLines = buffer.split('\n\n')
+        for (const line of remainingLines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const event = JSON.parse(line.slice(6))
+              if (event.type === 'error') {
+                throw new Error(event.message)
+              }
+              if (event.type === 'complete') {
+                setFlashcards(event.flashcards)
+                setCurrentIndex(0)
+                setIsFlipped(false)
+                setIsDialogOpen(false)
+                setIsViewerOpen(true)
+              }
+            } catch (parseError) {
+              console.error('Final buffer parse error:', parseError)
             }
           }
         }
