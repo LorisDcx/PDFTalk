@@ -3,8 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const maxDuration = 60 // Netlify/Vercel max timeout
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +22,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    const cardCount = Math.min(50, Math.max(10, count))
+    // Limit to 20 cards max on hosted version for reliability
+    const cardCount = Math.min(20, Math.max(5, count))
 
     // Calculate page cost (5 flashcards = 1 page)
     const pageCost = calculatePageCost('flashcards', cardCount)
@@ -51,125 +51,67 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    // Limit document content (can be larger now with streaming)
-    const maxContentLength = 10000
+    // Limit document content for faster processing
+    const maxContentLength = 5000
     const truncatedContent = documentContent.substring(0, maxContentLength)
     const isTruncated = documentContent.length > maxContentLength
 
-    const systemPrompt = `You are an expert in creating educational flashcards. Analyze the provided document and create exactly ${cardCount} flashcards to help memorize key concepts.
+    const systemPrompt = `Create exactly ${cardCount} flashcards from this document in ${targetLanguage}.
 
-DOCUMENT CONTENT:
-${truncatedContent}${isTruncated ? '\n... [document truncated for processing]' : ''}
+DOCUMENT:
+${truncatedContent}${isTruncated ? '\n[truncated]' : ''}
 
-CRITICAL INSTRUCTIONS:
-- Create exactly ${cardCount} flashcards
-- ALL questions and answers MUST be written in ${targetLanguage}
-- Each question must be clear and specific
-- Each answer must be concise (2-3 sentences max)
-- Cover the most important concepts from the document
-- Vary question types (definitions, dates, processes, concepts)
-- Include a source reference (approximate page/section) for each flashcard
-- Respond ONLY with valid JSON
+RULES:
+- Exactly ${cardCount} flashcards
+- Questions and answers in ${targetLanguage}
+- Concise answers (1-2 sentences)
+- Return ONLY valid JSON
 
-RESPONSE FORMAT (strict JSON):
-{
-  "flashcards": [
-    {
-      "id": "1",
-      "question": "Clear and precise question in ${targetLanguage}",
-      "answer": "Concise and informative answer in ${targetLanguage}",
-      "sourceRef": "Page X, Section Y"
-    }
-  ]
-}`
+FORMAT:
+{"flashcards":[{"id":"1","question":"...","answer":"...","sourceRef":"Section X"}]}`
 
-    // Create streaming response with SSE
-    const encoder = new TextEncoder()
-    
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          // Send initial event to keep connection alive
-          controller.enqueue(encoder.encode(`data: {"type":"start","cardCount":${cardCount}}\n\n`))
-          
-          // Call OpenAI with streaming
-          const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
-            ],
-            temperature: 0.7,
-            max_tokens: 6000,
-            response_format: { type: 'json_object' },
-            stream: true,
-          })
-
-          let fullContent = ''
-          let chunkCount = 0
-          
-          for await (const chunk of response) {
-            const content = chunk.choices[0]?.delta?.content || ''
-            if (content) {
-              fullContent += content
-              chunkCount++
-              
-              // Send progress every 10 chunks to keep connection alive
-              if (chunkCount % 10 === 0) {
-                controller.enqueue(encoder.encode(`data: {"type":"progress","length":${fullContent.length}}\n\n`))
-              }
-            }
-          }
-
-          // Parse the complete JSON
-          let parsed
-          try {
-            parsed = JSON.parse(fullContent)
-          } catch (parseError) {
-            console.error('Flashcards: JSON parse error:', parseError)
-            controller.enqueue(encoder.encode(`data: {"type":"error","message":"AI returned invalid format"}\n\n`))
-            controller.close()
-            return
-          }
-
-          const flashcards = parsed.flashcards || []
-          const actualCardCount = flashcards.length
-          const actualPageCost = calculatePageCost('flashcards', actualCardCount)
-          
-          // Deduct pages
-          await deductPages(supabase, user.id, actualPageCost)
-
-          // Send final result
-          controller.enqueue(encoder.encode(`data: {"type":"complete","flashcards":${JSON.stringify(flashcards)},"count":${actualCardCount},"pagesUsed":${actualPageCost}}\n\n`))
-          controller.close()
-          
-        } catch (error: any) {
-          console.error('Flashcards streaming error:', error?.message || error)
-          
-          let errorMessage = 'Failed to generate flashcards'
-          if (error?.status === 429) {
-            errorMessage = 'AI service is busy. Please try again.'
-          }
-          
-          controller.enqueue(encoder.encode(`data: {"type":"error","message":"${errorMessage}"}\n\n`))
-          controller.close()
-        }
-      }
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Generate ${cardCount} flashcards in ${targetLanguage}.` },
+      ],
+      temperature: 0.7,
+      max_tokens: 3000,
+      response_format: { type: 'json_object' },
     })
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+    const content = response.choices[0]?.message?.content
+    
+    if (!content) {
+      return NextResponse.json({ error: 'AI returned empty response' }, { status: 500 })
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(content)
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid format' }, { status: 500 })
+    }
+    
+    const flashcards = parsed.flashcards || []
+    const actualCardCount = flashcards.length
+    const actualPageCost = calculatePageCost('flashcards', actualCardCount)
+    await deductPages(supabase, user.id, actualPageCost)
+    
+    return NextResponse.json({ 
+      flashcards,
+      count: actualCardCount,
+      pagesUsed: actualPageCost
     })
 
   } catch (error: any) {
-    console.error('Flashcards generation error:', error?.message || error)
-    return NextResponse.json({ 
-      error: 'Failed to generate flashcards. Please try again.',
-      code: 'generation_error'
-    }, { status: 500 })
+    console.error('Flashcards error:', error?.message || error)
+    
+    if (error?.status === 429) {
+      return NextResponse.json({ error: 'AI service busy. Try again.' }, { status: 429 })
+    }
+    
+    return NextResponse.json({ error: 'Generation failed. Try again.' }, { status: 500 })
   }
 }

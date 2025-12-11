@@ -105,9 +105,9 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         }),
       })
 
-      // Handle non-streaming error responses (auth, quota, etc.)
-      if (!response.ok && response.headers.get('content-type')?.includes('application/json')) {
-        const data = await response.json()
+      const data = await response.json()
+
+      if (!response.ok) {
         if (response.status === 403) {
           toast({
             title: t('insufficientPages'),
@@ -120,74 +120,11 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         throw new Error(data.error || 'Failed to generate flashcards')
       }
 
-      // Handle SSE streaming response
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('No response body')
-
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        
-        if (value) {
-          buffer += decoder.decode(value, { stream: true })
-        }
-        
-        // Process all complete events in buffer
-        const lines = buffer.split('\n\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const event = JSON.parse(line.slice(6))
-              
-              if (event.type === 'error') {
-                throw new Error(event.message)
-              }
-              
-              if (event.type === 'complete') {
-                setFlashcards(event.flashcards)
-                setCurrentIndex(0)
-                setIsFlipped(false)
-                setIsDialogOpen(false)
-                setIsViewerOpen(true)
-              }
-            } catch (parseError) {
-              // Ignore parse errors for incomplete chunks
-              if (parseError instanceof SyntaxError) continue
-              throw parseError
-            }
-          }
-        }
-        
-        if (done) break
-      }
-      
-      // Process any remaining data in buffer after stream ends
-      if (buffer.trim()) {
-        const remainingLines = buffer.split('\n\n')
-        for (const line of remainingLines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const event = JSON.parse(line.slice(6))
-              if (event.type === 'error') {
-                throw new Error(event.message)
-              }
-              if (event.type === 'complete') {
-                setFlashcards(event.flashcards)
-                setCurrentIndex(0)
-                setIsFlipped(false)
-                setIsDialogOpen(false)
-                setIsViewerOpen(true)
-              }
-            } catch (parseError) {
-              console.error('Final buffer parse error:', parseError)
-            }
-          }
-        }
-      }
+      setFlashcards(data.flashcards)
+      setCurrentIndex(0)
+      setIsFlipped(false)
+      setIsDialogOpen(false)
+      setIsViewerOpen(true)
     } catch (error) {
       console.error('Flashcard generation error:', error)
       toast({
@@ -330,8 +267,8 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
-                    min={10}
-                    max={50}
+                    min={5}
+                    max={20}
                     step={5}
                     value={cardCount}
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
@@ -341,12 +278,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </div>
                 {/* Estimated time indicator */}
                 <p className="text-xs text-muted-foreground text-center">
-                  ⏱️ {cardCount >= 50 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
+                  ⏱️ {t('canTakeUpTo1Min')}
                 </p>
               </div>
               
               <div className="flex gap-2 flex-wrap">
-                {[10, 20, 50].map((num) => (
+                {[5, 10, 15, 20].map((num) => (
                   <button
                     key={num}
                     onClick={() => setCardCount(num)}
