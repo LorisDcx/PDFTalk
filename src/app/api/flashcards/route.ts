@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    // Limit document content to avoid timeout (8000 chars is safer for speed)
-    const maxContentLength = 8000
+    // Limit document content to avoid timeout (6000 chars for Netlify's ~10s limit)
+    const maxContentLength = 6000
     const truncatedContent = documentContent.substring(0, maxContentLength)
     const isTruncated = documentContent.length > maxContentLength
 
@@ -98,7 +98,7 @@ RESPONSE FORMAT (strict JSON):
           { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
         ],
         temperature: 0.7,
-        max_tokens: 6000,
+        max_tokens: 4000,
         response_format: { type: 'json_object' },
       }),
       timeoutMs

@@ -284,12 +284,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </p>
               </div>
               
-              {/* Beta warning when > 20 cards */}
-              {cardCount > 20 && (
+              {/* Beta warning when > 10 cards */}
+              {cardCount > 10 && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
                   <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <span className="font-semibold">Beta :</span> La génération de plus de 20 flashcards peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 10 ou 20 cartes.
+                    <span className="font-semibold">Beta :</span> La génération de plus de 10 flashcards peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 10 cartes.
                   </p>
                 </div>
               )}
