@@ -3,7 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 
-export const maxDuration = 60 // Netlify/Vercel max timeout
+export const maxDuration = 60 // Vercel max timeout (free plan)
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    // Limit to 20 cards max on hosted version for reliability
-    const cardCount = Math.min(20, Math.max(5, count))
+    // Max 50 cards with Vercel's 60s timeout
+    const cardCount = Math.min(50, Math.max(5, count))
 
     // Calculate page cost (5 flashcards = 1 page)
     const pageCost = calculatePageCost('flashcards', cardCount)
@@ -51,20 +51,22 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    // Limit document content for faster processing
-    const maxContentLength = 5000
+    // Larger content limit with Vercel's longer timeout
+    const maxContentLength = 10000
     const truncatedContent = documentContent.substring(0, maxContentLength)
     const isTruncated = documentContent.length > maxContentLength
 
-    const systemPrompt = `Create exactly ${cardCount} flashcards from this document in ${targetLanguage}.
+    const systemPrompt = `You are an expert in creating educational flashcards. Create exactly ${cardCount} flashcards from this document.
 
 DOCUMENT:
-${truncatedContent}${isTruncated ? '\n[truncated]' : ''}
+${truncatedContent}${isTruncated ? '\n... [document truncated]' : ''}
 
-RULES:
-- Exactly ${cardCount} flashcards
-- Questions and answers in ${targetLanguage}
-- Concise answers (1-2 sentences)
+INSTRUCTIONS:
+- Create exactly ${cardCount} flashcards
+- ALL content MUST be in ${targetLanguage}
+- Questions: clear and specific
+- Answers: concise (1-2 sentences max)
+- Cover the most important concepts
 - Return ONLY valid JSON
 
 FORMAT:
@@ -77,7 +79,7 @@ FORMAT:
         { role: 'user', content: `Generate ${cardCount} flashcards in ${targetLanguage}.` },
       ],
       temperature: 0.7,
-      max_tokens: 3000,
+      max_tokens: 6000,
       response_format: { type: 'json_object' },
     })
 

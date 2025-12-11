@@ -268,7 +268,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                   <input
                     type="range"
                     min={5}
-                    max={20}
+                    max={50}
                     step={5}
                     value={cardCount}
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
@@ -278,12 +278,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </div>
                 {/* Estimated time indicator */}
                 <p className="text-xs text-muted-foreground text-center">
-                  ⏱️ {t('canTakeUpTo1Min')}
+                  ⏱️ {cardCount >= 30 ? t('canTakeUpTo2Min') : t('canTakeUpTo1Min')}
                 </p>
               </div>
               
               <div className="flex gap-2 flex-wrap">
-                {[5, 10, 15, 20].map((num) => (
+                {[10, 20, 30, 50].map((num) => (
                   <button
                     key={num}
                     onClick={() => setCardCount(num)}
