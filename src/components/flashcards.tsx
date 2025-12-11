@@ -106,10 +106,9 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        // Handle quota errors
+      // Handle non-streaming error responses (auth, quota, etc.)
+      if (!response.ok && response.headers.get('content-type')?.includes('application/json')) {
+        const data = await response.json()
         if (response.status === 403) {
           toast({
             title: t('insufficientPages'),
@@ -122,16 +121,50 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         throw new Error(data.error || 'Failed to generate flashcards')
       }
 
-      setFlashcards(data.flashcards)
-      setCurrentIndex(0)
-      setIsFlipped(false)
-      setIsDialogOpen(false)
-      setIsViewerOpen(true)
+      // Handle SSE streaming response
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('No response body')
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const event = JSON.parse(line.slice(6))
+              
+              if (event.type === 'error') {
+                throw new Error(event.message)
+              }
+              
+              if (event.type === 'complete') {
+                setFlashcards(event.flashcards)
+                setCurrentIndex(0)
+                setIsFlipped(false)
+                setIsDialogOpen(false)
+                setIsViewerOpen(true)
+              }
+            } catch (parseError) {
+              // Ignore parse errors for incomplete chunks
+              if (parseError instanceof SyntaxError) continue
+              throw parseError
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('Flashcard generation error:', error)
       toast({
         title: t('error'),
-        description: t('unexpectedError'),
+        description: error instanceof Error ? error.message : t('unexpectedError'),
         variant: 'destructive',
       })
     } finally {
@@ -284,12 +317,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </p>
               </div>
               
-              {/* Beta warning when > 10 cards */}
-              {cardCount > 10 && (
+              {/* Beta warning when > 30 cards */}
+              {cardCount > 30 && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
                   <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    <span className="font-semibold">Beta :</span> La génération de plus de 10 flashcards peut échouer sur la version hébergée. Pour plus de fiabilité, utilisez 10 cartes.
+                    <span className="font-semibold">Beta :</span> La génération de nombreuses flashcards peut prendre plus de temps. Pour plus de rapidité, utilisez 10 ou 20 cartes.
                   </p>
                 </div>
               )}

@@ -3,13 +3,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 
-// Timeout wrapper for OpenAI calls
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs)
-  )
-  return Promise.race([promise, timeout])
-}
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    const cardCount = Math.min(100, Math.max(10, count))
+    const cardCount = Math.min(50, Math.max(10, count))
 
     // Calculate page cost (5 flashcards = 1 page)
     const pageCost = calculatePageCost('flashcards', cardCount)
@@ -56,8 +51,8 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    // Limit document content to avoid timeout (6000 chars for Netlify's ~10s limit)
-    const maxContentLength = 6000
+    // Limit document content (can be larger now with streaming)
+    const maxContentLength = 10000
     const truncatedContent = documentContent.substring(0, maxContentLength)
     const isTruncated = documentContent.length > maxContentLength
 
@@ -88,66 +83,90 @@ RESPONSE FORMAT (strict JSON):
   ]
 }`
 
-    // Call OpenAI with extended timeout (up to 4 minutes for large card counts)
-    const timeoutMs = cardCount >= 80 ? 240000 : cardCount >= 50 ? 120000 : 60000
-    const response = await withTimeout(
-      openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
-        ],
-        temperature: 0.7,
-        max_tokens: 4000,
-        response_format: { type: 'json_object' },
-      }),
-      timeoutMs
-    )
+    // Create streaming response with SSE
+    const encoder = new TextEncoder()
+    
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Send initial event to keep connection alive
+          controller.enqueue(encoder.encode(`data: {"type":"start","cardCount":${cardCount}}\n\n`))
+          
+          // Call OpenAI with streaming
+          const response = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Generate ${cardCount} flashcards from this document. Write them in ${targetLanguage}.` },
+            ],
+            temperature: 0.7,
+            max_tokens: 6000,
+            response_format: { type: 'json_object' },
+            stream: true,
+          })
 
-    const content = response.choices[0]?.message?.content
-    
-    if (!content) {
-      console.error('Flashcards: No content in OpenAI response')
-      return NextResponse.json({ error: 'AI returned empty response. Please try again.' }, { status: 500 })
-    }
+          let fullContent = ''
+          let chunkCount = 0
+          
+          for await (const chunk of response) {
+            const content = chunk.choices[0]?.delta?.content || ''
+            if (content) {
+              fullContent += content
+              chunkCount++
+              
+              // Send progress every 10 chunks to keep connection alive
+              if (chunkCount % 10 === 0) {
+                controller.enqueue(encoder.encode(`data: {"type":"progress","length":${fullContent.length}}\n\n`))
+              }
+            }
+          }
 
-    let parsed
-    try {
-      parsed = JSON.parse(content)
-    } catch (parseError) {
-      console.error('Flashcards: JSON parse error:', parseError, 'Content:', content.substring(0, 500))
-      return NextResponse.json({ error: 'AI returned invalid format. Please try again.' }, { status: 500 })
-    }
-    
-    // Deduct pages from user's quota after successful generation
-    const actualCardCount = parsed.flashcards?.length || 0
-    const actualPageCost = calculatePageCost('flashcards', actualCardCount)
-    await deductPages(supabase, user.id, actualPageCost)
-    
-    return NextResponse.json({ 
-      flashcards: parsed.flashcards || [],
-      count: actualCardCount,
-      pagesUsed: actualPageCost
+          // Parse the complete JSON
+          let parsed
+          try {
+            parsed = JSON.parse(fullContent)
+          } catch (parseError) {
+            console.error('Flashcards: JSON parse error:', parseError)
+            controller.enqueue(encoder.encode(`data: {"type":"error","message":"AI returned invalid format"}\n\n`))
+            controller.close()
+            return
+          }
+
+          const flashcards = parsed.flashcards || []
+          const actualCardCount = flashcards.length
+          const actualPageCost = calculatePageCost('flashcards', actualCardCount)
+          
+          // Deduct pages
+          await deductPages(supabase, user.id, actualPageCost)
+
+          // Send final result
+          controller.enqueue(encoder.encode(`data: {"type":"complete","flashcards":${JSON.stringify(flashcards)},"count":${actualCardCount},"pagesUsed":${actualPageCost}}\n\n`))
+          controller.close()
+          
+        } catch (error: any) {
+          console.error('Flashcards streaming error:', error?.message || error)
+          
+          let errorMessage = 'Failed to generate flashcards'
+          if (error?.status === 429) {
+            errorMessage = 'AI service is busy. Please try again.'
+          }
+          
+          controller.enqueue(encoder.encode(`data: {"type":"error","message":"${errorMessage}"}\n\n`))
+          controller.close()
+        }
+      }
+    })
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     })
 
   } catch (error: any) {
     console.error('Flashcards generation error:', error?.message || error)
-    
-    // Handle specific error types
-    if (error?.message === 'TIMEOUT') {
-      return NextResponse.json({ 
-        error: 'Generation took too long. Try with fewer flashcards or a shorter document.',
-        code: 'timeout'
-      }, { status: 504 })
-    }
-    
-    if (error?.status === 429) {
-      return NextResponse.json({ 
-        error: 'AI service is busy. Please try again in a few seconds.',
-        code: 'rate_limit'
-      }, { status: 429 })
-    }
-    
     return NextResponse.json({ 
       error: 'Failed to generate flashcards. Please try again.',
       code: 'generation_error'
