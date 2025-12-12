@@ -63,7 +63,7 @@ export function Navbar() {
         {/* Logo - always go to home */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <FileText className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold text-foreground">PDFTalk</span>
+          <span className="text-xl font-bold text-foreground">Cramdesk</span>
         </Link>
 
         {/* Desktop Navigation */}

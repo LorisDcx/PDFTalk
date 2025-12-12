@@ -16,11 +16,11 @@ export default function TermsPage() {
       sections: [
         {
           title: '1. Objet',
-          content: `Les présentes CGU régissent l'utilisation de PDFTalk, service d'aide à la révision pour étudiants. En créant un compte, vous acceptez ces conditions.`
+          content: `Les présentes CGU régissent l'utilisation de Cramdesk, service d'aide à la révision pour étudiants. En créant un compte, vous acceptez ces conditions.`
         },
         {
-          title: '2. Le service PDFTalk',
-          content: `PDFTalk permet de :
+          title: '2. Le service Cramdesk',
+          content: `Cramdesk permet de :
 
 • Uploader des cours au format PDF
 • Générer automatiquement des flashcards de révision
@@ -33,7 +33,7 @@ Le service utilise l'intelligence artificielle pour analyser et transformer vos 
         },
         {
           title: '3. Inscription et compte',
-          content: `Pour utiliser PDFTalk :
+          content: `Pour utiliser Cramdesk :
 
 • Vous devez avoir au moins 13 ans
 • Créer un compte avec une adresse email valide
@@ -51,7 +51,7 @@ Vous êtes responsable de l'activité sur votre compte.`
 • Ne pas tenter de contourner les limites du service
 • Respecter les droits d'auteur
 
-PDFTalk est un outil d'aide à la révision. Les contenus générés ne remplacent pas vos cours et peuvent contenir des erreurs.`
+Cramdesk est un outil d'aide à la révision. Les contenus générés ne remplacent pas vos cours et peuvent contenir des erreurs.`
         },
         {
           title: '5. Abonnements',
@@ -66,12 +66,12 @@ Les prix peuvent évoluer avec un préavis de 30 jours.`
           title: '6. Propriété intellectuelle',
           content: `• Vos documents : vous restez propriétaire de vos cours
 • Contenus générés : vous pouvez les utiliser librement pour vos révisions
-• PDFTalk : le service, son code et son design nous appartiennent
+• Cramdesk : le service, son code et son design nous appartiennent
 • Licence : vous nous accordez le droit de traiter vos documents pour fournir le service`
         },
         {
           title: '7. Responsabilité',
-          content: `PDFTalk est fourni "en l'état". Nous ne garantissons pas :
+          content: `Cramdesk est fourni "en l'état". Nous ne garantissons pas :
 
 • L'exactitude à 100% des contenus générés par l'IA
 • La disponibilité permanente du service
@@ -88,7 +88,7 @@ La résiliation entraîne la suppression de vos données.`
         },
         {
           title: '9. Contact',
-          content: `Questions sur les CGU : contact@pdftalk.fr
+          content: `Questions sur les CGU : contact@cramdesk.fr
 
 Droit applicable : droit français
 Juridiction : tribunaux compétents de Paris`
@@ -101,11 +101,11 @@ Juridiction : tribunaux compétents de Paris`
       sections: [
         {
           title: '1. Purpose',
-          content: `These Terms govern the use of PDFTalk, a study aid service for students. By creating an account, you accept these terms.`
+          content: `These Terms govern the use of Cramdesk, a study aid service for students. By creating an account, you accept these terms.`
         },
         {
-          title: '2. The PDFTalk service',
-          content: `PDFTalk allows you to:
+          title: '2. The Cramdesk service',
+          content: `Cramdesk allows you to:
 
 • Upload courses in PDF format
 • Automatically generate revision flashcards
@@ -118,7 +118,7 @@ The service uses artificial intelligence to analyze and transform your courses.`
         },
         {
           title: '3. Registration and account',
-          content: `To use PDFTalk:
+          content: `To use Cramdesk:
 
 • You must be at least 13 years old
 • Create an account with a valid email address
@@ -136,7 +136,7 @@ You are responsible for activity on your account.`
 • Not attempt to bypass service limits
 • Respect copyright
 
-PDFTalk is a study aid tool. Generated content does not replace your courses and may contain errors.`
+Cramdesk is a study aid tool. Generated content does not replace your courses and may contain errors.`
         },
         {
           title: '5. Subscriptions',
@@ -151,12 +151,12 @@ Prices may change with 30 days notice.`
           title: '6. Intellectual property',
           content: `• Your documents: you remain owner of your courses
 • Generated content: you can use freely for your studies
-• PDFTalk: the service, code and design belong to us
+• Cramdesk: the service, code and design belong to us
 • License: you grant us the right to process your documents to provide the service`
         },
         {
           title: '7. Liability',
-          content: `PDFTalk is provided "as is". We do not guarantee:
+          content: `Cramdesk is provided "as is". We do not guarantee:
 
 • 100% accuracy of AI-generated content
 • Permanent service availability
@@ -173,7 +173,7 @@ Termination results in deletion of your data.`
         },
         {
           title: '9. Contact',
-          content: `Questions about Terms: contact@pdftalk.fr
+          content: `Questions about Terms: contact@cramdesk.fr
 
 Applicable law: French law
 Jurisdiction: Paris courts`
@@ -215,10 +215,10 @@ Jurisdiction: Paris courts`
         <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            <span className="font-semibold">PDFTalk</span>
+            <span className="font-semibold">Cramdesk</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
+            © {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}
           </p>
         </div>
       </footer>

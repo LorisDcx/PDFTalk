@@ -141,7 +141,7 @@ export default function SignupPage() {
           <CardHeader className="text-center">
             <Link href="/" className="flex items-center justify-center gap-2 mb-4">
               <FileText className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">PDFTalk</span>
+              <span className="text-2xl font-bold">Cramdesk</span>
             </Link>
             <CardTitle>{pendingDoc ? t('createYourAccount') : t('freeTrial')}</CardTitle>
             <CardDescription>

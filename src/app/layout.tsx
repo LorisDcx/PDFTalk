@@ -8,9 +8,9 @@ import { Toaster } from '@/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PDFTalk - Understand Any PDF in 2 Minutes',
-  description: 'AI-powered document analysis. Get summaries, risks, questions, and simplified versions of your contracts, quotes, and business documents.',
-  keywords: ['PDF analysis', 'document summary', 'AI', 'contract analysis', 'business documents'],
+  title: 'Cramdesk – Ton bureau d\'urgence pour réviser',
+  description: 'Transforme tes cours PDF en fiches, flashcards et quiz en 2 minutes grâce à l\'IA. L\'outil parfait pour réviser efficacement.',
+  keywords: ['révision', 'flashcards', 'quiz', 'fiches de révision', 'étudiant', 'cours PDF', 'IA'],
 }
 
 export default function RootLayout({

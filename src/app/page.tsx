@@ -336,15 +336,15 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              <span className="font-semibold">PDFTalk</span>
+              <span className="font-semibold">Cramdesk</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
+              © {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}
             </p>
             <div className="flex gap-4 text-sm text-muted-foreground">
               <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
               <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
-              <Link href="mailto:contact@pdftalk.fr" className="hover:text-foreground">Contact</Link>
+              <Link href="mailto:contact@cramdesk.fr" className="hover:text-foreground">Contact</Link>
             </div>
           </div>
         </div>

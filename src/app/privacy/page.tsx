@@ -16,10 +16,10 @@ export default function PrivacyPage() {
       sections: [
         {
           title: '1. Qui sommes-nous ?',
-          content: `PDFTalk est un service d'aide à la révision pour étudiants. Nous utilisons l'intelligence artificielle pour transformer vos cours PDF en outils de révision (flashcards, quiz, résumés).
+          content: `Cramdesk est un service d'aide à la révision pour étudiants. Nous utilisons l'intelligence artificielle pour transformer vos cours PDF en outils de révision (flashcards, quiz, résumés).
 
-Responsable du traitement : PDFTalk
-Contact : contact@pdftalk.fr`
+Responsable du traitement : Cramdesk
+Contact : contact@cramdesk.fr`
         },
         {
           title: '2. Données collectées',
@@ -72,7 +72,7 @@ Vous pouvez supprimer votre compte et toutes vos données à tout moment depuis 
 • Portabilité : exporter vos données
 • Opposition : refuser certains traitements
 
-Pour exercer ces droits : contact@pdftalk.fr`
+Pour exercer ces droits : contact@cramdesk.fr`
         },
         {
           title: '7. Cookies',
@@ -91,10 +91,10 @@ Aucun cookie publicitaire ou de tracking tiers.`
       sections: [
         {
           title: '1. Who are we?',
-          content: `PDFTalk is a study aid service for students. We use artificial intelligence to transform your PDF courses into revision tools (flashcards, quizzes, summaries).
+          content: `Cramdesk is a study aid service for students. We use artificial intelligence to transform your PDF courses into revision tools (flashcards, quizzes, summaries).
 
-Data controller: PDFTalk
-Contact: contact@pdftalk.fr`
+Data controller: Cramdesk
+Contact: contact@cramdesk.fr`
         },
         {
           title: '2. Data collected',
@@ -147,7 +147,7 @@ You can delete your account and all data at any time from settings.`
 • Portability: export your data
 • Opposition: refuse certain processing
 
-To exercise these rights: contact@pdftalk.fr`
+To exercise these rights: contact@cramdesk.fr`
         },
         {
           title: '7. Cookies',
@@ -195,10 +195,10 @@ No advertising or third-party tracking cookies.`
         <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            <span className="font-semibold">PDFTalk</span>
+            <span className="font-semibold">Cramdesk</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PDFTalk. {t('allRightsReserved')}
+            © {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}
           </p>
         </div>
       </footer>

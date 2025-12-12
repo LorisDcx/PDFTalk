@@ -2756,7 +2756,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Detect browser language on mount
-    const stored = localStorage.getItem('pdftalk-language') as LanguageCode
+    const stored = localStorage.getItem('cramdesk-language') as LanguageCode
     if (stored && LANGUAGES.find(l => l.code === stored)) {
       setLanguageState(stored)
     } else {
@@ -2769,7 +2769,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: LanguageCode) => {
     setLanguageState(lang)
-    localStorage.setItem('pdftalk-language', lang)
+    localStorage.setItem('cramdesk-language', lang)
   }
 
   const t = (key: string): string => {
