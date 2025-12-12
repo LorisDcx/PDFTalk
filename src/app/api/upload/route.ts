@@ -63,7 +63,23 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     
-    const pdfData = await extractTextFromPDF(buffer)
+    let pdfData
+    try {
+      pdfData = await extractTextFromPDF(buffer)
+    } catch (pdfError: any) {
+      console.error('PDF extraction error:', pdfError)
+      return NextResponse.json({ 
+        error: pdfError.message || 'Failed to read PDF file'
+      }, { status: 400 })
+    }
+
+    // Check if we got any usable text
+    if (!pdfData.text || pdfData.text.trim().length === 0) {
+      return NextResponse.json({ 
+        error: 'No text could be extracted from this PDF. It may be a scanned document, contain only images, or be in an unsupported format. Please try a different file or a PDF with selectable text.',
+        code: 'no_text_extracted'
+      }, { status: 400 })
+    }
 
     // Check page limit per document
     if (pdfData.numPages > planLimits.maxPagesPerDocument) {
@@ -71,6 +87,9 @@ export async function POST(request: NextRequest) {
         error: `Document exceeds page limit (max ${planLimits.maxPagesPerDocument} pages for your plan)` 
       }, { status: 400 })
     }
+
+    // Warn about scanned documents but still proceed if some text was extracted
+    const pdfWarning = pdfData.warning
 
     // Upload file to storage
     const fileName = `${user.id}/${Date.now()}-${file.name}`
@@ -172,7 +191,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true,
-      documentId: document.id 
+      documentId: document.id,
+      warning: pdfWarning // Include warning about scanned/image PDFs if any
     })
 
   } catch (error) {
