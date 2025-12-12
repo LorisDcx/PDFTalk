@@ -23,6 +23,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [pendingDoc, setPendingDoc] = useState<PendingDocument | null>(null)
   const router = useRouter()
@@ -209,6 +210,28 @@ export default function SignupPage() {
                     {t('trialFeature4')}
                   </li>
                 </ul>
+              </div>
+
+              {/* Terms acceptance checkbox */}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  required
+                />
+                <label htmlFor="terms" className="text-sm text-muted-foreground">
+                  {t('acceptTermsPrefix')}{' '}
+                  <Link href="/terms" className="text-primary hover:underline" target="_blank">
+                    {t('termsOfService')}
+                  </Link>{' '}
+                  {t('and')}{' '}
+                  <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+                    {t('privacyPolicy')}
+                  </Link>
+                </label>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">

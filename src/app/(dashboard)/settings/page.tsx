@@ -10,13 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/use-toast'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 
 export default function SettingsPage() {
-  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
+  const { user, profile, isLoading: authLoading, refreshProfile, signOut } = useAuth()
   const [name, setName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useLanguage()
@@ -59,6 +61,39 @@ export default function SettingsPage() {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user || deleteConfirmation !== 'DELETE') return
+    setIsDeleting(true)
+
+    try {
+      // Call API to delete account (documents, user data, auth)
+      const response = await fetch('/api/account/delete', {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete account')
+      }
+
+      toast({
+        title: t('accountDeleted'),
+        description: t('accountDeletedDesc'),
+      })
+
+      // Sign out and redirect to home
+      await signOut()
+      router.push('/')
+    } catch (error) {
+      toast({
+        title: t('error'),
+        description: t('unexpectedError'),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -124,13 +159,42 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground font-mono">{user.id}</p>
             </div>
             <Separator />
-            <div>
-              <p className="text-sm font-medium mb-1">{t('dangerZone')}</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                {t('deleteAccountDesc')}
-              </p>
-              <Button variant="destructive" size="sm">
-                {t('deleteAccount')}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-1 text-destructive">{t('dangerZone')}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('deleteAccountConfirm')}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirm" className="text-sm">
+                  {t('typeDeleteToConfirm')}
+                </Label>
+                <Input
+                  id="delete-confirm"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="DELETE"
+                  className="max-w-xs"
+                />
+              </div>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || deleteConfirmation !== 'DELETE'}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('deleting')}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('deleteMyAccount')}
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
