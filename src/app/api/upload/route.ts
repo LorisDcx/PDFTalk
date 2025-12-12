@@ -91,8 +91,18 @@ export async function POST(request: NextRequest) {
     // Warn about scanned documents but still proceed if some text was extracted
     const pdfWarning = pdfData.warning
 
+    // Sanitize filename for storage (remove accents, special chars, spaces)
+    const sanitizeFileName = (name: string): string => {
+      return name
+        .normalize('NFD') // Decompose accents
+        .replace(/[\u0300-\u036f]/g, '') // Remove accent marks
+        .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace special chars with underscore
+        .replace(/_+/g, '_') // Collapse multiple underscores
+        .replace(/^_|_$/g, '') // Trim underscores
+    }
+    
     // Upload file to storage
-    const fileName = `${user.id}/${Date.now()}-${file.name}`
+    const fileName = `${user.id}/${Date.now()}-${sanitizeFileName(file.name)}`
     const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(fileName, buffer, {
