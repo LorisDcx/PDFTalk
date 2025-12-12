@@ -1,6 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { getPlanLimits } from './stripe'
 
+// Trial daily limits to prevent abuse
+export const TRIAL_DAILY_LIMIT = 200 // pages per day during trial
+export const TRIAL_DAILY_DOCS_LIMIT = 10 // documents per day during trial
+
 export interface UsageCheckResult {
   allowed: boolean
   pagesRemaining: number
@@ -8,6 +12,10 @@ export interface UsageCheckResult {
   currentUsage: number
   limit: number
   error?: string
+  // Trial-specific info
+  isInTrial?: boolean
+  dailyUsage?: number
+  dailyLimit?: number
 }
 
 /**
@@ -58,7 +66,7 @@ export async function checkUserUsage(
 
   // Check trial status
   const trialEndAt = new Date(profile.trial_end_at)
-  const isInTrial = trialEndAt > now
+  const isInTrial = trialEndAt > now && !profile.subscription_status
   const hasActiveSubscription = profile.subscription_status === 'active'
 
   // If no active subscription and trial expired, deny access
@@ -69,7 +77,8 @@ export async function checkUserUsage(
       pagesRequired,
       currentUsage,
       limit: 0,
-      error: 'subscription_expired'
+      error: 'subscription_expired',
+      isInTrial: false
     }
   }
 
@@ -77,6 +86,61 @@ export async function checkUserUsage(
   const planLimits = getPlanLimits(profile.current_plan)
   const limit = planLimits.pagesPerMonth
 
+  // For trial users, also check daily limit
+  if (isInTrial) {
+    // Check if we need to reset daily usage (stored in docs_processed_this_month as daily counter during trial)
+    // We use a simple approach: check if usage_reset_at is from today
+    const lastReset = new Date(profile.usage_reset_at)
+    const isNewDay = lastReset.toDateString() !== now.toDateString()
+    
+    // If it's a new day during trial, reset the daily counter
+    if (isNewDay) {
+      await supabase
+        .from('users')
+        .update({ 
+          docs_processed_this_month: 0, // Use as daily pages counter during trial
+          usage_reset_at: now.toISOString()
+        })
+        .eq('id', userId)
+    }
+
+    // Get daily usage (we'll use docs_processed_this_month as daily counter during trial)
+    const { data: dailyProfile } = await supabase
+      .from('users')
+      .select('docs_processed_this_month')
+      .eq('id', userId)
+      .single()
+    
+    const dailyUsage = isNewDay ? 0 : (dailyProfile?.docs_processed_this_month || 0)
+    
+    // Check daily limit for trial users
+    if (dailyUsage + pagesRequired > TRIAL_DAILY_LIMIT) {
+      return {
+        allowed: false,
+        pagesRemaining: Math.max(0, TRIAL_DAILY_LIMIT - dailyUsage),
+        pagesRequired,
+        currentUsage,
+        limit: TRIAL_DAILY_LIMIT,
+        error: 'daily_limit_reached',
+        isInTrial: true,
+        dailyUsage,
+        dailyLimit: TRIAL_DAILY_LIMIT
+      }
+    }
+
+    return {
+      allowed: true,
+      pagesRemaining: TRIAL_DAILY_LIMIT - dailyUsage,
+      pagesRequired,
+      currentUsage,
+      limit: TRIAL_DAILY_LIMIT,
+      isInTrial: true,
+      dailyUsage,
+      dailyLimit: TRIAL_DAILY_LIMIT
+    }
+  }
+
+  // For subscribed users, use monthly limits
   const pagesRemaining = Math.max(0, limit - currentUsage)
   const allowed = pagesRemaining >= pagesRequired
 
@@ -86,22 +150,23 @@ export async function checkUserUsage(
     pagesRequired,
     currentUsage,
     limit,
-    error: allowed ? undefined : 'insufficient_pages'
+    error: allowed ? undefined : 'insufficient_pages',
+    isInTrial: false
   }
 }
 
 /**
- * Deduct pages from user's monthly quota
+ * Deduct pages from user's monthly quota (and daily quota during trial)
  */
 export async function deductPages(
   supabase: SupabaseClient,
   userId: string,
   pages: number
 ): Promise<{ success: boolean; newUsage: number; error?: string }> {
-  // Get current usage
+  // Get current usage and trial status
   const { data: profile, error: fetchError } = await supabase
     .from('users')
-    .select('pages_processed_this_month')
+    .select('pages_processed_this_month, docs_processed_this_month, trial_end_at, subscription_status')
     .eq('id', userId)
     .single()
 
@@ -112,10 +177,23 @@ export async function deductPages(
   const currentUsage = profile.pages_processed_this_month || 0
   const newUsage = currentUsage + pages
 
-  // Update usage
+  // Check if user is in trial (no subscription and trial not expired)
+  const now = new Date()
+  const trialEndAt = new Date(profile.trial_end_at)
+  const isInTrial = trialEndAt > now && !profile.subscription_status
+
+  // Update usage - both monthly and daily (for trial)
+  const updateData: any = { pages_processed_this_month: newUsage }
+  
+  if (isInTrial) {
+    // Also update daily counter during trial
+    const currentDailyUsage = profile.docs_processed_this_month || 0
+    updateData.docs_processed_this_month = currentDailyUsage + pages
+  }
+
   const { error: updateError } = await supabase
     .from('users')
-    .update({ pages_processed_this_month: newUsage })
+    .update(updateData)
     .eq('id', userId)
 
   if (updateError) {

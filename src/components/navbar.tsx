@@ -15,10 +15,11 @@ import {
 } from './ui/dropdown-menu'
 import { FileText, LogOut, Settings, CreditCard, LayoutDashboard, FolderOpen, Menu, X } from 'lucide-react'
 import { Badge } from './ui/badge'
-import { getTrialDaysRemaining, isTrialExpired } from '@/lib/utils'
+import { isTrialExpired } from '@/lib/utils'
 import { useState } from 'react'
 import { LanguageSelector } from './language-selector'
 import { useLanguage } from '@/lib/i18n'
+import { TrialCountdown } from './trial-countdown'
 
 export function Navbar() {
   const { user, profile, signOut, isLoading } = useAuth()
@@ -38,11 +39,8 @@ export function Navbar() {
     if (profile.subscription_status === 'active') {
       return <Badge variant="success" className="text-xs">{profile.current_plan?.toUpperCase()}</Badge>
     }
-    if (profile.trial_end_at && !isTrialExpired(profile.trial_end_at)) {
-      const days = getTrialDaysRemaining(profile.trial_end_at)
-      return <Badge variant="warning" className="text-xs">{days} {t('daysRemaining')}</Badge>
-    }
-    return <Badge variant="destructive" className="text-xs">{t('trialExpired')}</Badge>
+    // Use TrialCountdown component for trial users
+    return <TrialCountdown />
   }
 
   const isActive = (path: string) => pathname === path
