@@ -59,31 +59,84 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<PDFExtractResu
     const options = {
       // Limit pages to prevent memory issues
       max: 200,
-      // Custom page renderer for better text extraction
+      // Custom page renderer for better text extraction (handles tables/columns)
       pagerender: function(pageData: any) {
         return pageData.getTextContent({
           normalizeWhitespace: true,
           disableCombineTextItems: false,
         }).then(function(textContent: any) {
-          let text = ''
-          let lastY: number | null = null
+          // Collect all text items with their positions
+          const items: { str: string; x: number; y: number; width: number }[] = []
           
           for (const item of textContent.items) {
-            if ('str' in item) {
-              // Add newline if Y position changed significantly (new line)
-              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
-                text += '\n'
-              }
-              text += item.str
-              // Add space between items on same line
-              if (item.hasEOL) {
-                text += '\n'
-              } else {
-                text += ' '
-              }
-              lastY = item.transform[5]
+            if ('str' in item && item.str.trim()) {
+              items.push({
+                str: item.str,
+                x: Math.round(item.transform[4]), // X position
+                y: Math.round(item.transform[5]), // Y position
+                width: item.width || 0
+              })
             }
           }
+          
+          if (items.length === 0) return ''
+          
+          // Sort by Y (descending - PDF coordinates start from bottom) then X (ascending)
+          items.sort((a, b) => {
+            const yDiff = b.y - a.y
+            // If on same line (within 5 units), sort by X
+            if (Math.abs(yDiff) < 5) {
+              return a.x - b.x
+            }
+            return yDiff
+          })
+          
+          // Group items into lines based on Y position
+          const lines: { y: number; items: typeof items }[] = []
+          let currentLine: typeof items = []
+          let currentY = items[0]?.y
+          
+          for (const item of items) {
+            // New line if Y changed significantly
+            if (Math.abs(item.y - currentY) > 5) {
+              if (currentLine.length > 0) {
+                lines.push({ y: currentY, items: [...currentLine] })
+              }
+              currentLine = [item]
+              currentY = item.y
+            } else {
+              currentLine.push(item)
+            }
+          }
+          // Don't forget last line
+          if (currentLine.length > 0) {
+            lines.push({ y: currentY, items: currentLine })
+          }
+          
+          // Build text from lines, detecting columns/tables
+          let text = ''
+          for (const line of lines) {
+            // Sort items in line by X position
+            line.items.sort((a, b) => a.x - b.x)
+            
+            let lineText = ''
+            let lastX = 0
+            
+            for (const item of line.items) {
+              // Add tab/space if there's a significant gap (column separator)
+              const gap = item.x - lastX
+              if (lastX > 0 && gap > 50) {
+                lineText += '\t' // Tab for column separation
+              } else if (lastX > 0 && gap > 10) {
+                lineText += ' ' // Space for normal word separation
+              }
+              lineText += item.str
+              lastX = item.x + (item.width || item.str.length * 5)
+            }
+            
+            text += lineText.trim() + '\n'
+          }
+          
           return text
         })
       }
