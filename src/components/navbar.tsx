@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from './auth-provider'
 import { Button } from './ui/button'
@@ -64,7 +65,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo - always go to home */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <FileText className="h-6 w-6 text-primary" />
+          <Image src="/logo.png" alt="Cramdesk" width={32} height={32} className="h-8 w-8 rounded" />
           <span className="text-xl font-bold text-foreground">Cramdesk</span>
         </Link>
 

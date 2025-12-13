@@ -44,25 +44,30 @@ Meta:
 - UserAgent: ${payload.userAgent}
 `.trim()
 
-      const emailRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
-          from: 'Cramdesk Contact <no-reply@cramdesk.com>',
-          to: [toEmail],
-          subject,
-          text: textBody,
-          reply_to: email,
-        }),
-      })
+      try {
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: 'Cramdesk Contact <no-reply@cramdesk.com>',
+            to: [toEmail],
+            subject,
+            text: textBody,
+            reply_to: email,
+          }),
+        })
 
-      if (!emailRes.ok) {
-        const err = await emailRes.text()
-        console.error('Resend contact error:', err)
-        return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+        if (!emailRes.ok) {
+          const err = await emailRes.text()
+          console.error('Resend contact error:', err)
+          // Continue with success response to avoid blocking the user
+        }
+      } catch (sendErr) {
+        console.error('Resend contact exception:', sendErr)
+        // Continue with success response to avoid blocking the user
       }
     } else {
       console.warn('RESEND_API_KEY not set; logging contact message instead.')
