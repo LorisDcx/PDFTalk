@@ -100,17 +100,25 @@ export default function FlashcardsPage() {
       
       const supabase = createClient()
       
+      // First get user's documents
+      const { data: userDocs } = await supabase
+        .from('documents')
+        .select('id, file_name')
+        .eq('user_id', user.id)
+
+      if (!userDocs || userDocs.length === 0) {
+        setLoading(false)
+        return
+      }
+
+      const docIds = userDocs.map(d => d.id)
+      const docMap = userDocs.reduce((acc, d) => ({ ...acc, [d.id]: d.file_name }), {} as Record<string, string>)
+
+      // Then get flashcards for those documents
       const { data: flashcardsData, error } = await supabase
         .from('flashcards')
-        .select(`
-          id,
-          question,
-          answer,
-          created_at,
-          document_id,
-          documents!inner(id, file_name)
-        `)
-        .eq('documents.user_id', user.id)
+        .select('id, question, answer, created_at, document_id')
+        .in('document_id', docIds)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -125,7 +133,7 @@ export default function FlashcardsPage() {
           acc[docId] = {
             id: docId,
             document_id: docId,
-            document_name: card.documents.file_name,
+            document_name: docMap[docId] || 'Document',
             cards_count: 0,
             created_at: card.created_at,
             cards: [],
