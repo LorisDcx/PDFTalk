@@ -6,10 +6,10 @@ import { useAuth } from '@/components/auth-provider'
 import { FileUpload } from '@/components/file-upload'
 import { DocumentCard } from '@/components/document-card'
 import { UsageCard } from '@/components/usage-card'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { isTrialExpired } from '@/lib/utils'
 import { getPlanLimits } from '@/lib/stripe'
+import { createClient } from '@/lib/supabase/client'
 import type { Document, Summary } from '@/types/database'
 import { Loader2, FileText, AlertCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -146,15 +146,46 @@ export default function DashboardPage() {
     setIsUploading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      // Sanitize name client-side (mirror server rules)
+      const sanitizeFileName = (name: string): string => {
+        const ext = name.split('.').pop()?.toLowerCase() || 'pdf'
+        const baseName = name.replace(/\.[^/.]+$/, '')
 
-      const response = await fetch('/api/upload', {
+        const sanitized = baseName
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-zA-Z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .replace(/^_|_$/g, '')
+          .substring(0, 50)
+
+        return `${sanitized || 'document'}.${ext}`
+      }
+
+      const sanitizedName = sanitizeFileName(file.name)
+      const filePath = `${profile.id}/${Date.now()}-${sanitizedName}`
+
+      // Upload directly to Supabase Storage (bypasses Vercel 5MB limit)
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, { contentType: 'application/pdf' })
+
+      if (storageError) {
+        throw new Error(storageError.message || 'Upload failed')
+      }
+
+      // Trigger processing via lightweight API (no file payload)
+      const response = await fetch('/api/process-document', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filePath,
+          fileName: file.name,
+          fileSize: file.size,
+        }),
       })
 
-      // Some upstream errors (e.g. storage 403) return plain text, not JSON.
+      // Some upstream errors return plain text, not JSON.
       let result: any = {}
       const contentType = response.headers.get('content-type') || ''
       if (contentType.includes('application/json')) {
