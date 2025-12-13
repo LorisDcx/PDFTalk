@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-import { FileText, LogOut, Settings, CreditCard, LayoutDashboard, FolderOpen, Menu, X, GraduationCap } from 'lucide-react'
+import { FileText, LogOut, Settings, CreditCard, LayoutDashboard, FolderOpen, Menu, X, GraduationCap, PenTool } from 'lucide-react'
 import { Badge } from './ui/badge'
 import { isTrialExpired } from '@/lib/utils'
 import { useState } from 'react'
@@ -55,6 +55,7 @@ export function Navbar() {
   const userLinks = [
     { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
     { href: '/flashcards', labelKey: 'flashcards', icon: GraduationCap },
+    { href: '/writer', labelKey: 'writer', icon: PenTool },
     { href: '/billing', labelKey: 'billing', icon: CreditCard },
   ]
 

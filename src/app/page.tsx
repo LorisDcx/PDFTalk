@@ -250,7 +250,7 @@ export default function LandingPage() {
               <PricingCard
                 name="Graduate"
                 price="12.99"
-                pages="illimité"
+                pages="∞"
                 description={t('planGraduateDesc')}
                 popularText={t('popular')}
                 perMonthText={t('perMonth')}

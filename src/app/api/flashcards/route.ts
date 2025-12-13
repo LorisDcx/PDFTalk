@@ -100,6 +100,32 @@ FORMAT:
     const actualCardCount = flashcards.length
     const actualPageCost = calculatePageCost('flashcards', actualCardCount)
     await deductPages(supabase, user.id, actualPageCost)
+
+    // Save flashcards to database
+    if (documentId && flashcards.length > 0) {
+      // Delete existing flashcards for this document
+      await supabase
+        .from('flashcards')
+        .delete()
+        .eq('document_id', documentId)
+
+      // Insert new flashcards
+      const flashcardsToInsert = flashcards.map((card: any, index: number) => ({
+        document_id: documentId,
+        question: card.question,
+        answer: card.answer,
+        source_ref: card.sourceRef || null,
+        order_index: index
+      }))
+
+      const { error: insertError } = await supabase
+        .from('flashcards')
+        .insert(flashcardsToInsert)
+
+      if (insertError) {
+        console.error('Failed to save flashcards to DB:', insertError)
+      }
+    }
     
     return NextResponse.json({ 
       flashcards,

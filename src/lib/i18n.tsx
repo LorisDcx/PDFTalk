@@ -34,6 +34,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     signup: 'Essai gratuit',
     features: 'Fonctionnalités',
     pricing: 'Tarifs',
+    writer: 'Rédacteur',
     // Document page
     summary: 'Résumé',
     summaryDesc: 'Les points clés de votre document',
@@ -472,6 +473,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     signup: 'Free trial',
     features: 'Features',
     pricing: 'Pricing',
+    writer: 'Writer',
     summary: 'Summary',
     summaryDesc: 'Key points of your document',
     risks: 'Risks & Questions',
