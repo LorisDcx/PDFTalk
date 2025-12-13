@@ -76,6 +76,7 @@ export default function FlashcardsPage() {
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardStatuses, setCardStatuses] = useState<Record<string, CardStatus>>({})
   const [quizAnswers, setQuizAnswers] = useState<string[]>([])
+  const [currentOptions, setCurrentOptions] = useState<string[]>([])
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [isAnswered, setIsAnswered] = useState(false)
   const [quizScore, setQuizScore] = useState({ correct: 0, wrong: 0 })
@@ -221,6 +222,9 @@ export default function FlashcardsPage() {
     setIsAnswered(false)
     setQuizScore({ correct: 0, wrong: 0 })
     setQuizComplete(false)
+    // Generate options for first question
+    const firstCard = shuffledCards[0]
+    setCurrentOptions(generateQuizOptions(firstCard.answer, allAnswers))
   }
 
   const handleQuizAnswer = (answer: string) => {
@@ -238,9 +242,13 @@ export default function FlashcardsPage() {
   const nextQuizQuestion = () => {
     if (!selectedSet) return
     if (currentIndex < selectedSet.cards.length - 1) {
-      setCurrentIndex(prev => prev + 1)
+      const nextIndex = currentIndex + 1
+      setCurrentIndex(nextIndex)
       setSelectedAnswer(null)
       setIsAnswered(false)
+      // Generate options for next question
+      const nextCard = selectedSet.cards[nextIndex]
+      setCurrentOptions(generateQuizOptions(nextCard.answer, quizAnswers))
     } else {
       setQuizComplete(true)
     }
@@ -272,7 +280,6 @@ export default function FlashcardsPage() {
   // Quiz mode
   if (selectedSet && quizMode) {
     const currentCard = selectedSet.cards[currentIndex]
-    const options = generateQuizOptions(currentCard.answer, quizAnswers)
     const totalQuestions = selectedSet.cards.length
     const progress = ((currentIndex + 1) / totalQuestions) * 100
 
@@ -352,7 +359,7 @@ export default function FlashcardsPage() {
         </Card>
 
         <div className="space-y-3">
-          {options.map((option, index) => {
+          {currentOptions.map((option: string, index: number) => {
             const isCorrect = option === currentCard.answer
             const isSelected = option === selectedAnswer
             let bgClass = "bg-background hover:bg-muted/50"
