@@ -10,18 +10,17 @@ export const PLANS = {
     id: 'starter',
     name: 'Starter',
     price: 3.99,
-    pagesPerMonth: 150,
-    maxPagesPerDocument: 30,
+    pagesPerMonth: 300,
+    maxPagesPerDocument: 50,
     documentHistory: 30,
     // Feature keys for i18n translation
     featureKeys: [
-      'planFeaturePages150',
+      'planFeaturePages300',
       'planFeatureFlashcards',
       'planFeatureQuiz',
       'planFeatureSlides',
       'planFeatureChat',
-      'planFeatureExportCSV',
-      'planFeatureSummary',
+      'planFeatureHistory',
     ],
     stripePriceId: process.env.STRIPE_STARTER_PRICE_ID,
   },
@@ -29,32 +28,33 @@ export const PLANS = {
     id: 'student',
     name: 'Student',
     price: 7.99,
-    pagesPerMonth: 400,
-    maxPagesPerDocument: 50,
+    pagesPerMonth: 800,
+    maxPagesPerDocument: 100,
     documentHistory: 100,
     featureKeys: [
-      'planFeaturePages400',
+      'planFeaturePages800',
       'planFeatureAllStarter',
-      'planFeatureMaxPages50',
-      'planFeatureHistory100',
+      'planFeatureDetailedGen',
+      'planFeaturePriority',
+      'planFeatureHistoryExtended',
     ],
     stripePriceId: process.env.STRIPE_STUDENT_PRICE_ID,
   },
-  graduate: {
-    id: 'graduate',
-    name: 'Graduate',
+  intense: {
+    id: 'intense',
+    name: 'Intense',
     price: 12.99,
-    pagesPerMonth: 1000,
-    maxPagesPerDocument: 100,
+    pagesPerMonth: 99999, // "unlimited" fair use
+    maxPagesPerDocument: 200,
     documentHistory: -1, // unlimited
     featureKeys: [
-      'planFeaturePages1000',
+      'planFeaturePagesUnlimited',
       'planFeatureAllStudent',
-      'planFeatureMaxPages100',
-      'planFeaturePriority',
-      'planFeatureHistoryUnlimited',
+      'planFeatureMaxPages200',
+      'planFeatureAdvancedGen',
+      'planFeaturePriorityMax',
     ],
-    stripePriceId: process.env.STRIPE_GRADUATE_PRICE_ID,
+    stripePriceId: process.env.STRIPE_INTENSE_PRICE_ID,
   },
 } as const
 
@@ -67,9 +67,8 @@ export function getPlanLimits(planId: PlanId | string | null) {
   const oldToNewPlanMap: Record<string, PlanId> = {
     'basic': 'starter',
     'growth': 'student', 
-    'pro': 'graduate',
-    // Legacy name used previously
-    'intense': 'graduate',
+    'pro': 'intense',
+    'graduate': 'intense',
   }
   
   const mappedPlanId = oldToNewPlanMap[planId] || planId

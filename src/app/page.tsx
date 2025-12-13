@@ -233,7 +233,7 @@ export default function LandingPage() {
               <PricingCard
                 name="Starter"
                 price="3.99"
-                pages="150"
+                pages="300"
                 description={t('planStarterDesc')}
                 popularText={t('popular')}
                 perMonthText={t('perMonth')}
@@ -241,7 +241,7 @@ export default function LandingPage() {
               <PricingCard
                 name="Student"
                 price="7.99"
-                pages="400"
+                pages="800"
                 description={t('planStudentDesc')}
                 highlighted
                 popularText={t('popular')}
@@ -250,7 +250,7 @@ export default function LandingPage() {
               <PricingCard
                 name="Intense"
                 price="12.99"
-                pages="1000"
+                pages="illimité"
                 description={t('planIntenseDesc')}
                 popularText={t('popular')}
                 perMonthText={t('perMonth')}

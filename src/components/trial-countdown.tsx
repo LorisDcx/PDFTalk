@@ -39,12 +39,12 @@ function getRecommendedPlan(pagesUsed: number): { planId: PlanId; reason: string
   // Based on 7-day trial usage, extrapolate to monthly
   const projectedMonthly = Math.ceil((pagesUsed / 7) * 30)
   
-  if (projectedMonthly <= 150) {
+  if (projectedMonthly <= 300) {
     return { planId: 'starter', reason: 'lightUsage' }
-  } else if (projectedMonthly <= 400) {
+  } else if (projectedMonthly <= 800) {
     return { planId: 'student', reason: 'regularUsage' }
   } else {
-    return { planId: 'graduate', reason: 'heavyUsage' }
+    return { planId: 'intense', reason: 'heavyUsage' }
   }
 }
 
@@ -94,7 +94,7 @@ export function TrialCountdown() {
     switch (planId) {
       case 'starter': return <Zap className="h-5 w-5" />
       case 'student': return <TrendingUp className="h-5 w-5" />
-      case 'graduate': return <Crown className="h-5 w-5" />
+      case 'intense': return <Crown className="h-5 w-5" />
     }
   }
 
