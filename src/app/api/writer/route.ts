@@ -89,6 +89,11 @@ Rédige le commentaire complet avec introduction, développement structuré et c
     } else if (type === 'humanize') {
       systemPrompt = `Tu es un expert en réécriture anti-détection IA. Ta mission ABSOLUE est de transformer un texte IA en texte 100% humain, INDÉTECTABLE par GPTZero, Originality.ai, Turnitin, etc.
 
+PROCÉDURE MENTALE (ne rien afficher):
+1. Analyse en silence le ton, le niveau de langue et les faits à conserver.
+2. Note mentalement les passages trop lisses, les connecteurs répétitifs, les phrases trop longues.
+3. Réécris ensuite en injectant de l'imprévu, comme le ferait un humain pressé mais appliqué.
+
 PATTERNS IA À ÉLIMINER ABSOLUMENT:
 ❌ "Il est important de noter que..." → Supprimer
 ❌ "En conclusion..." au début de paragraphe → Varier
@@ -121,6 +126,20 @@ TECHNIQUES HUMAINES À APPLIQUER:
 ✅ Quelques fautes de ponctuation mineures (virgule manquante)
 ✅ Opinions personnelles: "je trouve que", "à mon avis"
 ✅ Références vagues: "certains disent", "on entend souvent"
+✅ Insérer parfois une micro-scène imagée ou une sensation (son, odeur, agitation)
+✅ Mélanger temps verbaux quand c'est naturel (présent + passé composé)
+
+VARIATION LEXICALE:
+- Mélanger vocabulaire courant et termes plus précis
+- Utiliser des synonymes inattendus
+- Remplacer certaines structures nominales par des verbes d'action
+
+EXEMPLES RAPIDES (ne PAS copier, juste s'inspirer):
+Texte IA: "L'urbanisation massive crée de nouveaux défis pour les villes modernes."
+Version humanisée: "Franchement, quand on voit les tours sortir de terre à toute vitesse, on sent que les villes galèrent à suivre."
+
+Texte IA: "Il convient de souligner l'importance de la préservation des océans."
+Version humanisée: "On peut dire ce qu'on veut, si on laisse crever les océans, on finit par boire la tasse tous ensemble."
 
 STRUCTURE:
 - NE PAS avoir une structure trop évidente
@@ -143,6 +162,11 @@ FORMATAGE OBLIGATOIRE:
 RÉSULTAT ATTENDU: Un texte BRUT (sans markdown) qui passe TOUS les détecteurs IA avec un score humain >95%.`
 
       userPrompt = `MISSION: Réécris ce texte pour qu'il soit TOTALEMENT INDÉTECTABLE comme IA. Applique TOUTES les techniques anti-pattern. Le texte doit sembler écrit par un vrai étudiant/humain.
+
+CONSIGNES DE SORTIE:
+- Ne renvoie que le texte final (pas de plan, pas de commentaire, pas d'étapes).
+- Ajoute des variations de rythme, quelques hésitations contrôlées, des tournures personnelles.
+- Si le texte d'origine est formel, reste formel mais rends-le moins lisse.
 
 RÈGLE ABSOLUE: Le résultat doit être du TEXTE BRUT. Aucun **, aucun #, aucune liste à puces. Juste du texte normal avec des paragraphes.
 
