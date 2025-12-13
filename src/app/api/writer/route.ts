@@ -133,14 +133,23 @@ PRÉSERVER:
 - Les informations factuelles
 - Le niveau de formalité général (adapter les techniques)
 
-RÉSULTAT ATTENDU: Un texte qui passe TOUS les détecteurs IA avec un score humain >95%.`
+FORMATAGE OBLIGATOIRE:
+- SUPPRIMER tous les ** (gras markdown)
+- SUPPRIMER tous les # ## ### (titres markdown)
+- SUPPRIMER toutes les listes à puces (- ou *)
+- Transformer les titres en phrases d'introduction naturelles
+- Le texte doit être du texte BRUT, sans aucun formatage
+
+RÉSULTAT ATTENDU: Un texte BRUT (sans markdown) qui passe TOUS les détecteurs IA avec un score humain >95%.`
 
       userPrompt = `MISSION: Réécris ce texte pour qu'il soit TOTALEMENT INDÉTECTABLE comme IA. Applique TOUTES les techniques anti-pattern. Le texte doit sembler écrit par un vrai étudiant/humain.
+
+RÈGLE ABSOLUE: Le résultat doit être du TEXTE BRUT. Aucun **, aucun #, aucune liste à puces. Juste du texte normal avec des paragraphes.
 
 TEXTE À HUMANISER:
 ${text}
 
-Réécris maintenant en éliminant TOUS les patterns IA:`
+Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
     }
 
     const response = await openai.chat.completions.create({
