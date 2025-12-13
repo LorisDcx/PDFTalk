@@ -300,31 +300,31 @@ export default function FlashcardsPage() {
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
               <Trophy className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Quiz terminé !</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('quizComplete')}</h1>
             <p className="text-muted-foreground mb-8">{selectedSet.document_name.replace(/\.pdf$/i, '')}</p>
             
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                 <p className="text-3xl font-bold text-green-600">{quizScore.correct}</p>
-                <p className="text-sm text-muted-foreground">Correct</p>
+                <p className="text-sm text-muted-foreground">{t('correct')}</p>
               </div>
               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
                 <p className="text-3xl font-bold text-red-600">{quizScore.wrong}</p>
-                <p className="text-sm text-muted-foreground">Incorrect</p>
+                <p className="text-sm text-muted-foreground">{t('incorrect')}</p>
               </div>
               <div className="p-4 rounded-xl bg-primary/10 border border-primary/30">
                 <p className="text-3xl font-bold text-primary">{percentage}%</p>
-                <p className="text-sm text-muted-foreground">Score</p>
+                <p className="text-sm text-muted-foreground">{t('score')}</p>
               </div>
             </div>
 
             <div className="flex gap-3 justify-center">
               <Button variant="outline" onClick={() => { setQuizMode(false); setSelectedSet(null) }}>
-                Retour
+                {t('back')}
               </Button>
               <Button className="bg-gradient-to-r from-primary to-orange-500" onClick={() => startQuiz(selectedSet)}>
                 <RotateCcw className="h-4 w-4 mr-2" />
-                Recommencer
+                {t('restart')}
               </Button>
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function FlashcardsPage() {
         {isAnswered && (
           <div className="mt-6 flex justify-center">
             <Button className="bg-gradient-to-r from-primary to-orange-500" onClick={nextQuizQuestion}>
-              {currentIndex < totalQuestions - 1 ? 'Question suivante' : 'Voir les résultats'}
+              {currentIndex < totalQuestions - 1 ? t('next') : t('seeResults')}
             </Button>
           </div>
         )}
@@ -567,7 +567,7 @@ export default function FlashcardsPage() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => resetProgress(selectedSet)}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
+              {t('reset')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => exportToCSV(selectedSet)}>
               <Download className="h-4 w-4 mr-2" />
@@ -575,7 +575,7 @@ export default function FlashcardsPage() {
             </Button>
             <Button size="sm" className="bg-gradient-to-r from-primary to-orange-500" onClick={() => startStudy(selectedSet)}>
               <Play className="h-4 w-4 mr-2" />
-              Réviser
+              {t('review')}
             </Button>
             <Button size="sm" variant="outline" className="border-primary/50 hover:bg-primary/10" onClick={() => startQuiz(selectedSet)}>
               <Target className="h-4 w-4 mr-2" />
@@ -667,7 +667,7 @@ export default function FlashcardsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{totalCards}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-xs text-muted-foreground">{t('total')}</p>
             </div>
           </CardContent>
         </Card>
@@ -678,7 +678,7 @@ export default function FlashcardsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{flashcardSets.reduce((sum, s) => sum + s.stats.success, 0)}</p>
-              <p className="text-xs text-muted-foreground">Réussies</p>
+              <p className="text-xs text-muted-foreground">{t('succeeded')}</p>
             </div>
           </CardContent>
         </Card>
@@ -689,7 +689,7 @@ export default function FlashcardsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{flashcardSets.reduce((sum, s) => sum + s.stats.hard, 0)}</p>
-              <p className="text-xs text-muted-foreground">Difficiles</p>
+              <p className="text-xs text-muted-foreground">{t('difficult')}</p>
             </div>
           </CardContent>
         </Card>
@@ -700,7 +700,7 @@ export default function FlashcardsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{flashcardSets.reduce((sum, s) => sum + s.stats.failed, 0)}</p>
-              <p className="text-xs text-muted-foreground">À revoir</p>
+              <p className="text-xs text-muted-foreground">{t('toReview')}</p>
             </div>
           </CardContent>
         </Card>
@@ -714,18 +714,18 @@ export default function FlashcardsPage() {
               <GraduationCap className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="font-semibold mb-2">
-              {searchQuery ? t('noResults') : 'Aucune flashcard'}
+              {searchQuery ? t('noResults') : t('noFlashcards')}
             </h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
               {searchQuery 
-                ? 'Essayez un autre terme de recherche'
-                : 'Générez des flashcards depuis vos documents pour les retrouver ici'
+                ? t('tryAnotherSearch')
+                : t('generateFromDocs')
               }
             </p>
             {!searchQuery && (
               <Button className="mt-4" onClick={() => router.push('/dashboard')}>
                 <FileText className="h-4 w-4 mr-2" />
-                Voir mes documents
+                {t('viewMyDocuments')}
               </Button>
             )}
           </CardContent>
