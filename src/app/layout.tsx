@@ -61,6 +61,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: 'ebHXmc3bop6UAKkNwRXDllTMWIeHcHEInsoJeYxrNA4',
+  },
 }
 
 export default function RootLayout({
@@ -70,6 +73,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head>
+        <meta
+          name="google-site-verification"
+          content="ebHXmc3bop6UAKkNwRXDllTMWIeHcHEInsoJeYxrNA4"
+        />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <LanguageProvider>
