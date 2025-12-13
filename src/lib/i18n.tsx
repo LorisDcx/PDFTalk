@@ -2764,11 +2764,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>('fr')
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return
+    
     // Detect browser language on mount
     const stored = localStorage.getItem('cramdesk-language') as LanguageCode
     if (stored && LANGUAGES.find(l => l.code === stored)) {
       setLanguageState(stored)
-    } else {
+    } else if (typeof navigator !== 'undefined') {
       const browserLang = navigator.language.split('-')[0] as LanguageCode
       if (LANGUAGES.find(l => l.code === browserLang)) {
         setLanguageState(browserLang)
