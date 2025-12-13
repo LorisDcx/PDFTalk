@@ -153,7 +153,7 @@ Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
     }
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4o-mini-2024-07-18',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
