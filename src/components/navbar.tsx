@@ -62,11 +62,11 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="container flex h-16 items-center justify-between px-14">
         {/* Logo - always go to home */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Image src="/logo.png" alt="Cramdesk" width={32} height={32} className="h-8 w-8 rounded" />
-          <span className="text-xl font-bold text-foreground">Cramdesk</span>
+        <Link href="/" className="flex items-center gap-4 shrink-0">
+          <Image src="/logo.png" alt="Cramdesk" width={60} height={60} className="h-14 w-14 rounded" />
+          <span className="text-2xl font-bold text-foreground">Cramdesk</span>
         </Link>
 
         {/* Desktop Navigation */}

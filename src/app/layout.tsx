@@ -44,6 +44,10 @@ export const metadata: Metadata = {
     icon: '/logo.png',
     shortcut: '/logo.png',
     apple: '/logo.png',
+    other: [
+      { rel: 'icon', url: '/logo.png', sizes: '256x256' },
+      { rel: 'icon', url: '/logo.png', sizes: '512x512' },
+    ],
   },
   manifest: '/site.webmanifest',
   robots: {
