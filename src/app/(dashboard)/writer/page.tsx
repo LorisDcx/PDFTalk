@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { useLanguage } from '@/lib/i18n'
@@ -82,6 +82,7 @@ export default function WriterPage() {
   const router = useRouter()
   const { toast } = useToast()
   
+  const [mounted, setMounted] = useState(false)
   const [activeType, setActiveType] = useState<WritingType>('dissertation')
   const [subject, setSubject] = useState('')
   const [thesis, setThesis] = useState('')
@@ -91,7 +92,19 @@ export default function WriterPage() {
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState<number>(1500)
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const config = WRITING_CONFIGS[activeType]
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   const handleGenerate = async () => {
     if (activeType === 'humanize' && !inputText.trim()) {
