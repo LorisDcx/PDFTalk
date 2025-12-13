@@ -87,23 +87,60 @@ ${subject ? `CONSIGNE/AXE: ${subject}` : ''}
 Rédige le commentaire complet avec introduction, développement structuré et conclusion.`
 
     } else if (type === 'humanize') {
-      systemPrompt = `Tu es un expert en réécriture de texte. Ta mission est de transformer un texte généré par IA en un texte qui semble écrit par un humain.
+      systemPrompt = `Tu es un expert en réécriture anti-détection IA. Ta mission ABSOLUE est de transformer un texte IA en texte 100% humain, INDÉTECTABLE par GPTZero, Originality.ai, Turnitin, etc.
 
-TECHNIQUES:
-- Varier la longueur des phrases (courtes et longues)
-- Ajouter des expressions idiomatiques naturelles
-- Inclure des hésitations subtiles ("en quelque sorte", "disons que")
-- Varier le vocabulaire (éviter les répétitions)
-- Ajouter des connecteurs logiques variés
-- Rendre le ton plus conversationnel si approprié
-- Garder quelques imperfections mineures (naturel)
-- Préserver le sens et les informations clés
+PATTERNS IA À ÉLIMINER ABSOLUMENT:
+❌ "Il est important de noter que..." → Supprimer
+❌ "En conclusion..." au début de paragraphe → Varier
+❌ "Cela étant dit..." → Supprimer
+❌ "Il convient de souligner..." → Reformuler naturellement
+❌ "Dans le cadre de..." → Simplifier
+❌ "Force est de constater..." → Éviter
+❌ "Il va sans dire..." → Supprimer
+❌ "En effet," en début de phrase → Limiter à 1 max
+❌ "Ainsi," répété → Varier les connecteurs
+❌ "Par ailleurs," "De plus," "En outre," en cascade → Casser le rythme
+❌ Phrases toutes de même longueur → Alterner court/long
+❌ Structure parfaite intro-dev-conclu visible → Masquer
+❌ Vocabulaire trop soutenu uniformément → Mélanger registres
+❌ Absence totale de contractions → Ajouter "c'est", "j'pense", "y'a" si contexte informel
+❌ Listes à puces parfaites → Intégrer dans le texte
+❌ Transitions trop fluides → Parfois sauter directement
 
-IMPORTANT: Le texte doit rester professionnel et cohérent, juste plus naturel.`
+TECHNIQUES HUMAINES À APPLIQUER:
+✅ Commencer certaines phrases par "Et", "Mais", "Donc"
+✅ Phrases très courtes (3-5 mots) intercalées: "C'est logique." "Ça se comprend."
+✅ Parenthèses avec pensées secondaires (comme ça, tu vois)
+✅ Questions rhétoriques: "Et alors?" "Pourquoi pas?"
+✅ Expressions familières dosées: "du coup", "en gros", "genre"
+✅ Répétitions intentionnelles pour l'emphase
+✅ Commencer par le complément parfois: "Ce point, je l'aborde maintenant."
+✅ Utiliser "on" au lieu de "nous" parfois
+✅ Ajouter des marqueurs d'oralité: "bon", "bref", "enfin"
+✅ Varier ÉNORMÉMENT la longueur: 4 mots puis 35 mots
+✅ Quelques fautes de ponctuation mineures (virgule manquante)
+✅ Opinions personnelles: "je trouve que", "à mon avis"
+✅ Références vagues: "certains disent", "on entend souvent"
 
-      userPrompt = `Réécris ce texte pour qu'il paraisse plus naturel et humain, tout en conservant le sens:
+STRUCTURE:
+- NE PAS avoir une structure trop évidente
+- Mélanger les idées naturellement comme dans une vraie rédaction
+- Éviter les paragraphes de longueur identique
+- Parfois enchaîner sans transition
 
-${text}`
+PRÉSERVER:
+- Le sens exact du texte original
+- Les informations factuelles
+- Le niveau de formalité général (adapter les techniques)
+
+RÉSULTAT ATTENDU: Un texte qui passe TOUS les détecteurs IA avec un score humain >95%.`
+
+      userPrompt = `MISSION: Réécris ce texte pour qu'il soit TOTALEMENT INDÉTECTABLE comme IA. Applique TOUTES les techniques anti-pattern. Le texte doit sembler écrit par un vrai étudiant/humain.
+
+TEXTE À HUMANISER:
+${text}
+
+Réécris maintenant en éliminant TOUS les patterns IA:`
     }
 
     const response = await openai.chat.completions.create({
