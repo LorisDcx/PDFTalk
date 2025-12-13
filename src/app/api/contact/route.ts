@@ -26,16 +26,46 @@ export async function POST(request: Request) {
       userAgent: request.headers.get('user-agent') || 'unknown',
     }
 
-    // Optional webhook (e.g., Slack/Discord) defined in env
-    const webhookUrl = process.env.CONTACT_WEBHOOK_URL
-    if (webhookUrl) {
-      await fetch(webhookUrl, {
+    // Send email via Resend
+    const resendApiKey = process.env.RESEND_API_KEY
+    const toEmail = 'contact.cramdesk@gmail.com'
+
+    if (resendApiKey) {
+      const subject = `Nouveau message contact - ${topic}`
+      const textBody = `
+Nom: ${name || 'Non renseigné'}
+Email: ${email}
+Sujet: ${topic}
+Message:
+${message}
+
+Meta:
+- CreatedAt: ${payload.createdAt}
+- UserAgent: ${payload.userAgent}
+`.trim()
+
+      const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: 'Cramdesk Contact <no-reply@cramdesk.com>',
+          to: [toEmail],
+          subject,
+          text: textBody,
+          reply_to: email,
+        }),
       })
+
+      if (!emailRes.ok) {
+        const err = await emailRes.text()
+        console.error('Resend contact error:', err)
+        return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+      }
     } else {
-      // Fallback: log to server console (visible in Vercel logs)
+      console.warn('RESEND_API_KEY not set; logging contact message instead.')
       console.log('Contact message:', payload)
     }
 

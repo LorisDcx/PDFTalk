@@ -88,7 +88,7 @@ La résiliation entraîne la suppression de vos données.`
         },
         {
           title: '9. Contact',
-          content: `Questions sur les CGU : contact@cramdesk.fr
+          content: `Questions sur les CGU : contact.cramdesk@gmail.com
 
 Droit applicable : droit français
 Juridiction : tribunaux compétents de Paris`
@@ -173,7 +173,7 @@ Termination results in deletion of your data.`
         },
         {
           title: '9. Contact',
-          content: `Questions about Terms: contact@cramdesk.fr
+          content: `Questions about Terms: contact.cramdesk@gmail.com
 
 Applicable law: French law
 Jurisdiction: Paris courts`

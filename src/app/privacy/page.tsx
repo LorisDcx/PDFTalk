@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           content: `Cramdesk est un service d'aide à la révision pour étudiants. Nous utilisons l'intelligence artificielle pour transformer vos cours PDF en outils de révision (flashcards, quiz, résumés).
 
 Responsable du traitement : Cramdesk
-Contact : contact@cramdesk.fr`
+Contact : contact.cramdesk@gmail.com`
         },
         {
           title: '2. Données collectées',
@@ -72,7 +72,7 @@ Vous pouvez supprimer votre compte et toutes vos données à tout moment depuis 
 • Portabilité : exporter vos données
 • Opposition : refuser certains traitements
 
-Pour exercer ces droits : contact@cramdesk.fr`
+Pour exercer ces droits : contact.cramdesk@gmail.com`
         },
         {
           title: '7. Cookies',
@@ -94,7 +94,7 @@ Aucun cookie publicitaire ou de tracking tiers.`
           content: `Cramdesk is a study aid service for students. We use artificial intelligence to transform your PDF courses into revision tools (flashcards, quizzes, summaries).
 
 Data controller: Cramdesk
-Contact: contact@cramdesk.fr`
+Contact: contact.cramdesk@gmail.com`
         },
         {
           title: '2. Data collected',
@@ -147,7 +147,7 @@ You can delete your account and all data at any time from settings.`
 • Portability: export your data
 • Opposition: refuse certain processing
 
-To exercise these rights: contact@cramdesk.fr`
+To exercise these rights: contact.cramdesk@gmail.com`
         },
         {
           title: '7. Cookies',
