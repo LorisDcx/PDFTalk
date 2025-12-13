@@ -3,6 +3,68 @@ import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 
+const HUMANIZE_STYLE_VARIANTS = [
+  'Adopte un ton légèrement ironique, comme quelqu’un qui observe la scène avec du recul.',
+  'Écris comme un étudiant fatigué mais impliqué qui révise tard le soir.',
+  'Fais comme si tu racontais l’histoire à un ami dans un café animé.',
+  'Adapte un ton journalistique conversationnel, avec quelques apartés personnels.',
+  'Inspire-toi d’un carnet de terrain: observations rapides, impressions sensorielles, mini anecdotes.'
+] as const
+
+const HUMANIZE_FILLERS = [
+  'Bref,',
+  'Franchement,',
+  'Honnêtement,',
+  'Du coup,',
+  'Et là,'
+] as const
+
+const HUMANIZE_RHETORICAL_QUESTIONS = [
+  'Ça pose question, non ?',
+  'Et qui pourrait dire le contraire ?',
+  'Tu vois le paradoxe ?',
+  'On fait quoi avec ça, franchement ?',
+  'Au fond, qui est vraiment surpris ?'
+] as const
+
+const HUMANIZE_SENSORY_DETAILS = [
+  'On entend presque le brouhaha autour rien qu’en y pensant.',
+  'On sent encore l’odeur de la salle de cours quand on en parle.',
+  'J’ai l’image des néons un peu blafards en tête pendant que j’écris ça.',
+  'On devine le fond sonore, les conversations qui se superposent.',
+  'Même le silence pesant de la pièce revient dans un coin de ma tête.'
+] as const
+
+function pickRandom<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]
+}
+
+function enhanceHumanizedText(text: string): string {
+  let output = text.trim()
+  if (!output) return output
+
+  if (!/\b(bref|franchement|honnêtement|du coup|en gros)\b/i.test(output)) {
+    const filler = pickRandom(HUMANIZE_FILLERS)
+    if (output.includes('\n\n')) {
+      output = output.replace('\n\n', `\n\n${filler} `)
+    } else {
+      output = `${filler} ${output}`
+    }
+  }
+
+  if (!/[?¿]/.test(output)) {
+    const question = pickRandom(HUMANIZE_RHETORICAL_QUESTIONS)
+    output = `${output}\n${question}`
+  }
+
+  if (!/(odeur|bruit|sons?|couleurs?|silence|chaleur|fraîcheur|brouhaha|lumière)/i.test(output)) {
+    const detail = pickRandom(HUMANIZE_SENSORY_DETAILS)
+    output = `${output}\n${detail}`
+  }
+
+  return output
+}
+
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
@@ -87,7 +149,11 @@ ${subject ? `CONSIGNE/AXE: ${subject}` : ''}
 Rédige le commentaire complet avec introduction, développement structuré et conclusion.`
 
     } else if (type === 'humanize') {
+      const styleVariant = pickRandom(HUMANIZE_STYLE_VARIANTS)
       systemPrompt = `Tu es un expert en réécriture anti-détection IA. Ta mission ABSOLUE est de transformer un texte IA en texte 100% humain, INDÉTECTABLE par GPTZero, Originality.ai, Turnitin, etc.
+
+STYLE À ADOPTER POUR CETTE RÉÉCRITURE:
+${styleVariant}
 
 PROCÉDURE MENTALE (ne rien afficher):
 1. Analyse en silence le ton, le niveau de langue et les faits à conserver.
@@ -197,8 +263,10 @@ Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
     const actualPageCost = Math.ceil(actualWordCount / 250)
     await deductPages(supabase, user.id, actualPageCost)
     
+    const finalContent = type === 'humanize' ? enhanceHumanizedText(content) : content
+    
     return NextResponse.json({ 
-      content,
+      content: finalContent,
       wordCount: actualWordCount,
       pagesUsed: actualPageCost
     })
