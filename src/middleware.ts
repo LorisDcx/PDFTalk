@@ -3,8 +3,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  console.log('🛡️ MIDDLEWARE:', req.nextUrl.pathname)
-  
   let res = NextResponse.next({
     request: {
       headers: req.headers,
@@ -38,8 +36,7 @@ export async function middleware(req: NextRequest) {
   )
 
   // Use getUser() instead of deprecated getSession() for security
-  const { data: { user }, error } = await supabase.auth.getUser()
-  console.log('🛡️ MIDDLEWARE user:', !!user, error?.message || '')
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Protected routes
   const protectedPaths = ['/dashboard', '/documents', '/billing', '/settings']
@@ -54,18 +51,26 @@ export async function middleware(req: NextRequest) {
   )
 
   if (isProtectedPath && !user) {
-    console.log('🛡️ MIDDLEWARE -> redirect to /login (no user)')
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirect', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
   if (isAuthPath && user) {
-    console.log('🛡️ MIDDLEWARE -> redirect to /dashboard (has user)')
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  console.log('🛡️ MIDDLEWARE -> pass through')
+  // Add X-Robots-Tag: noindex,nofollow for protected/app pages
+  if (isProtectedPath) {
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  }
+
+  // Security headers (global)
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('X-Frame-Options', 'DENY')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+
   return res
 }
 

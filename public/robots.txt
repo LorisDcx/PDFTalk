@@ -10,3 +10,6 @@ Disallow: /api/
 Disallow: /dashboard/
 Disallow: /billing/
 Disallow: /settings/
+Disallow: /auth/
+Disallow: /login/
+Disallow: /register/
