@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Navbar } from '@/components/navbar'
 import { DemoUpload } from '@/components/demo-upload'
 import { useLanguage } from '@/lib/i18n'
+import { OrganizationJsonLd, ProductJsonLd } from '@/components/json-ld'
 import { 
   FileText, 
   Zap, 
@@ -30,7 +31,10 @@ export default function LandingPage() {
   const { t } = useLanguage()
   
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-background relative overflow-hidden">
+    <>
+      <OrganizationJsonLd />
+      <ProductJsonLd />
+      <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-background relative overflow-hidden">
       {/* Animated Glowing Orbs */}
       <div className="glow-orb glow-orb-1" />
       <div className="glow-orb glow-orb-2" />
@@ -352,6 +356,7 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </>
   )
 }
 

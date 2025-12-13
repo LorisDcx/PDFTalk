@@ -1,0 +1,12 @@
+# Cramdesk - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://cramdesk.com/sitemap.xml
+
+# Disallow admin/api routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /billing/
+Disallow: /settings/
