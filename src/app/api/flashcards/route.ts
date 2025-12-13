@@ -72,6 +72,9 @@ INSTRUCTIONS:
 FORMAT:
 {"flashcards":[{"id":"1","question":"...","answer":"...","sourceRef":"Section X"}]}`
 
+    // Calculate max tokens based on card count (approx 100 tokens per card)
+    const maxTokens = Math.min(16000, Math.max(4000, cardCount * 80))
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -79,7 +82,7 @@ FORMAT:
         { role: 'user', content: `Generate ${cardCount} flashcards in ${targetLanguage}.` },
       ],
       temperature: 0.7,
-      max_tokens: 6000,
+      max_tokens: maxTokens,
       response_format: { type: 'json_object' },
     })
 
@@ -92,8 +95,9 @@ FORMAT:
     let parsed
     try {
       parsed = JSON.parse(content)
-    } catch {
-      return NextResponse.json({ error: 'AI returned invalid format' }, { status: 500 })
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Content:', content?.substring(0, 500))
+      return NextResponse.json({ error: 'AI returned invalid format', details: content?.substring(0, 200) }, { status: 500 })
     }
     
     const flashcards = parsed.flashcards || []
