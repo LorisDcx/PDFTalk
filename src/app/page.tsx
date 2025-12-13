@@ -344,7 +344,7 @@ export default function LandingPage() {
             <div className="flex gap-4 text-sm text-muted-foreground">
               <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
               <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
-              <Link href="mailto:contact@cramdesk.fr" className="hover:text-foreground">Contact</Link>
+              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             </div>
           </div>
         </div>

@@ -227,6 +227,15 @@ export default function FlashcardsPage() {
     setCurrentOptions(generateQuizOptions(firstCard.answer, allAnswers))
   }
 
+  const startStudy = (set: FlashcardSet) => {
+    const shuffledCards = [...set.cards].sort(() => Math.random() - 0.5)
+    setSelectedSet({ ...set, cards: shuffledCards })
+    setCurrentIndex(0)
+    setIsFlipped(false)
+    setStudyMode(true)
+    setQuizMode(false)
+  }
+
   const handleQuizAnswer = (answer: string) => {
     if (isAnswered || !selectedSet) return
     setSelectedAnswer(answer)
@@ -564,7 +573,7 @@ export default function FlashcardsPage() {
               <Download className="h-4 w-4 mr-2" />
               CSV
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-primary to-orange-500" onClick={() => { setStudyMode(true); setCurrentIndex(0); setIsFlipped(false) }}>
+            <Button size="sm" className="bg-gradient-to-r from-primary to-orange-500" onClick={() => startStudy(selectedSet)}>
               <Play className="h-4 w-4 mr-2" />
               Réviser
             </Button>

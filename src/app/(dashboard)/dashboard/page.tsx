@@ -266,21 +266,25 @@ export default function DashboardPage() {
           </div>
           
           {/* Inline usage display */}
-          {profile && (
+          {profile && (() => {
+            const limits = getPlanLimits(profile.current_plan)
+            const pagesLimit = limits.pagesPerMonth
+            const displayLimit = pagesLimit >= 10000 ? '∞' : pagesLimit
+            const divisor = pagesLimit >= 10000 ? 10000 : pagesLimit || 1
+            const progress = Math.min((profile.pages_processed_this_month / divisor) * 100, 100)
+            return (
             <div className="flex items-center gap-4 p-4 rounded-xl border bg-card shadow-sm">
               <div className="flex-1 min-w-[200px]">
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-muted-foreground">{t('pagesThisMonth')}</span>
                   <span className="font-semibold text-lg">
-                    {profile.pages_processed_this_month} / {getPlanLimits(profile.current_plan).pagesPerMonth}
+                    {profile.pages_processed_this_month} / {displayLimit}
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-500"
-                    style={{ 
-                      width: `${Math.min((profile.pages_processed_this_month / getPlanLimits(profile.current_plan).pagesPerMonth) * 100, 100)}%` 
-                    }}
+                    style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
@@ -290,7 +294,8 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </div>
-          )}
+            )
+          })()}
         </div>
       </div>
 

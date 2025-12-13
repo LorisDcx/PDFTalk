@@ -210,10 +210,15 @@ export default function BillingPage() {
               </CardHeader>
               <CardContent>
                 {/* Pages highlight */}
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
-                  <span className="text-2xl font-bold text-primary">{plan.pagesPerMonth}</span>
-                  <span className="text-sm text-muted-foreground ml-1">{t('pagesPerMonth')}</span>
-                </div>
+                {(() => {
+                  const displayLimit = plan.pagesPerMonth >= 10000 ? '∞' : plan.pagesPerMonth
+                  return (
+                    <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
+                      <span className="text-2xl font-bold text-primary">{displayLimit}</span>
+                      <span className="text-sm text-muted-foreground ml-1">{t('pagesPerMonth')}</span>
+                    </div>
+                  )
+                })()}
                 
                 <ul className="space-y-2">
                   {plan.featureKeys.map((featureKey, i) => (

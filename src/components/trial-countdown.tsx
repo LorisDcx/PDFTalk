@@ -217,7 +217,7 @@ export function TrialCountdown() {
                   <div>
                     <p className="font-semibold">{recommendedPlan.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {recommendedPlan.pagesPerMonth} {t('pagesPerMonth')}
+                      {recommendedPlan.pagesPerMonth >= 10000 ? '∞' : recommendedPlan.pagesPerMonth} {t('pagesPerMonth')}
                     </p>
                   </div>
                 </div>

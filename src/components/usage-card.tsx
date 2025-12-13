@@ -27,7 +27,9 @@ export function UsageCard() {
   const planLimits = getPlanLimits(currentPlanId)
   const pagesUsed = profile.pages_processed_this_month
   const pagesLimit = planLimits.pagesPerMonth
-  const usagePercentage = Math.min((pagesUsed / pagesLimit) * 100, 100)
+  const displayLimit = pagesLimit >= 10000 ? '∞' : pagesLimit
+  const divisor = pagesLimit >= 10000 ? 10000 : pagesLimit
+  const usagePercentage = Math.min((pagesUsed / divisor) * 100, 100)
 
   const isInTrial = profile.trial_end_at && !isTrialExpired(profile.trial_end_at) && !profile.subscription_status
   const trialDays = profile.trial_end_at ? getTrialDaysRemaining(profile.trial_end_at) : 0
@@ -41,7 +43,7 @@ export function UsageCard() {
         <div>
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-muted-foreground">{t('pagesProcessed')}</span>
-            <span className="font-medium">{pagesUsed} / {pagesLimit}</span>
+            <span className="font-medium">{pagesUsed} / {displayLimit}</span>
           </div>
           <div className="relative">
             <Progress value={usagePercentage} className="h-2" />

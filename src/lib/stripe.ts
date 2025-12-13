@@ -11,7 +11,7 @@ export const PLANS = {
     name: 'Starter',
     price: 3.99,
     pagesPerMonth: 300,
-    maxPagesPerDocument: 50,
+    maxPagesPerDocument: 100,
     maxFlashcardsPerGen: 50,
     maxQuizQuestions: 20,
     documentHistory: 30,
@@ -31,7 +31,7 @@ export const PLANS = {
     name: 'Student',
     price: 7.99,
     pagesPerMonth: 800,
-    maxPagesPerDocument: 100,
+    maxPagesPerDocument: 200,
     maxFlashcardsPerGen: 100,
     maxQuizQuestions: 50,
     documentHistory: 100,
@@ -48,8 +48,8 @@ export const PLANS = {
     id: 'graduate',
     name: 'Graduate',
     price: 12.99,
-    pagesPerMonth: -1, // unlimited (fair use)
-    maxPagesPerDocument: 200,
+    pagesPerMonth: 10000, // effectively unlimited (fair use)
+    maxPagesPerDocument: 500,
     maxFlashcardsPerGen: 200,
     maxQuizQuestions: 100,
     documentHistory: -1, // unlimited
