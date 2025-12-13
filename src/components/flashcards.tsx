@@ -267,9 +267,9 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
-                    min={5}
-                    max={50}
-                    step={5}
+                    min={10}
+                    max={200}
+                    step={10}
                     value={cardCount}
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
                     className="flex-1 accent-primary"

@@ -25,7 +25,9 @@ import {
   AlertCircle,
   Circle,
   RotateCcw,
-  Grid3X3
+  Grid3X3,
+  Target,
+  Trophy
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -69,9 +71,15 @@ export default function FlashcardsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null)
   const [studyMode, setStudyMode] = useState(false)
+  const [quizMode, setQuizMode] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardStatuses, setCardStatuses] = useState<Record<string, CardStatus>>({})
+  const [quizAnswers, setQuizAnswers] = useState<string[]>([])
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [isAnswered, setIsAnswered] = useState(false)
+  const [quizScore, setQuizScore] = useState({ correct: 0, wrong: 0 })
+  const [quizComplete, setQuizComplete] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -194,6 +202,50 @@ export default function FlashcardsPage() {
     }
   }
 
+  const generateQuizOptions = (correctAnswer: string, allAnswers: string[]): string[] => {
+    const options = [correctAnswer]
+    const otherAnswers = allAnswers.filter(a => a !== correctAnswer)
+    const shuffled = otherAnswers.sort(() => Math.random() - 0.5)
+    options.push(...shuffled.slice(0, 3))
+    return options.sort(() => Math.random() - 0.5)
+  }
+
+  const startQuiz = (set: FlashcardSet) => {
+    const shuffledCards = [...set.cards].sort(() => Math.random() - 0.5)
+    const allAnswers = set.cards.map(c => c.answer)
+    setQuizAnswers(allAnswers)
+    setSelectedSet({ ...set, cards: shuffledCards })
+    setQuizMode(true)
+    setCurrentIndex(0)
+    setSelectedAnswer(null)
+    setIsAnswered(false)
+    setQuizScore({ correct: 0, wrong: 0 })
+    setQuizComplete(false)
+  }
+
+  const handleQuizAnswer = (answer: string) => {
+    if (isAnswered || !selectedSet) return
+    setSelectedAnswer(answer)
+    setIsAnswered(true)
+    const currentCard = selectedSet.cards[currentIndex]
+    if (answer === currentCard.answer) {
+      setQuizScore(prev => ({ ...prev, correct: prev.correct + 1 }))
+    } else {
+      setQuizScore(prev => ({ ...prev, wrong: prev.wrong + 1 }))
+    }
+  }
+
+  const nextQuizQuestion = () => {
+    if (!selectedSet) return
+    if (currentIndex < selectedSet.cards.length - 1) {
+      setCurrentIndex(prev => prev + 1)
+      setSelectedAnswer(null)
+      setIsAnswered(false)
+    } else {
+      setQuizComplete(true)
+    }
+  }
+
   const resetProgress = (set: FlashcardSet) => {
     const newStatuses = { ...cardStatuses }
     set.cards.forEach(card => {
@@ -213,6 +265,146 @@ export default function FlashcardsPage() {
           </div>
           <span className="text-sm text-muted-foreground">{t('processing')}</span>
         </div>
+      </div>
+    )
+  }
+
+  // Quiz mode
+  if (selectedSet && quizMode) {
+    const currentCard = selectedSet.cards[currentIndex]
+    const options = generateQuizOptions(currentCard.answer, quizAnswers)
+    const totalQuestions = selectedSet.cards.length
+    const progress = ((currentIndex + 1) / totalQuestions) * 100
+
+    if (quizComplete) {
+      const percentage = Math.round((quizScore.correct / totalQuestions) * 100)
+      return (
+        <div className="container max-w-2xl py-8">
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
+              <Trophy className="h-10 w-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Quiz terminé !</h1>
+            <p className="text-muted-foreground mb-8">{selectedSet.document_name.replace(/\.pdf$/i, '')}</p>
+            
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                <p className="text-3xl font-bold text-green-600">{quizScore.correct}</p>
+                <p className="text-sm text-muted-foreground">Correct</p>
+              </div>
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                <p className="text-3xl font-bold text-red-600">{quizScore.wrong}</p>
+                <p className="text-sm text-muted-foreground">Incorrect</p>
+              </div>
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/30">
+                <p className="text-3xl font-bold text-primary">{percentage}%</p>
+                <p className="text-sm text-muted-foreground">Score</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={() => { setQuizMode(false); setSelectedSet(null) }}>
+                Retour
+              </Button>
+              <Button className="bg-gradient-to-r from-primary to-orange-500" onClick={() => startQuiz(selectedSet)}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Recommencer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="container max-w-2xl py-8">
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" onClick={() => setQuizMode(false)}>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            {t('back')}
+          </Button>
+          <div className="text-center">
+            <p className="text-sm font-medium">{currentIndex + 1} / {totalQuestions}</p>
+            <p className="text-xs text-muted-foreground">{selectedSet.document_name.replace(/\.pdf$/i, '')}</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-green-600 font-medium">{quizScore.correct}</span>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-red-600 font-medium">{quizScore.wrong}</span>
+          </div>
+        </div>
+
+        <div className="h-2 rounded-full bg-muted mb-8 overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-primary to-orange-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Target className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-primary">Question</span>
+            </div>
+            <p className="text-lg font-medium">{currentCard.question}</p>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-3">
+          {options.map((option, index) => {
+            const isCorrect = option === currentCard.answer
+            const isSelected = option === selectedAnswer
+            let bgClass = "bg-background hover:bg-muted/50"
+            let borderClass = "border-border"
+            
+            if (isAnswered) {
+              if (isCorrect) {
+                bgClass = "bg-green-500/10"
+                borderClass = "border-green-500"
+              } else if (isSelected && !isCorrect) {
+                bgClass = "bg-red-500/10"
+                borderClass = "border-red-500"
+              }
+            }
+
+            return (
+              <button
+                key={index}
+                onClick={() => handleQuizAnswer(option)}
+                disabled={isAnswered}
+                className={cn(
+                  "w-full p-4 rounded-xl border-2 text-left transition-all",
+                  bgClass,
+                  borderClass,
+                  !isAnswered && "cursor-pointer hover:border-primary/50"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+                    isAnswered && isCorrect ? "bg-green-500 text-white" : 
+                    isAnswered && isSelected && !isCorrect ? "bg-red-500 text-white" :
+                    "bg-muted"
+                  )}>
+                    {isAnswered && isCorrect ? <CheckCircle className="h-4 w-4" /> :
+                     isAnswered && isSelected && !isCorrect ? <XCircle className="h-4 w-4" /> :
+                     String.fromCharCode(65 + index)}
+                  </div>
+                  <span className="flex-1">{option}</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {isAnswered && (
+          <div className="mt-6 flex justify-center">
+            <Button className="bg-gradient-to-r from-primary to-orange-500" onClick={nextQuizQuestion}>
+              {currentIndex < totalQuestions - 1 ? 'Question suivante' : 'Voir les résultats'}
+            </Button>
+          </div>
+        )}
       </div>
     )
   }
@@ -368,6 +560,10 @@ export default function FlashcardsPage() {
             <Button size="sm" className="bg-gradient-to-r from-primary to-orange-500" onClick={() => { setStudyMode(true); setCurrentIndex(0); setIsFlipped(false) }}>
               <Play className="h-4 w-4 mr-2" />
               Réviser
+            </Button>
+            <Button size="sm" variant="outline" className="border-primary/50 hover:bg-primary/10" onClick={() => startQuiz(selectedSet)}>
+              <Target className="h-4 w-4 mr-2" />
+              Quiz
             </Button>
           </div>
         </div>

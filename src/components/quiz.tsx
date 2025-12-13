@@ -75,7 +75,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
   const { toast } = useToast()
 
   // Max questions available (when using flashcards as source)
-  const maxQuestions = flashcards.length > 0 ? Math.min(30, flashcards.length) : 30
+  const maxQuestions = flashcards.length > 0 ? Math.min(100, flashcards.length) : 100
 
   // Keep questionCount in a valid range when flashcards are present
   useEffect(() => {
