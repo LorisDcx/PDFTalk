@@ -90,7 +90,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
@@ -105,29 +105,25 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <div className="container max-w-4xl py-12 px-4">
+      <div className="container max-w-4xl py-6 px-4 h-[calc(100vh-64px)] flex flex-col">
         {/* Hero */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Mail className="h-4 w-4" />
-            <span>On t'écoute</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
             Une idée ? Un bug ?{' '}
             <span className="bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
               Dis-nous tout.
             </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Cramdesk est fait pour les étudiants, par des étudiants. Chaque retour compte pour améliorer l'app.
+          <p className="text-muted-foreground">
+            Chaque retour compte pour améliorer Cramdesk.
           </p>
         </div>
 
         {/* Form Card */}
         <div className="relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-orange-500/20 rounded-3xl blur-xl" />
-          <div className="relative bg-card border rounded-2xl p-6 md:p-8 shadow-xl">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="relative bg-card border rounded-2xl p-4 md:p-6 shadow-xl flex-1">
+            <form className="space-y-4 h-full flex flex-col" onSubmit={handleSubmit}>
               {/* Topic Selection */}
               <div>
                 <Label className="text-base font-semibold mb-3 block">Quel est le sujet ?</Label>
@@ -187,16 +183,16 @@ export default function ContactPage() {
                 <Textarea
                   id="message"
                   required
-                  rows={6}
+                  rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  className="rounded-xl resize-none min-h-[80px]"
                   placeholder={
                     topic === 'idea' ? "J'aimerais que Cramdesk puisse..." :
                     topic === 'issue' ? "J'ai rencontré un problème quand..." :
                     topic === 'billing' ? "Concernant mon abonnement..." :
                     "Bonjour, je souhaite..."
                   }
-                  className="rounded-xl resize-none"
                 />
               </div>
 
@@ -227,21 +223,6 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Trust badges */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span>Réponse rapide</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>Équipe réactive</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MessageCircle className="h-4 w-4 text-blue-500" />
-            <span>Support humain</span>
-          </div>
-        </div>
       </div>
     </div>
   )

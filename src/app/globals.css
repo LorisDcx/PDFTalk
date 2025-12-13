@@ -382,3 +382,67 @@ html {
 .stat-label {
   @apply text-sm text-muted-foreground mt-1;
 }
+
+/* Animated glowing orbs */
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(50px, -30px) scale(1.1); }
+  50% { transform: translate(-20px, 50px) scale(0.95); }
+  75% { transform: translate(-40px, -20px) scale(1.05); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, 40px) scale(1.15); }
+  66% { transform: translate(40px, -50px) scale(0.9); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 30px); }
+}
+
+.glow-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(25, 95%, 53%) 100%);
+  top: 10%;
+  left: 10%;
+  animation: float-slow 20s ease-in-out infinite;
+}
+
+.glow-orb-2 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(var(--primary)) 100%);
+  top: 60%;
+  right: 10%;
+  animation: float-medium 15s ease-in-out infinite;
+}
+
+.glow-orb-3 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.8) 0%, hsl(280, 70%, 50%) 100%);
+  bottom: 20%;
+  left: 30%;
+  animation: float-fast 12s ease-in-out infinite;
+}
+
+.glow-orb-4 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, hsl(200, 80%, 50%) 0%, hsl(var(--primary)) 100%);
+  top: 30%;
+  right: 25%;
+  animation: float-slow 18s ease-in-out infinite reverse;
+}

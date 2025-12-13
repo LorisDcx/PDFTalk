@@ -31,9 +31,11 @@ export default function LandingPage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-background relative overflow-hidden">
-      {/* Background Blobs */}
-      <div className="blob blob-primary w-[600px] h-[600px] -top-[200px] -left-[200px] fixed" />
-      <div className="blob blob-flame w-[500px] h-[500px] top-[40%] -right-[150px] fixed" />
+      {/* Animated Glowing Orbs */}
+      <div className="glow-orb glow-orb-1" />
+      <div className="glow-orb glow-orb-2" />
+      <div className="glow-orb glow-orb-3" />
+      <div className="glow-orb glow-orb-4" />
       
       {/* Noise overlay */}
       <div className="noise-overlay" />
