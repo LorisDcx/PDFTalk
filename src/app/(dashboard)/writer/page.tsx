@@ -174,7 +174,7 @@ export default function WriterPage() {
   }
 
   return (
-    <div className="container max-w-6xl py-8">
+    <div className="container max-w-6xl py-4 h-[calc(100vh-64px)] overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">

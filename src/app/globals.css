@@ -384,65 +384,78 @@ html {
 }
 
 /* Animated glowing orbs */
-@keyframes float-slow {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(50px, -30px) scale(1.1); }
-  50% { transform: translate(-20px, 50px) scale(0.95); }
-  75% { transform: translate(-40px, -20px) scale(1.05); }
+@keyframes float-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(150px, -80px) scale(1.1); }
+  40% { transform: translate(80px, 120px) scale(0.9); }
+  60% { transform: translate(-100px, 60px) scale(1.15); }
+  80% { transform: translate(-60px, -100px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-@keyframes float-medium {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-60px, 40px) scale(1.15); }
-  66% { transform: translate(40px, -50px) scale(0.9); }
+@keyframes float-2 {
+  0% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-120px, 100px) scale(1.2); }
+  50% { transform: translate(100px, 150px) scale(0.85); }
+  75% { transform: translate(80px, -80px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-@keyframes float-fast {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+@keyframes float-3 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(180px, 50px) scale(1.15); }
+  66% { transform: translate(-80px, -120px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes float-4 {
+  0% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(-150px, -60px) scale(1.1); }
+  60% { transform: translate(60px, 140px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 .glow-orb {
   position: fixed;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
+  filter: blur(100px);
+  opacity: 0.5;
   pointer-events: none;
   z-index: 0;
 }
 
 .glow-orb-1 {
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(25, 95%, 53%) 100%);
-  top: 10%;
-  left: 10%;
-  animation: float-slow 20s ease-in-out infinite;
+  top: 5%;
+  left: 5%;
+  animation: float-1 25s ease-in-out infinite;
 }
 
 .glow-orb-2 {
-  width: 300px;
-  height: 300px;
+  width: 400px;
+  height: 400px;
   background: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(var(--primary)) 100%);
-  top: 60%;
-  right: 10%;
-  animation: float-medium 15s ease-in-out infinite;
+  top: 50%;
+  right: 5%;
+  animation: float-2 20s ease-in-out infinite;
 }
 
 .glow-orb-3 {
-  width: 250px;
-  height: 250px;
+  width: 350px;
+  height: 350px;
   background: linear-gradient(135deg, hsl(var(--primary) / 0.8) 0%, hsl(280, 70%, 50%) 100%);
-  bottom: 20%;
-  left: 30%;
-  animation: float-fast 12s ease-in-out infinite;
+  bottom: 10%;
+  left: 25%;
+  animation: float-3 18s ease-in-out infinite;
 }
 
 .glow-orb-4 {
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
   background: linear-gradient(135deg, hsl(200, 80%, 50%) 0%, hsl(var(--primary)) 100%);
-  top: 30%;
-  right: 25%;
-  animation: float-slow 18s ease-in-out infinite reverse;
+  top: 25%;
+  right: 20%;
+  animation: float-4 22s ease-in-out infinite;
 }
