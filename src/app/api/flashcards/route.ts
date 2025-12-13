@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing document content' }, { status: 400 })
     }
 
-    // Max 50 cards with Vercel's 60s timeout
-    const cardCount = Math.min(50, Math.max(5, count))
+    // Max 200 cards for Graduate plan
+    const cardCount = Math.min(200, Math.max(5, count))
 
     // Calculate page cost (5 flashcards = 1 page)
     const pageCost = calculatePageCost('flashcards', cardCount)

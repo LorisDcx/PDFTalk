@@ -283,7 +283,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
               </div>
               
               <div className="flex gap-2 flex-wrap">
-                {[10, 20, 30, 50].map((num) => (
+                {[10, 20, 50, 100].map((num) => (
                   <button
                     key={num}
                     onClick={() => setCardCount(num)}
