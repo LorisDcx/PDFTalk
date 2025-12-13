@@ -16,6 +16,7 @@ create table public.users (
   subscription_id text unique,
   pages_processed_this_month integer default 0 not null,
   docs_processed_this_month integer default 0 not null,
+  humanizer_uses_this_month integer default 0 not null,
   usage_reset_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

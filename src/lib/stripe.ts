@@ -14,6 +14,7 @@ export const PLANS = {
     maxPagesPerDocument: 100,
     maxFlashcardsPerGen: 50,
     maxQuizQuestions: 20,
+    humanizerCredits: 5,
     documentHistory: 30,
     // Feature keys for i18n translation
     featureKeys: [
@@ -34,6 +35,7 @@ export const PLANS = {
     maxPagesPerDocument: 200,
     maxFlashcardsPerGen: 100,
     maxQuizQuestions: 50,
+    humanizerCredits: 10,
     documentHistory: 100,
     featureKeys: [
       'planFeaturePages800',
@@ -52,6 +54,7 @@ export const PLANS = {
     maxPagesPerDocument: 500,
     maxFlashcardsPerGen: 200,
     maxQuizQuestions: 100,
+    humanizerCredits: 20,
     documentHistory: -1, // unlimited
     featureKeys: [
       'planFeaturePagesUnlimited',

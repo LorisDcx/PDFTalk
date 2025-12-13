@@ -221,3 +221,127 @@ export function calculatePageCost(operation: 'flashcards' | 'quiz' | 'slides', c
       return count
   }
 }
+
+export interface HumanizerUsageResult {
+  allowed: boolean
+  creditsRemaining: number
+  creditsUsed: number
+  creditsLimit: number
+  error?: string
+}
+
+/**
+ * Check if user has humanizer credits remaining
+ */
+export async function checkHumanizerUsage(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<HumanizerUsageResult> {
+  const { data: profile, error } = await supabase
+    .from('users')
+    .select('current_plan, subscription_status, trial_end_at, humanizer_uses_this_month, usage_reset_at')
+    .eq('id', userId)
+    .single()
+
+  if (error || !profile) {
+    return {
+      allowed: false,
+      creditsRemaining: 0,
+      creditsUsed: 0,
+      creditsLimit: 0,
+      error: 'User profile not found'
+    }
+  }
+
+  // Check if usage needs to be reset (new month)
+  const usageResetAt = new Date(profile.usage_reset_at)
+  const now = new Date()
+  const shouldResetUsage = usageResetAt.getMonth() !== now.getMonth() || 
+                           usageResetAt.getFullYear() !== now.getFullYear()
+
+  let creditsUsed = profile.humanizer_uses_this_month || 0
+
+  if (shouldResetUsage) {
+    await supabase
+      .from('users')
+      .update({ 
+        humanizer_uses_this_month: 0,
+        usage_reset_at: now.toISOString()
+      })
+      .eq('id', userId)
+    creditsUsed = 0
+  }
+
+  // Check trial/subscription status
+  const trialEndAt = new Date(profile.trial_end_at)
+  const isInTrial = trialEndAt > now && !profile.subscription_status
+  const hasActiveSubscription = profile.subscription_status === 'active'
+
+  if (!hasActiveSubscription && !isInTrial) {
+    return {
+      allowed: false,
+      creditsRemaining: 0,
+      creditsUsed,
+      creditsLimit: 0,
+      error: 'subscription_expired'
+    }
+  }
+
+  // Trial users get 2 humanizer credits
+  if (isInTrial) {
+    const trialLimit = 2
+    const creditsRemaining = Math.max(0, trialLimit - creditsUsed)
+    return {
+      allowed: creditsRemaining > 0,
+      creditsRemaining,
+      creditsUsed,
+      creditsLimit: trialLimit,
+      error: creditsRemaining > 0 ? undefined : 'humanizer_limit_reached'
+    }
+  }
+
+  // Get plan limits
+  const planLimits = getPlanLimits(profile.current_plan)
+  const creditsLimit = planLimits.humanizerCredits || 5
+  const creditsRemaining = Math.max(0, creditsLimit - creditsUsed)
+
+  return {
+    allowed: creditsRemaining > 0,
+    creditsRemaining,
+    creditsUsed,
+    creditsLimit,
+    error: creditsRemaining > 0 ? undefined : 'humanizer_limit_reached'
+  }
+}
+
+/**
+ * Deduct one humanizer credit from user's monthly quota
+ */
+export async function deductHumanizerCredit(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ success: boolean; newUsage: number; error?: string }> {
+  const { data: profile, error: fetchError } = await supabase
+    .from('users')
+    .select('humanizer_uses_this_month')
+    .eq('id', userId)
+    .single()
+
+  if (fetchError || !profile) {
+    return { success: false, newUsage: 0, error: 'Failed to fetch user profile' }
+  }
+
+  const currentUsage = profile.humanizer_uses_this_month || 0
+  const newUsage = currentUsage + 1
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({ humanizer_uses_this_month: newUsage })
+    .eq('id', userId)
+
+  if (updateError) {
+    return { success: false, newUsage: currentUsage, error: 'Failed to update usage' }
+  }
+
+  return { success: true, newUsage }
+}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
-import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
+import { checkUserUsage, deductPages, checkHumanizerUsage, deductHumanizerCredit } from '@/lib/usage'
 
 const HUMANIZE_STYLE_VARIANTS = [
   'Adopte un ton légèrement ironique, comme quelqu’un qui observe la scène avec du recul.',
@@ -83,18 +83,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Type requis' }, { status: 400 })
     }
 
-    // Calculate page cost based on word count
-    const pageCost = Math.ceil(wordCount / 250) // ~250 words per page
+    // For humanize type, use humanizer credits instead of pages
+    if (type === 'humanize') {
+      const humanizerCheck = await checkHumanizerUsage(supabase, user.id)
+      
+      if (!humanizerCheck.allowed) {
+        return NextResponse.json({ 
+          error: `Crédits humanizer épuisés. Il vous reste ${humanizerCheck.creditsRemaining}/${humanizerCheck.creditsLimit} crédits.`,
+          code: humanizerCheck.error,
+          creditsRemaining: humanizerCheck.creditsRemaining,
+          creditsLimit: humanizerCheck.creditsLimit
+        }, { status: 403 })
+      }
+    } else {
+      // Calculate page cost based on word count for other types
+      const pageCost = Math.ceil(wordCount / 250) // ~250 words per page
 
-    const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
-    
-    if (!usageCheck.allowed) {
-      return NextResponse.json({ 
-        error: `Pages insuffisantes. Vous avez besoin de ${pageCost} pages mais il vous en reste ${usageCheck.pagesRemaining}.`,
-        code: usageCheck.error,
-        pagesRequired: pageCost,
-        pagesRemaining: usageCheck.pagesRemaining
-      }, { status: 403 })
+      const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
+      
+      if (!usageCheck.allowed) {
+        return NextResponse.json({ 
+          error: `Pages insuffisantes. Vous avez besoin de ${pageCost} pages mais il vous en reste ${usageCheck.pagesRemaining}.`,
+          code: usageCheck.error,
+          pagesRequired: pageCost,
+          pagesRemaining: usageCheck.pagesRemaining
+        }, { status: 403 })
+      }
     }
 
     let systemPrompt = ''
@@ -243,7 +257,7 @@ Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
     }
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini-2024-07-18',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -258,18 +272,30 @@ Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
       return NextResponse.json({ error: 'Réponse vide de l\'IA' }, { status: 500 })
     }
 
-    // Deduct pages
+    // Deduct usage based on type
     const actualWordCount = content.split(/\s+/).length
-    const actualPageCost = Math.ceil(actualWordCount / 250)
-    await deductPages(supabase, user.id, actualPageCost)
-    
     const finalContent = type === 'humanize' ? enhanceHumanizedText(content) : content
     
-    return NextResponse.json({ 
-      content: finalContent,
-      wordCount: actualWordCount,
-      pagesUsed: actualPageCost
-    })
+    if (type === 'humanize') {
+      // Deduct 1 humanizer credit
+      await deductHumanizerCredit(supabase, user.id)
+      
+      return NextResponse.json({ 
+        content: finalContent,
+        wordCount: actualWordCount,
+        creditsUsed: 1
+      })
+    } else {
+      // Deduct pages for other types
+      const actualPageCost = Math.ceil(actualWordCount / 250)
+      await deductPages(supabase, user.id, actualPageCost)
+      
+      return NextResponse.json({ 
+        content: finalContent,
+        wordCount: actualWordCount,
+        pagesUsed: actualPageCost
+      })
+    }
 
   } catch (error: any) {
     console.error('Writer error:', error?.message || error)
