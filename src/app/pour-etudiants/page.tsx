@@ -77,7 +77,7 @@ export default function PourEtudiantsPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/pricing">Voir les tarifs étudiants</Link>
+              <Link href="/#pricing">Voir les tarifs étudiants</Link>
             </Button>
           </div>
         </section>

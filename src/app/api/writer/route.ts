@@ -84,8 +84,18 @@ export async function POST(request: NextRequest) {
     }
 
     // For humanize type, use humanizer credits instead of pages
+    let humanizerCheck:
+      | {
+          allowed: boolean
+          creditsRemaining: number
+          creditsLimit: number
+          creditsUsed: number
+          error?: string
+        }
+      | null = null
+
     if (type === 'humanize') {
-      const humanizerCheck = await checkHumanizerUsage(supabase, user.id)
+      humanizerCheck = await checkHumanizerUsage(supabase, user.id)
       
       if (!humanizerCheck.allowed) {
         return NextResponse.json({ 
@@ -279,11 +289,14 @@ Réécris maintenant en texte BRUT, sans AUCUN formatage markdown:`
     if (type === 'humanize') {
       // Deduct 1 humanizer credit
       await deductHumanizerCredit(supabase, user.id)
+      const remaining = humanizerCheck ? Math.max(0, humanizerCheck.creditsRemaining - 1) : 0
       
       return NextResponse.json({ 
         content: finalContent,
         wordCount: actualWordCount,
-        creditsUsed: 1
+        creditsUsed: 1,
+        creditsRemaining: remaining,
+        creditsLimit: humanizerCheck?.creditsLimit ?? 0
       })
     } else {
       // Deduct pages for other types

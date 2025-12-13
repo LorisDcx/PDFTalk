@@ -66,8 +66,10 @@ export async function checkUserUsage(
 
   // Check trial status
   const trialEndAt = new Date(profile.trial_end_at)
-  const isInTrial = trialEndAt > now && !profile.subscription_status
-  const hasActiveSubscription = profile.subscription_status === 'active'
+  const isTrialingStatus = profile.subscription_status === 'trialing'
+  const isInTrialWindow = trialEndAt > now
+  const isInTrial = isTrialingStatus || (isInTrialWindow && !profile.subscription_status)
+  const hasActiveSubscription = profile.subscription_status === 'active' || isTrialingStatus
 
   // If no active subscription and trial expired, deny access
   if (!hasActiveSubscription && !isInTrial) {
@@ -275,7 +277,7 @@ export async function checkHumanizerUsage(
   // Check trial/subscription status
   const trialEndAt = new Date(profile.trial_end_at)
   const isInTrial = trialEndAt > now && !profile.subscription_status
-  const hasActiveSubscription = profile.subscription_status === 'active'
+  const hasActiveSubscription = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
 
   if (!hasActiveSubscription && !isInTrial) {
     return {

@@ -91,10 +91,29 @@ export default function WriterPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
   const [wordCount, setWordCount] = useState<number>(1500)
+  const [humanizerCreditsRemaining, setHumanizerCreditsRemaining] = useState<number | null>(null)
+  const [humanizerCreditsLimit, setHumanizerCreditsLimit] = useState<number | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    const fetchCredits = async () => {
+      if (!user) return
+      try {
+        const res = await fetch('/api/writer/credits')
+        const data = await res.json()
+        if (res.ok && data?.creditsRemaining !== undefined) {
+          setHumanizerCreditsRemaining(data.creditsRemaining)
+          setHumanizerCreditsLimit(data.creditsLimit)
+        }
+      } catch (err) {
+        console.error('Failed to load humanizer credits', err)
+      }
+    }
+    fetchCredits()
+  }, [user])
 
   const config = WRITING_CONFIGS[activeType]
 
@@ -143,6 +162,14 @@ export default function WriterPage() {
       }
 
       setResult(data.content)
+      if (activeType === 'humanize') {
+        if (typeof data.creditsRemaining === 'number') {
+          setHumanizerCreditsRemaining(data.creditsRemaining)
+        }
+        if (typeof data.creditsLimit === 'number') {
+          setHumanizerCreditsLimit(data.creditsLimit)
+        }
+      }
     } catch (error: any) {
       toast({ 
         title: 'Erreur', 
@@ -174,7 +201,7 @@ export default function WriterPage() {
   }
 
   return (
-    <div className="container max-w-6xl py-4 h-[calc(100vh-64px)] overflow-hidden">
+    <div className="container max-w-6xl py-4 h-[calc(100vh-64px)] overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
@@ -188,9 +215,9 @@ export default function WriterPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 flex-1 min-h-0">
         {/* Left Panel - Input */}
-        <div className="space-y-6">
+        <div className="space-y-6 h-full flex flex-col min-h-0">
           {/* Type Selection */}
           <div className="grid grid-cols-3 gap-3">
             {(Object.keys(WRITING_CONFIGS) as WritingType[]).map((type) => {
@@ -223,7 +250,7 @@ export default function WriterPage() {
           </div>
 
           {/* Input Form */}
-          <Card>
+          <Card className="flex-1 min-h-0 flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {config.icon}
@@ -231,7 +258,7 @@ export default function WriterPage() {
               </CardTitle>
               <CardDescription>{t(activeType === 'dissertation' ? 'dissertationDesc' : activeType === 'commentaire' ? 'commentaireDesc' : 'humanizerDesc')}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 flex-1 overflow-auto min-h-0">
               {/* Subject field */}
               {config.fields.subject && (
                 <div className="space-y-2">
@@ -257,6 +284,24 @@ export default function WriterPage() {
                     value={thesis}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setThesis(e.target.value)}
                   />
+                </div>
+              )}
+
+              {activeType === 'humanize' && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-primary">Crédits Humanizer restants</p>
+                      <p className="text-sm text-muted-foreground">
+                        {humanizerCreditsRemaining !== null && humanizerCreditsLimit !== null
+                          ? `${humanizerCreditsRemaining}/${humanizerCreditsLimit} ce mois-ci`
+                          : 'Chargement des crédits...'}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="text-primary border-primary/40">
+                      {humanizerCreditsRemaining !== null ? humanizerCreditsRemaining : '...'}
+                    </Badge>
+                  </div>
                 </div>
               )}
 
@@ -319,8 +364,8 @@ export default function WriterPage() {
         </div>
 
         {/* Right Panel - Result */}
-        <div>
-          <Card className="h-full">
+        <div className="h-full min-h-0 flex flex-col">
+          <Card className="h-full flex flex-col min-h-0">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -344,7 +389,7 @@ export default function WriterPage() {
                 </p>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 min-h-0">
               {isGenerating ? (
                 <div className="flex flex-col items-center justify-center h-[400px] text-center">
                   <div className="relative mb-4">
@@ -355,7 +400,7 @@ export default function WriterPage() {
                   <p className="text-xs text-muted-foreground mt-1">{t('canTakeUpTo1Min')}</p>
                 </div>
               ) : result ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none max-h-[500px] overflow-y-auto">
+                <div className="prose prose-sm dark:prose-invert max-w-none h-full overflow-y-auto">
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
                     {result}
                   </div>

@@ -53,7 +53,7 @@ export default function FlashcardsPage() {
       <WebPageJsonLd
         title="AI Flashcards Generator for Studying Faster"
         description="Create smart flashcards from any text or PDF automatically."
-        url="https://cramdesk.com/flashcards"
+        url="https://cramdesk.com/flashcards-landing"
       />
       <FAQJsonLd faqs={faqItems} />
 
@@ -84,7 +84,7 @@ export default function FlashcardsPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-lg px-8">
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/#pricing">View Pricing</Link>
                 </Button>
               </div>
             </div>

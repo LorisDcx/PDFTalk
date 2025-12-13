@@ -70,7 +70,7 @@ export default function QuizPdfPage() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-gradient-to-r from-primary to-orange-500" asChild>
-              <Link href="/auth">
+              <Link href="/register">
                 Créer mon premier quiz
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

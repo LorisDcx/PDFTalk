@@ -84,7 +84,7 @@ export default function PDFPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-lg px-8">
-                  <Link href="/pricing">View Pricing</Link>
+                  <Link href="/#pricing">View Pricing</Link>
                 </Button>
               </div>
             </div>

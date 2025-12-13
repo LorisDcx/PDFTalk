@@ -219,6 +219,13 @@ export default function BillingPage() {
                     </div>
                   )
                 })()}
+
+                {/* Humanizer credits */}
+                <div className="mb-4 p-3 rounded-lg bg-secondary/20 border border-secondary/30 text-center">
+                  <span className="text-lg font-semibold text-foreground">
+                    {plan.humanizerCredits} Humanizer credits / mois
+                  </span>
+                </div>
                 
                 <ul className="space-y-2">
                   {plan.featureKeys.map((featureKey, i) => (
