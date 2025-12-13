@@ -35,7 +35,7 @@ interface FolderItem {
 
 const FOLDER_COLORS = [
   { name: 'Bleu', value: '#3b82f6' },
-  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Orange', value: '#f97316' },
   { name: 'Vert', value: '#22c55e' },
   { name: 'Jaune', value: '#eab308' },
   { name: 'Orange', value: '#f97316' },
@@ -242,12 +242,12 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
 
   return (
     <div className="w-72 border-r bg-gradient-to-b from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-950 flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b bg-gradient-to-r from-primary/5 via-cyan-500/5 to-primary/5 relative overflow-hidden">
+      <div className="p-4 border-b bg-gradient-to-r from-primary/5 via-orange-500/5 to-primary/5 relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
         <div className="relative space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg shadow-primary/25">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg shadow-primary/25">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <span className="font-semibold text-sm">{t('myDocuments')}</span>
@@ -277,7 +277,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={createFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90">
+                  <Button onClick={createFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90">
                     <FolderPlus className="h-4 w-4 mr-2" />
                     {t('createFolder')}
                   </Button>
@@ -364,7 +364,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
         )}
       </div>
 
-      <div className="p-3 border-t bg-gradient-to-r from-primary/5 to-cyan-500/5">
+      <div className="p-3 border-t bg-gradient-to-r from-primary/5 to-orange-500/5">
         <div className="flex items-center justify-around text-center">
           <div>
             <p className="text-lg font-bold text-primary">{documents.length}</p>
@@ -372,7 +372,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
-            <p className="text-lg font-bold text-cyan-500">{folders.length}</p>
+            <p className="text-lg font-bold text-orange-500">{folders.length}</p>
             <p className="text-xs text-muted-foreground">{t('folders')}</p>
           </div>
           <div className="w-px h-8 bg-border" />
@@ -403,7 +403,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90">{t('save')}</Button>
+            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90">{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -416,7 +416,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
   const isDeleting = deletingDocId === doc.id
 
   return (
-    <div className={cn("rounded-xl transition-all overflow-hidden", isActive ? "bg-gradient-to-r from-primary/10 to-cyan-500/10 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "hover:bg-white/50 dark:hover:bg-white/5", isDeleting && "opacity-50")}>
+    <div className={cn("rounded-xl transition-all overflow-hidden", isActive ? "bg-gradient-to-r from-primary/10 to-orange-500/10 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "hover:bg-white/50 dark:hover:bg-white/5", isDeleting && "opacity-50")}>
       <div className="flex items-center group">
         <button onClick={() => hasData ? onToggleExpand(doc.id) : onNavigate(doc.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-left min-w-0" disabled={isDeleting}>
           {hasData && (
@@ -424,7 +424,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
               {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
             </div>
           )}
-          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all", isActive ? "bg-gradient-to-br from-primary to-cyan-500 shadow-md shadow-primary/25" : "bg-muted/50")}>
+          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all", isActive ? "bg-gradient-to-br from-primary to-orange-500 shadow-md shadow-primary/25" : "bg-muted/50")}>
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <FileText className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />}
           </div>
           <div className="min-w-0 flex-1">
@@ -483,7 +483,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
               </div>
             )}
             {doc.quizSessionsCount > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
                 <Target className="h-3.5 w-3.5" />
                 <span className="text-xs font-medium">{doc.quizSessionsCount}</span>
               </div>

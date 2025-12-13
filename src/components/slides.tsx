@@ -66,9 +66,9 @@ const THEMES = {
     name: 'Moderne',
     titleBg: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
     contentBg: 'bg-gradient-to-br from-slate-900 to-slate-800',
-    conclusionBg: 'bg-gradient-to-br from-primary via-cyan-600 to-teal-500',
-    accent: 'text-cyan-400',
-    accentBg: 'bg-cyan-500/20',
+    conclusionBg: 'bg-gradient-to-br from-primary via-orange-600 to-red-500',
+    accent: 'text-orange-400',
+    accentBg: 'bg-orange-500/20',
   },
   corporate: {
     name: 'Corporate',
@@ -88,9 +88,9 @@ const THEMES = {
   },
   nature: {
     name: 'Nature',
-    titleBg: 'bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900',
+    titleBg: 'bg-gradient-to-br from-emerald-900 via-red-800 to-orange-900',
     contentBg: 'bg-gradient-to-br from-slate-900 to-emerald-900/50',
-    conclusionBg: 'bg-gradient-to-br from-emerald-500 to-teal-600',
+    conclusionBg: 'bg-gradient-to-br from-emerald-500 to-red-600',
     accent: 'text-emerald-400',
     accentBg: 'bg-emerald-500/20',
   },
@@ -390,7 +390,7 @@ ${slides.map((slide, i) => `
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                   <Presentation className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -455,10 +455,10 @@ ${slides.map((slide, i) => `
                     >
                       <div className={cn(
                         "w-full h-6 rounded mb-1",
-                        themeKey === 'modern' && "bg-gradient-to-r from-slate-800 to-cyan-600",
+                        themeKey === 'modern' && "bg-gradient-to-r from-slate-800 to-orange-600",
                         themeKey === 'corporate' && "bg-gradient-to-r from-blue-800 to-indigo-600",
                         themeKey === 'creative' && "bg-gradient-to-r from-purple-600 to-pink-500",
-                        themeKey === 'nature' && "bg-gradient-to-r from-emerald-600 to-teal-500",
+                        themeKey === 'nature' && "bg-gradient-to-r from-emerald-600 to-red-500",
                         themeKey === 'minimal' && "bg-gradient-to-r from-neutral-200 to-neutral-400",
                       )} />
                       {THEMES[themeKey].name}
@@ -527,7 +527,7 @@ ${slides.map((slide, i) => `
               <Button 
                 onClick={generateSlides} 
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
+                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 text-white shadow-lg"
               >
                 {isGenerating ? (
                   <>
@@ -555,9 +555,9 @@ ${slides.map((slide, i) => `
             : "sm:max-w-4xl"
         )}>
           {/* Header */}
-          <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10 flex items-center justify-between">
+          <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-orange-500/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                 <Presentation className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -602,8 +602,8 @@ ${slides.map((slide, i) => `
               <div 
                 className={cn(
                   "absolute inset-0 flex flex-col items-center justify-center p-8 text-white transition-all duration-500",
-                  currentSlide.type === 'title' && "bg-gradient-to-br from-primary via-cyan-500 to-teal-500",
-                  currentSlide.type === 'conclusion' && "bg-gradient-to-br from-cyan-500 via-primary to-violet-500",
+                  currentSlide.type === 'title' && "bg-gradient-to-br from-primary via-orange-500 to-red-500",
+                  currentSlide.type === 'conclusion' && "bg-gradient-to-br from-orange-500 via-primary to-violet-500",
                   currentSlide.type === 'quote' && "bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600",
                   !['title', 'conclusion', 'quote'].includes(currentSlide.type) && "bg-gradient-to-br from-slate-900 to-slate-800"
                 )}
@@ -705,7 +705,7 @@ ${slides.map((slide, i) => `
                 {/* Comparison Slide */}
                 {currentSlide.type === 'comparison' && (
                   <div className="w-full max-w-4xl space-y-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center text-cyan-400">{currentSlide.title}</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-orange-400">{currentSlide.title}</h2>
                     <div className="grid grid-cols-2 gap-8">
                       {currentSlide.option1 && (
                         <div className="p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40">
@@ -764,8 +764,8 @@ ${slides.map((slide, i) => `
                   <div className="text-center space-y-6">
                     <h2 className={cn("text-2xl md:text-3xl font-medium opacity-80", currentTheme.accent)}>{currentSlide.title}</h2>
                     <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-cyan-400/30 to-primary/30 blur-3xl" />
-                      <span className="relative text-7xl md:text-9xl font-black bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-orange-400/30 to-primary/30 blur-3xl" />
+                      <span className="relative text-7xl md:text-9xl font-black bg-gradient-to-r from-white via-orange-200 to-white bg-clip-text text-transparent">
                         {currentSlide.number}
                       </span>
                     </div>
@@ -898,7 +898,7 @@ ${slides.map((slide, i) => `
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all shrink-0",
                     i === currentIndex 
-                      ? "bg-gradient-to-r from-primary to-cyan-500 scale-125" 
+                      ? "bg-gradient-to-r from-primary to-orange-500 scale-125" 
                       : "bg-muted hover:bg-muted-foreground/30"
                   )}
                   onClick={() => setCurrentIndex(i)}

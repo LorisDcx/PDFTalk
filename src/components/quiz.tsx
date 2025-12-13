@@ -309,7 +309,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
           <DialogContent className="sm:max-w-xl">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -375,7 +375,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
               <Button 
                 onClick={generateQuizFromAI} 
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
+                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 text-white shadow-lg"
               >
                 {isGenerating ? (
                   <>
@@ -400,10 +400,10 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
           {!isComplete ? (
             <>
               {/* Header */}
-              <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+              <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                       <Target className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -502,7 +502,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
           ) : (
             /* Results */
             <div className="p-6 text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center mx-auto mb-6">
                 <Trophy className="h-10 w-10 text-white" />
               </div>
               

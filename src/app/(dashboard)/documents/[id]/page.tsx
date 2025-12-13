@@ -288,7 +288,7 @@ export default function DocumentPage() {
             <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                     <FileText className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -319,11 +319,11 @@ export default function DocumentPage() {
                       </Button>
                     </SheetTrigger>
                   <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
-                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
                   <SheetHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                           <FileText className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -407,11 +407,11 @@ export default function DocumentPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
-                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
                   <SheetHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                           <AlertTriangle className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -512,11 +512,11 @@ export default function DocumentPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
-                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+                <div className="p-6 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
                   <SheetHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                           <BookOpen className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -567,7 +567,7 @@ export default function DocumentPage() {
             <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                     <ListChecks className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -610,9 +610,9 @@ export default function DocumentPage() {
             <Dialog open={showPdfViewer} onOpenChange={setShowPdfViewer}>
               <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950">
                 {/* Header */}
-                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-primary/10 via-cyan-500/10 to-primary/10">
+                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-primary/10 via-orange-500/10 to-primary/10">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg shadow-primary/25">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg shadow-primary/25">
                       <FileText className="h-5 w-5 text-white" />
                     </div>
                     <div>

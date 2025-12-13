@@ -247,7 +247,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
               <Button 
                 onClick={generateFlashcards} 
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 text-white shadow-lg"
+                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 text-white shadow-lg"
               >
                 {isGenerating ? (
                   <>
@@ -332,10 +332,10 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
       <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
         <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
+            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
                     <GraduationCap className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -402,7 +402,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 <div 
                   className={cn(
                     "absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all duration-500",
-                    "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 border-2 border-emerald-200 dark:border-emerald-800 shadow-xl",
+                    "bg-gradient-to-br from-emerald-50 to-red-50 dark:from-emerald-950 dark:to-red-950 border-2 border-emerald-200 dark:border-emerald-800 shadow-xl",
                     isFlipped ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
                   )}
                 >
@@ -441,7 +441,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                       className={cn(
                         "w-2.5 h-2.5 rounded-full transition-all shrink-0",
                         i === currentIndex 
-                          ? "bg-gradient-to-r from-primary to-cyan-500 scale-125" 
+                          ? "bg-gradient-to-r from-primary to-orange-500 scale-125" 
                           : "bg-muted hover:bg-muted-foreground/30"
                       )}
                       onClick={(e) => {

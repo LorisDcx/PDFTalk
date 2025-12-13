@@ -313,7 +313,7 @@ export default function LandingPage() {
       {/* CTA Final */}
       <section className="py-12 px-4 relative z-10">
         <div className="container max-w-3xl">
-          <div className="section-card p-8 text-center bg-gradient-to-br from-primary/5 via-background to-cyan-500/5">
+          <div className="section-card p-8 text-center bg-gradient-to-br from-primary/5 via-background to-orange-500/5">
             <h2 className="text-2xl font-bold mb-3">
               {t('ctaTitle')}
             </h2>
@@ -355,8 +355,8 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description, highlighted }: { icon: React.ReactNode; title: string; description: string; highlighted?: boolean }) {
   return (
-    <div className={`p-5 rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:shadow-sm transition-all duration-200 group ${highlighted ? 'ring-1 ring-primary/30 bg-gradient-to-br from-primary/5 to-cyan-500/5' : ''}`}>
-      <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-200 ${highlighted ? 'bg-gradient-to-br from-primary to-cyan-500 text-white' : 'bg-primary/10 text-primary'}`}>
+    <div className={`p-5 rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:shadow-sm transition-all duration-200 group ${highlighted ? 'ring-1 ring-primary/30 bg-gradient-to-br from-primary/5 to-orange-500/5' : ''}`}>
+      <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-200 ${highlighted ? 'bg-gradient-to-br from-primary to-orange-500 text-white' : 'bg-primary/10 text-primary'}`}>
         {icon}
       </div>
       <h3 className="font-semibold mb-1.5">{title}</h3>
@@ -368,7 +368,7 @@ function FeatureCard({ icon, title, description, highlighted }: { icon: React.Re
 function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="text-center p-5 rounded-xl bg-background/50 border border-border/50 hover:border-primary/30 transition-all group">
-      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/25 group-hover:scale-110 transition-transform">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/25 group-hover:scale-110 transition-transform">
         {number}
       </div>
       <h3 className="font-semibold mb-2">{title}</h3>

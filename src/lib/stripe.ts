@@ -44,7 +44,7 @@ export const PLANS = {
     id: 'graduate',
     name: 'Graduate',
     price: 12.99,
-    pagesPerMonth: 99999, // "unlimited" fair use
+    pagesPerMonth: -1, // unlimited (fair use)
     maxPagesPerDocument: 200,
     documentHistory: -1, // unlimited
     featureKeys: [

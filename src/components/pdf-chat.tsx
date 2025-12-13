@@ -138,7 +138,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
   return (
     <div className="relative rounded-2xl border bg-gradient-to-b from-background to-muted/10 shadow-md overflow-hidden">
       {/* Decorative gradient blob */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-primary/20 via-cyan-400/20 to-teal-400/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-primary/20 via-orange-400/20 to-red-400/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
       
       <div className="relative flex flex-col h-[560px]">
         {/* Messages area */}
@@ -147,8 +147,8 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
             <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in text-sm">
               {/* Animated icon */}
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-400 to-teal-400 rounded-full blur-xl opacity-50 animate-pulse" />
-                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-orange-400 to-red-400 rounded-full blur-xl opacity-50 animate-pulse" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-2xl">
                   <Sparkles className="h-10 w-10 text-white" />
                 </div>
               </div>
@@ -172,7 +172,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {message.role === 'assistant' && (
-                    <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                       <Sparkles className="h-5 w-5 text-white" />
                     </div>
                   )}
@@ -196,7 +196,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
               
               {isLoading && (
                 <div className="flex gap-4 justify-start animate-slide-up">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-lg">
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
                     <Sparkles className="h-5 w-5 text-white" />
                   </div>
                   <div className="bg-background border rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
@@ -251,7 +251,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
                 className={cn(
                   "h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
                   input.trim() 
-                    ? "bg-gradient-to-r from-primary to-cyan-500 hover:opacity-90 shadow-lg" 
+                    ? "bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 shadow-lg" 
                     : "bg-muted text-muted-foreground"
                 )}
               >
