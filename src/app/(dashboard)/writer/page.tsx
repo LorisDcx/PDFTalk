@@ -181,9 +181,9 @@ export default function WriterPage() {
           <PenTool className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Rédacteur & Humaniseur</h1>
+          <h1 className="text-2xl font-bold">{t('writerTitle')}</h1>
           <p className="text-sm text-muted-foreground">
-            Dissertations, commentaires et humanisation de textes IA
+            {t('writerSubtitle')}
           </p>
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function WriterPage() {
                     )}>
                       {cfg.icon}
                     </div>
-                    <p className="font-medium text-sm">{cfg.title}</p>
+                    <p className="font-medium text-sm">{t(type === 'dissertation' ? 'dissertation' : type === 'commentaire' ? 'commentaire' : 'humanizer')}</p>
                   </CardContent>
                 </Card>
               )
@@ -227,20 +227,20 @@ export default function WriterPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {config.icon}
-                {config.title}
+                {t(activeType === 'dissertation' ? 'dissertation' : activeType === 'commentaire' ? 'commentaire' : 'humanizer')}
               </CardTitle>
-              <CardDescription>{config.description}</CardDescription>
+              <CardDescription>{t(activeType === 'dissertation' ? 'dissertationDesc' : activeType === 'commentaire' ? 'commentaireDesc' : 'humanizerDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Subject field */}
               {config.fields.subject && (
                 <div className="space-y-2">
                   <Label htmlFor="subject">
-                    {activeType === 'commentaire' ? 'Consigne / Axe d\'analyse (optionnel)' : 'Sujet'}
+                    {activeType === 'commentaire' ? t('analysisAxis') : t('subject')}
                   </Label>
                   <Input
                     id="subject"
-                    placeholder={activeType === 'dissertation' ? config.placeholder : 'Ex: Analysez la vision de l\'amour dans ce texte'}
+                    placeholder={activeType === 'dissertation' ? t('dissertationPlaceholder') : t('analysisPlaceholder')}
                     value={subject}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
                   />
@@ -250,10 +250,10 @@ export default function WriterPage() {
               {/* Thesis field for dissertation */}
               {config.fields.thesis && (
                 <div className="space-y-2">
-                  <Label htmlFor="thesis">Thèse / Angle (optionnel)</Label>
+                  <Label htmlFor="thesis">{t('thesisAngle')}</Label>
                   <Input
                     id="thesis"
-                    placeholder="Ex: Je pense que la liberté est une conquête permanente..."
+                    placeholder={t('thesisPlaceholder')}
                     value={thesis}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setThesis(e.target.value)}
                   />
@@ -264,17 +264,17 @@ export default function WriterPage() {
               {config.fields.text && (
                 <div className="space-y-2">
                   <Label htmlFor="text">
-                    {activeType === 'humanize' ? 'Texte à humaniser' : 'Texte à commenter'}
+                    {activeType === 'humanize' ? t('textToHumanize') : t('textToComment')}
                   </Label>
                   <Textarea
                     id="text"
-                    placeholder={config.placeholder}
+                    placeholder={activeType === 'humanize' ? t('humanizerPlaceholder') : t('commentairePlaceholder')}
                     value={inputText}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInputText(e.target.value)}
                     className="min-h-[200px] resize-none"
                   />
                   <p className="text-xs text-muted-foreground text-right">
-                    {inputText.split(/\s+/).filter(Boolean).length} mots
+                    {inputText.split(/\s+/).filter(Boolean).length} {t('words')}
                   </p>
                 </div>
               )}
@@ -282,16 +282,16 @@ export default function WriterPage() {
               {/* Word count for dissertation/commentaire */}
               {activeType !== 'humanize' && (
                 <div className="space-y-2">
-                  <Label>Longueur souhaitée</Label>
+                  <Label>{t('desiredLength')}</Label>
                   <Select value={wordCount.toString()} onValueChange={(v) => setWordCount(parseInt(v))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="800">~800 mots (court)</SelectItem>
-                      <SelectItem value="1500">~1500 mots (standard)</SelectItem>
-                      <SelectItem value="2500">~2500 mots (développé)</SelectItem>
-                      <SelectItem value="4000">~4000 mots (approfondi)</SelectItem>
+                      <SelectItem value="800">~800 {t('words')} ({t('short')})</SelectItem>
+                      <SelectItem value="1500">~1500 {t('words')} ({t('standard')})</SelectItem>
+                      <SelectItem value="2500">~2500 {t('words')} ({t('developed')})</SelectItem>
+                      <SelectItem value="4000">~4000 {t('words')} ({t('indepth')})</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -305,12 +305,12 @@ export default function WriterPage() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Génération en cours...
+                    {t('generating')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer
+                    {t('generate')}
                   </>
                 )}
               </Button>
@@ -325,7 +325,7 @@ export default function WriterPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Résultat
+                  {t('generatedResult')}
                 </CardTitle>
                 {result && (
                   <div className="flex gap-2">
@@ -340,7 +340,7 @@ export default function WriterPage() {
               </div>
               {result && (
                 <p className="text-xs text-muted-foreground">
-                  {result.split(/\s+/).filter(Boolean).length} mots
+                  {result.split(/\s+/).filter(Boolean).length} {t('words')}
                 </p>
               )}
             </CardHeader>
@@ -351,8 +351,8 @@ export default function WriterPage() {
                     <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-500 rounded-full blur-xl opacity-30 animate-pulse" />
                     <Loader2 className="h-12 w-12 animate-spin text-primary relative" />
                   </div>
-                  <p className="text-muted-foreground">Rédaction en cours...</p>
-                  <p className="text-xs text-muted-foreground mt-1">Cela peut prendre jusqu'à 1 minute</p>
+                  <p className="text-muted-foreground">{t('generating')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t('canTakeUpTo1Min')}</p>
                 </div>
               ) : result ? (
                 <div className="prose prose-sm dark:prose-invert max-w-none max-h-[500px] overflow-y-auto">
@@ -363,8 +363,8 @@ export default function WriterPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-[400px] text-center text-muted-foreground">
                   <PenTool className="h-12 w-12 mb-4 opacity-20" />
-                  <p>Le résultat apparaîtra ici</p>
-                  <p className="text-xs mt-1">Remplissez le formulaire et cliquez sur Générer</p>
+                  <p>{t('resultWillAppearHere')}</p>
+                  <p className="text-xs mt-1">{t('fillFormAndGenerate')}</p>
                 </div>
               )}
             </CardContent>
@@ -373,23 +373,23 @@ export default function WriterPage() {
       </div>
 
       {/* Tips */}
-      <div className="mt-8 p-4 rounded-xl bg-muted/30 border">
+      <div className="mt-4 p-4 rounded-xl bg-muted/30 border">
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <GraduationCap className="h-5 w-5 text-primary" />
-          Conseils pour de meilleurs résultats
+          {t('tipsTitle')}
         </h3>
         <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
           <div>
-            <p className="font-medium text-foreground mb-1">Dissertation</p>
-            <p>Formulez clairement votre sujet sous forme de question. Ajoutez votre thèse pour orienter l'argumentation.</p>
+            <p className="font-medium text-foreground mb-1">{t('dissertation')}</p>
+            <p>{t('tipDissertation')}</p>
           </div>
           <div>
-            <p className="font-medium text-foreground mb-1">Commentaire</p>
-            <p>Collez le texte complet à analyser. Précisez l'axe d'analyse si vous en avez un.</p>
+            <p className="font-medium text-foreground mb-1">{t('commentaire')}</p>
+            <p>{t('tipCommentaire')}</p>
           </div>
           <div>
-            <p className="font-medium text-foreground mb-1">Humaniseur</p>
-            <p>Fonctionne mieux sur des textes de 200-2000 mots. Préserve le sens tout en variant le style.</p>
+            <p className="font-medium text-foreground mb-1">{t('humanizer')}</p>
+            <p>{t('tipHumanizer')}</p>
           </div>
         </div>
       </div>
