@@ -154,7 +154,15 @@ export default function DashboardPage() {
         body: formData,
       })
 
-      const result = await response.json()
+      // Some upstream errors (e.g. storage 403) return plain text, not JSON.
+      let result: any = {}
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        result = await response.json()
+      } else {
+        const text = await response.text()
+        result = { error: text || 'Upload failed' }
+      }
 
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed')

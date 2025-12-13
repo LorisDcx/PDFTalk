@@ -119,7 +119,10 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError)
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
+      return NextResponse.json(
+        { error: uploadError.message || 'Failed to upload file' },
+        { status: (uploadError as any).statusCode || 500 }
+      )
     }
 
     // Create document record
