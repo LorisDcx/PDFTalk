@@ -215,7 +215,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     // Pricing labels
     planStarterDesc: 'Pour un partiel ou un cours important',
     planStudentDesc: 'Pour réviser plusieurs matières',
-    planIntenseDesc: 'Médecine, concours, grosses révisions',
+    planGraduateDesc: 'Médecine, concours, grosses révisions',
     flashcardsIncluded: 'Flashcards',
     quizIncluded: 'Quiz QCM',
     slidesIncluded: 'Présentations',
@@ -644,7 +644,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     doQuizInApp: 'Take quiz in app',
     planStarterDesc: 'For one exam or an important course',
     planStudentDesc: 'For multiple subjects',
-    planIntenseDesc: 'Med school, exams, heavy studying',
+    planGraduateDesc: 'Med school, exams, heavy studying',
     flashcardsIncluded: 'Flashcards',
     quizIncluded: 'MCQ Quiz',
     slidesIncluded: 'Presentations',

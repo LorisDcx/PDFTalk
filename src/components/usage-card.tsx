@@ -19,8 +19,8 @@ export function UsageCard() {
   const oldToNewPlanMap: Record<string, PlanId> = {
     'basic': 'starter',
     'growth': 'student', 
-    'pro': 'intense',
-    'graduate': 'intense',
+    'pro': 'graduate',
+    'intense': 'graduate',
   }
   const currentPlanId = profile.current_plan ? (oldToNewPlanMap[profile.current_plan] || profile.current_plan) as PlanId : null
 

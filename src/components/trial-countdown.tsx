@@ -44,7 +44,7 @@ function getRecommendedPlan(pagesUsed: number): { planId: PlanId; reason: string
   } else if (projectedMonthly <= 800) {
     return { planId: 'student', reason: 'regularUsage' }
   } else {
-    return { planId: 'intense', reason: 'heavyUsage' }
+    return { planId: 'graduate', reason: 'heavyUsage' }
   }
 }
 
@@ -94,7 +94,7 @@ export function TrialCountdown() {
     switch (planId) {
       case 'starter': return <Zap className="h-5 w-5" />
       case 'student': return <TrendingUp className="h-5 w-5" />
-      case 'intense': return <Crown className="h-5 w-5" />
+      case 'graduate': return <Crown className="h-5 w-5" />
     }
   }
 

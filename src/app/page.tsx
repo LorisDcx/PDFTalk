@@ -33,7 +33,7 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] dark:bg-background relative overflow-hidden">
       {/* Background Blobs */}
       <div className="blob blob-primary w-[600px] h-[600px] -top-[200px] -left-[200px] fixed" />
-      <div className="blob blob-warm w-[500px] h-[500px] top-[40%] -right-[150px] fixed" />
+      <div className="blob blob-flame w-[500px] h-[500px] top-[40%] -right-[150px] fixed" />
       
       {/* Noise overlay */}
       <div className="noise-overlay" />
@@ -248,10 +248,10 @@ export default function LandingPage() {
                 perMonthText={t('perMonth')}
               />
               <PricingCard
-                name="Intense"
+                name="Graduate"
                 price="12.99"
                 pages="illimité"
-                description={t('planIntenseDesc')}
+                description={t('planGraduateDesc')}
                 popularText={t('popular')}
                 perMonthText={t('perMonth')}
               />

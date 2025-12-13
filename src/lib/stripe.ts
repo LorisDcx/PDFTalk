@@ -40,9 +40,9 @@ export const PLANS = {
     ],
     stripePriceId: process.env.STRIPE_STUDENT_PRICE_ID,
   },
-  intense: {
-    id: 'intense',
-    name: 'Intense',
+  graduate: {
+    id: 'graduate',
+    name: 'Graduate',
     price: 12.99,
     pagesPerMonth: 99999, // "unlimited" fair use
     maxPagesPerDocument: 200,
@@ -54,7 +54,7 @@ export const PLANS = {
       'planFeatureAdvancedGen',
       'planFeaturePriorityMax',
     ],
-    stripePriceId: process.env.STRIPE_INTENSE_PRICE_ID,
+    stripePriceId: process.env.STRIPE_GRADUATE_PRICE_ID,
   },
 } as const
 
@@ -67,8 +67,8 @@ export function getPlanLimits(planId: PlanId | string | null) {
   const oldToNewPlanMap: Record<string, PlanId> = {
     'basic': 'starter',
     'growth': 'student', 
-    'pro': 'intense',
-    'graduate': 'intense',
+    'pro': 'graduate',
+    'intense': 'graduate',
   }
   
   const mappedPlanId = oldToNewPlanMap[planId] || planId
