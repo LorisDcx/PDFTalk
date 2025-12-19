@@ -139,3 +139,47 @@ export function HowToJsonLd({
     />
   )
 }
+
+export function ArticleJsonLd({
+  headline,
+  description,
+  authorName,
+  datePublished,
+  dateModified,
+  url,
+  image,
+  keywords,
+}: {
+  headline: string
+  description: string
+  authorName: string
+  datePublished: string
+  dateModified?: string
+  url: string
+  image?: string
+  keywords?: string[]
+}) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline,
+    description,
+    author: {
+      '@type': 'Person',
+      name: authorName,
+    },
+    url,
+    image: image ? [image] : undefined,
+    datePublished,
+    dateModified: dateModified || datePublished,
+    mainEntityOfPage: url,
+    keywords,
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  )
+}

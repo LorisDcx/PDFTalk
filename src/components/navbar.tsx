@@ -28,8 +28,6 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { t } = useLanguage()
 
-  console.log('🧭 Navbar RENDER - isLoading:', isLoading, 'user:', !!user, 'pathname:', pathname)
-
   const getInitials = (name?: string | null, email?: string | null) => {
     if (name) return name.substring(0, 2).toUpperCase()
     return email?.substring(0, 2).toUpperCase() || 'U'
@@ -62,10 +60,10 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-14">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-8 lg:px-10">
         {/* Logo - always go to home */}
         <Link href="/" className="flex items-center gap-4 shrink-0">
-          <Image src="/logo.png" alt="Cramdesk" width={60} height={60} className="h-14 w-14 rounded" />
+          <Image src="/logo.png" alt="Cramdesk" width={60} height={60} className="h-14 w-14 rounded" sizes="56px" priority />
           <span className="text-2xl font-bold text-foreground">Cramdesk</span>
         </Link>
 

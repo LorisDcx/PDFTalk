@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/toaster'
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://cramdesk.com'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Cramdesk – Ton bureau d\'urgence pour réviser',

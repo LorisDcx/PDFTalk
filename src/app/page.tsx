@@ -336,25 +336,43 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Resource links for internal linking */}
+      <section className="py-6 px-3 md:px-4 relative z-10">
+        <div className="container max-w-6xl">
+          <div className="section-card p-5 md:p-6">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4 justify-center text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground whitespace-nowrap">Popular resources:</span>
+              <Link href="/compare/quizlet-alternative" className="hover:text-foreground transition-colors whitespace-nowrap">Quizlet alternative</Link>
+              <Link href="/use-cases/medical-students" className="hover:text-foreground transition-colors whitespace-nowrap">Medical students</Link>
+              <Link href="/use-cases/language-learning" className="hover:text-foreground transition-colors whitespace-nowrap">Language learning</Link>
+              <Link href="/use-cases/law-students" className="hover:text-foreground transition-colors whitespace-nowrap">Law students</Link>
+              <Link href="/blog/best-quizlet-alternatives-2025" className="hover:text-foreground transition-colors whitespace-nowrap">Best Quizlet alternatives 2025</Link>
+              <Link href="/blog/how-to-turn-pdf-into-flashcards" className="hover:text-foreground transition-colors whitespace-nowrap">How to turn a PDF into flashcards</Link>
+              <Link href="/blog/best-ai-flashcard-tools-2025" className="hover:text-foreground transition-colors whitespace-nowrap">Best AI flashcard tools 2025</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 py-8 px-4 bg-background/80 backdrop-blur-sm">
-        <div className="container max-w-5xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+      <footer className="relative z-10 border-t border-border/50 py-6 px-4 bg-background/80 backdrop-blur-sm">
+        <div className="container max-w-6xl">
+          <div className="flex w-full items-center gap-3 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 text-foreground whitespace-nowrap">
               <FileText className="h-5 w-5 text-primary" />
               <span className="font-semibold">Cramdesk</span>
             </div>
-            <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-3 text-sm text-muted-foreground">
-              <p>© {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}</p>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
-                <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
-                <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
-                <Link href="/compare/quizlet-alternative" className="hover:text-foreground transition-colors">Quizlet alternative</Link>
-                <Link href="/use-cases/medical-students" className="hover:text-foreground transition-colors">Medical students</Link>
-                <Link href="/use-cases/language-learning" className="hover:text-foreground transition-colors">Language learning</Link>
-                <Link href="/use-cases/law-students" className="hover:text-foreground transition-colors">Law students</Link>
-              </div>
+            <div className="flex flex-1 items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground whitespace-nowrap overflow-x-auto">
+              <Link href="/compare/quizlet-alternative" className="hover:text-foreground transition-colors">Quizlet alternative</Link>
+              <Link href="/use-cases/medical-students" className="hover:text-foreground transition-colors">Medical students</Link>
+              <Link href="/use-cases/language-learning" className="hover:text-foreground transition-colors">Language learning</Link>
+              <Link href="/use-cases/law-students" className="hover:text-foreground transition-colors">Law students</Link>
+              <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
+              <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
+              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+            </div>
+            <div className="text-sm text-muted-foreground whitespace-nowrap text-right">
+              © {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}
             </div>
           </div>
         </div>

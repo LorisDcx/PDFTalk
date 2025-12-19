@@ -798,6 +798,8 @@ ${slides.map((slide, i) => `
                         src={currentSlide.imageUrl || `https://source.unsplash.com/800x600/?${encodeURIComponent(currentSlide.imageQuery || 'business')}`}
                         alt={currentSlide.title}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&h=600&fit=crop`
                         }}

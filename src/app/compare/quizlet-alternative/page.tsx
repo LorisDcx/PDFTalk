@@ -88,36 +88,45 @@ export default function QuizletAlternativePage() {
       />
       <FAQJsonLd faqs={faqItems} />
 
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-        <section className="py-16 px-4">
-          <div className="container max-w-5xl mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
-                <BookOpen className="h-4 w-4" />
-                <span className="text-sm font-medium">Quizlet alternative</span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                The Quizlet alternative that turns your PDFs into notes and quizzes
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Cramdesk instantly converts your course PDFs into notes, flashcards, and MCQs. No more manual typing—focus on learning.
-              </p>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild size="lg">
-                  <Link href="/signup">
-                    Try 7 days free
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/#pricing">See plans</Link>
-                </Button>
-              </div>
-            </div>
+      <main className="relative z-10 px-3 md:px-4 py-12 md:py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-orange-500/5" />
+        <div className="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
 
+        <div className="container max-w-6xl space-y-10 md:space-y-12 relative">
+          <section className="section-card p-6 md:p-10 text-center bg-background/80 border border-border/60 shadow-lg shadow-primary/10 relative overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(255,115,29,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.08),transparent_30%)]" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4 text-sm font-medium">
+              <BookOpen className="h-4 w-4" />
+              <span>Quizlet alternative</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">
+              The Quizlet alternative that turns your PDFs into notes and quizzes
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+              Cramdesk instantly converts your course PDFs into notes, flashcards, and MCQs. No more manual typing—focus on learning.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3 justify-center">
+              <Button asChild size="lg" className="btn-press px-6 py-3">
+                <Link href="/signup">
+                  Try 7 days free
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="btn-press px-6 py-3">
+                <Link href="/#pricing">See plans</Link>
+              </Button>
+            </div>
+          </section>
+
+          <section className="section-card p-6 md:p-8 bg-background/80 border border-border/60 shadow-md shadow-primary/10 space-y-6">
+            <div className="flex items-center gap-2 text-sm uppercase tracking-wide text-primary font-semibold">
+              <Sparkles className="h-4 w-4" />
+              Why switch to Cramdesk
+            </div>
             <div className="grid md:grid-cols-2 gap-4">
               {points.map((p) => (
-                <Card key={p.title} className="border-border/60">
+                <Card key={p.title} className="border-border/60 bg-gradient-to-br from-background/80 via-background to-primary/5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
                   <CardContent className="p-5 space-y-2">
                     <div className="flex items-center gap-2">
                       {p.icon}
@@ -128,38 +137,38 @@ export default function QuizletAlternativePage() {
                 </Card>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section id="how-to" className="py-12 px-4 bg-muted/30">
-          <div className="container max-w-4xl mx-auto text-center space-y-4">
+          <section id="how-to" className="section-card p-6 md:p-8 bg-gradient-to-r from-primary/5 via-background to-orange-500/5 border border-primary/20 shadow-lg shadow-primary/15 space-y-6 text-center">
             <h2 className="text-2xl font-bold">How to create flashcards from a PDF</h2>
             <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-              <Card>
+              <Card className="border-border/60">
                 <CardContent className="p-4 space-y-2">
                   <p className="font-semibold text-foreground">1. Upload</p>
                   <p>Drop your PDF or click to upload your course file.</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-border/60">
                 <CardContent className="p-4 space-y-2">
                   <p className="font-semibold text-foreground">2. Generate</p>
                   <p>AI creates notes, flashcards, and MCQs automatically.</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-border/60">
                 <CardContent className="p-4 space-y-2">
                   <p className="font-semibold text-foreground">3. Study</p>
                   <p>Review cards, replay quizzes, export if needed.</p>
                 </CardContent>
               </Card>
             </div>
-            <Button asChild size="lg">
-              <Link href="/signup">Start for free</Link>
-            </Button>
-          </div>
-        </section>
-      </div>
+            <div className="flex justify-center">
+              <Button asChild size="lg" className="btn-press px-6 py-3">
+                <Link href="/signup">Start for free</Link>
+              </Button>
+            </div>
+          </section>
+        </div>
+      </main>
     </>
   )
 }
