@@ -1,92 +1,36 @@
 import { MetadataRoute } from 'next'
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://cramdesk.com'
+
+const marketingRoutes: MetadataRoute.Sitemap = [
+  {
+    url: '/',
+    priority: 1,
+    changeFrequency: 'weekly',
+  },
+  { url: '/signup', priority: 0.7 },
+  { url: '/login', priority: 0.4 },
+  { url: '/contact', priority: 0.6 },
+  { url: '/privacy', priority: 0.4, changeFrequency: 'yearly' },
+  { url: '/terms', priority: 0.4, changeFrequency: 'yearly' },
+  { url: '/pour-etudiants', priority: 0.7 },
+  { url: '/fiches-revision', priority: 0.7 },
+  { url: '/quiz-pdf', priority: 0.7 },
+  { url: '/humanizer', priority: 0.85 },
+  { url: '/flashcards-landing', priority: 0.85 },
+  { url: '/quiz', priority: 0.85 },
+  { url: '/pdf', priority: 0.85 },
+  { url: '/resume', priority: 0.85 },
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://cramdesk.com'
-  
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/features`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/pour-etudiants`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/fiches-revision`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/quiz-pdf`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/humanizer`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/flashcards`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/quiz`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/pdf`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/resume`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-  ]
+  const lastModified = new Date()
+
+  return marketingRoutes.map((entry) => ({
+    url: `${BASE_URL}${entry.url}`,
+    lastModified,
+    changeFrequency: entry.changeFrequency ?? 'monthly',
+    priority: entry.priority ?? 0.5,
+  }))
 }

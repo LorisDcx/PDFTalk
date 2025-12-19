@@ -48,11 +48,16 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
+      const emailRedirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
+        : undefined
+
       // Sign up with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          ...(emailRedirectTo ? { emailRedirectTo } : {}),
           data: {
             name,
           },
