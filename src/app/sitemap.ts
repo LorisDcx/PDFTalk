@@ -22,6 +22,10 @@ const marketingRoutes: MetadataRoute.Sitemap = [
   { url: '/quiz', priority: 0.85 },
   { url: '/pdf', priority: 0.85 },
   { url: '/resume', priority: 0.85 },
+  { url: '/compare/quizlet-alternative', priority: 0.65 },
+  { url: '/use-cases/medical-students', priority: 0.65 },
+  { url: '/use-cases/language-learning', priority: 0.65 },
+  { url: '/use-cases/law-students', priority: 0.65 },
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

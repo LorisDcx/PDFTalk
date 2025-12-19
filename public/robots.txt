@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://cramdesk.com/sitemap.xml
+Sitemap: https://www.cramdesk.com/sitemap.xml
 
 # Disallow admin/api routes
 Disallow: /api/

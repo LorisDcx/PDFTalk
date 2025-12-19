@@ -344,13 +344,17 @@ export default function LandingPage() {
               <FileText className="h-5 w-5 text-primary" />
               <span className="font-semibold">Cramdesk</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}
-            </p>
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
-              <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
-              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+            <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-3 text-sm text-muted-foreground">
+              <p>© {new Date().getFullYear()} Cramdesk. {t('allRightsReserved')}</p>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/privacy" className="hover:text-foreground">{t('privacy')}</Link>
+                <Link href="/terms" className="hover:text-foreground">{t('terms')}</Link>
+                <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+                <Link href="/compare/quizlet-alternative" className="hover:text-foreground transition-colors">Quizlet alternative</Link>
+                <Link href="/use-cases/medical-students" className="hover:text-foreground transition-colors">Medical students</Link>
+                <Link href="/use-cases/language-learning" className="hover:text-foreground transition-colors">Language learning</Link>
+                <Link href="/use-cases/law-students" className="hover:text-foreground transition-colors">Law students</Link>
+              </div>
             </div>
           </div>
         </div>

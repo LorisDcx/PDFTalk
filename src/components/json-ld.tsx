@@ -107,3 +107,35 @@ export function WebPageJsonLd({
     />
   )
 }
+
+export function HowToJsonLd({
+  name,
+  description,
+  steps,
+  url,
+}: {
+  name: string
+  description: string
+  steps: { name: string; text: string }[]
+  url: string
+}) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name,
+    description,
+    step: steps.map((step) => ({
+      '@type': 'HowToStep',
+      name: step.name,
+      text: step.text,
+    })),
+    url,
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  )
+}
