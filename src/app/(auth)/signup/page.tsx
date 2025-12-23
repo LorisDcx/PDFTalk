@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,7 +26,7 @@ export default function SignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [pendingDoc, setPendingDoc] = useState<PendingDocument | null>(null)
-  const router = useRouter()
+  const [signupSuccess, setSignupSuccess] = useState(false)
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { t } = useLanguage()
@@ -100,18 +100,10 @@ export default function SignupPage() {
 
       toast({
         title: t('accountCreated'),
-        description: pendingDoc 
-          ? t('documentWillBeAnalyzed')
-          : t('trialStarted'),
+        description: 'Vérifie ta boîte mail et clique sur le lien de confirmation pour activer ton compte.',
       })
 
-      // If there's a pending document, redirect to dashboard with flag
-      if (pendingDoc) {
-        sessionStorage.setItem('processPendingDocument', 'true')
-      }
-      
-      router.push('/dashboard')
-      router.refresh()
+      setSignupSuccess(true)
     } catch (error) {
       toast({
         title: t('error'),
@@ -135,7 +127,7 @@ export default function SignupPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-primary">{t('documentReadyToAnalyze')}</p>
-                <p className="text-xs text-muted-foreground truncate">{pendingDoc.name}</p>
+                <p className="text-xs text-muted-foreground">{pendingDoc.name}</p>
               </div>
               <span className="text-xs text-muted-foreground">{formatFileSize(pendingDoc.size)}</span>
             </div>
@@ -155,8 +147,27 @@ export default function SignupPage() {
                 : t('trialDescription')}
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSignup}>
-            <CardContent className="space-y-4">
+          {signupSuccess ? (
+            <CardContent className="space-y-6">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left">
+                <p className="font-semibold text-emerald-900">Vérifie ta boîte mail</p>
+                <p className="mt-1 text-sm text-emerald-800">
+                  Nous avons envoyé un email de confirmation à <span className="font-medium">{email}</span>. 
+                  Clique sur le lien de validation pour activer ton compte. Tu pourras ensuite te connecter et accéder à ton tableau de bord.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button asChild className="w-full">
+                  <Link href="/login">Aller me connecter</Link>
+                </Button>
+                <Button variant="ghost" asChild className="w-full">
+                  <Link href="https://mail.google.com" target="_blank">Ouvrir ma messagerie</Link>
+                </Button>
+              </div>
+            </CardContent>
+          ) : (
+            <form onSubmit={handleSignup}>
+              <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">{t('name')}</Label>
                 <Input
@@ -262,7 +273,8 @@ export default function SignupPage() {
                 </Link>
               </p>
             </CardFooter>
-          </form>
+            </form>
+          )}
         </Card>
       </div>
     </div>
