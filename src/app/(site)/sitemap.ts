@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { SEO_LOCALES } from '@/lib/seo-locales'
 
-const baseUrl = 'https://cramdesk.com'
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://cramdesk.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicPaths = [
@@ -9,6 +9,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/flashcards-landing', '/quiz', '/pdf', '/resume', '/humanizer',
     '/planificateur-revisions', '/calculateur-moyenne', '/flashcards-gratuites',
     '/en/free-flashcards', '/contact', '/privacy', '/terms',
+    '/blog/best-quizlet-alternatives-2025', '/blog/how-to-turn-pdf-into-flashcards',
+    '/blog/best-ai-flashcard-tools-2025', '/compare/quizlet-alternative',
+    '/use-cases/medical-students', '/use-cases/language-learning', '/use-cases/law-students',
   ]
 
   return [...publicPaths, ...SEO_LOCALES.map(locale => `/${locale}`)]
