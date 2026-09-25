@@ -32,7 +32,7 @@ export default function DocumentPage() {
   const { user, isLoading: authLoading } = useAuth()
   const userId = user?.id
   const { toast } = useToast()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [supabase] = useState(() => createClient())
   const [document, setDocument] = useState<Document | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -263,12 +263,19 @@ export default function DocumentPage() {
                         <Button type="button" size="icon" variant="ghost" aria-label={t('copySummary')} onClick={() => void copyText((translatedSummary || digest.summary).join('\n'))}><Copy className="size-4" /></Button>
                       </div>
                     </div>
-                    <ol className="space-y-0">
-                      {(translatedSummary || digest.summary).map((point, index) => <li key={index} className="flex gap-4 border-b border-[#f0eae5] py-4 first:pt-0 last:border-0 last:pb-0">
-                        <span className="w-6 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-[#b84432]">{String(index + 1).padStart(2, '0')}</span>
-                        <p className="text-[15px] leading-7 text-[#483a47]">{point}</p>
-                      </li>)}
-                    </ol>
+                    {(translatedSummary || digest.summary).length > 0 && <div className="max-w-3xl">
+                      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a44331]">{language === 'fr' ? 'En bref' : 'At a glance'}</p>
+                      <p className="mt-3 font-editorial text-[clamp(1.4rem,3vw,2rem)] leading-snug text-[#35282d]">{(translatedSummary || digest.summary)[0]}</p>
+                    </div>}
+                    {(translatedSummary || digest.summary).length > 1 && <div className="mt-8 border-t border-[#eee6e0] pt-7">
+                      <h3 className="text-base font-bold text-[#3d3033]">{language === 'fr' ? 'Les idées à retenir' : 'Key ideas'}</h3>
+                      <ol className="mt-3 divide-y divide-[#f0eae5]">
+                        {(translatedSummary || digest.summary).slice(1).map((point, index) => <li key={index} className="flex gap-4 py-4 first:pt-2 last:pb-0">
+                          <span className="w-6 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-[#b84432]">{String(index + 1).padStart(2, '0')}</span>
+                          <p className="text-base leading-7 text-[#483a47]">{point}</p>
+                        </li>)}
+                      </ol>
+                    </div>}
                   </section>
 
                   {digest.keyClauses?.length > 0 && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#fffefd] p-6 sm:p-9">
@@ -276,12 +283,14 @@ export default function DocumentPage() {
                       <div className="flex size-9 items-center justify-center rounded-xl bg-[#eee5ea] text-[#663b57]"><BookOpenText className="size-4" /></div>
                       <h2 className="font-editorial text-2xl sm:text-3xl">{t('keyClauses')}</h2>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {digest.keyClauses.map((concept, index) => <article key={index} className="rounded-xl border border-[#eee7e3] bg-[#fbf9f6] p-5">
-                        <h3 className="font-semibold text-[#40293a]">{concept.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-[#746873]">{concept.description}</p>
+                    <div className="divide-y divide-[#eee7e3]">
+                      {digest.keyClauses.map((concept, index) => <article key={index} className="py-5 first:pt-0 last:pb-0">
+                        <h3 className="text-base font-bold text-[#40293a]">{concept.title}</h3>
+                        <p className="mt-2 max-w-3xl text-base leading-7 text-[#635961]">{concept.description}</p>
+                        {concept.sourceQuote && <blockquote className="mt-4 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-sm leading-6 text-[#72666a]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}</span>“{concept.sourceQuote}”</blockquote>}
                       </article>)}
                     </div>
+                    <button type="button" onClick={() => void togglePdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
                   </section>}
 
                   {summary?.easy_reading && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#f2eaf0] p-6 sm:p-9">

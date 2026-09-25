@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/', '/pour-etudiants', '/fiches-revision', '/quiz-pdf',
     '/flashcards-landing', '/quiz', '/pdf', '/resume', '/humanizer',
     '/planificateur-revisions', '/calculateur-moyenne', '/flashcards-gratuites',
-    '/en/free-flashcards', '/contact', '/privacy', '/terms',
+    '/outils-pdf', '/en/pdf-tools', '/en/free-flashcards', '/contact', '/privacy', '/terms',
     '/blog/best-quizlet-alternatives-2025', '/blog/how-to-turn-pdf-into-flashcards',
     '/blog/best-ai-flashcard-tools-2025', '/compare/quizlet-alternative',
     '/use-cases/medical-students', '/use-cases/language-learning', '/use-cases/law-students',

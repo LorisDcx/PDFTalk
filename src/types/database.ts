@@ -208,7 +208,7 @@ export type AnalyticsEvent = Database['public']['Tables']['analytics_events']['R
 export interface DocumentDigest {
   documentType: string
   summary: string[]
-  keyClauses: { title: string; description: string }[]
+  keyClauses: { title: string; description: string; sourceQuote?: string }[]
   risks: { title: string; description: string; severity: 'high' | 'medium' | 'low' }[]
   questions: string[]
   actions: { action: string; priority: 'high' | 'medium' | 'low' }[]

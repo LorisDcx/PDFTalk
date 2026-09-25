@@ -21,12 +21,12 @@ export function Navbar() {
   const publicLinks = english ? [
     { href: '/en#studio', label: 'The studio' },
     { href: '/en#how-it-works', label: 'How it works' },
-    { href: '/en/free-flashcards', label: 'Free flashcards' },
+    { href: '/en/pdf-tools', label: 'Free PDF tools' },
     { href: '/en#pricing', label: 'Plans' },
   ] : [
     { href: '/#produit', label: 'Le studio' },
     { href: '/#comment-ca-marche', label: 'Comment ça marche' },
-    { href: '/#outils-gratuits', label: 'Outils gratuits' },
+    { href: '/outils-pdf', label: 'Outils PDF gratuits' },
     { href: '/#pricing', label: 'Tarifs' },
   ]
   const loginLabel = english ? 'Sign in' : 'Connexion'
@@ -45,7 +45,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#f0dfd5] bg-[#fffaf5]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8">
-        <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="CramDesk — accueil">
+        <Link href={english ? '/en' : '/'} className="inline-flex shrink-0 items-center gap-2.5" aria-label={english ? 'CramDesk — home' : 'CramDesk — accueil'}>
           <Image src="/logo.png" width={36} height={36} alt="" className="size-9 rounded-xl shadow-sm" />
           <span className="font-editorial text-[1.65rem] leading-none tracking-[-.045em] text-[#33252b]">CramDesk<span className="text-[#d05a39]">.</span></span>
         </Link>
@@ -84,7 +84,7 @@ export function Navbar() {
           </> : null}
         </div>
 
-        <button type="button" aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(!menuOpen)} className="ml-auto inline-flex size-10 items-center justify-center rounded-full border border-[#e6dce3] bg-white text-[#4b3848] xl:hidden">
+        <button type="button" aria-label={menuOpen ? (english ? 'Close menu' : 'Fermer le menu') : (english ? 'Open menu' : 'Ouvrir le menu')} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(!menuOpen)} className="ml-auto inline-flex size-10 items-center justify-center rounded-full border border-[#e6dce3] bg-white text-[#4b3848] xl:hidden">
           {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>

@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import type { DocumentDigest } from '@/types/database'
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -18,20 +19,20 @@ export async function generateDocumentDigest(text: string, documentType?: string
         
 Your task is to analyze the provided document and create a comprehensive digest with the following sections:
 
-1. **Document Type**: Identify the kind of study material.
-2. **Summary**: 5-10 key ideas in the same language as the source.
-3. **Key Concepts/Sections**: Explain the important concepts or sections.
-4. **Points of Attention**: Identify likely misunderstandings, exceptions or distinctions students should check. Do not predict exam questions.
-5. **Practice Questions**: Suggest questions a student can answer using this document.
-6. **Study Actions**: Suggest concrete next review steps.
+1. **Document Type**: Identify the actual material, even if it is not a course. Never pretend an unrelated PDF is a lesson.
+2. **Summary**: The first item is a concise two-sentence overview answering what this document is about and why it matters. Then give 3-6 specific, non-repetitive ideas in logical order. Prefer explanations of relationships, mechanisms and distinctions over isolated facts. Scale the length to the actual source; a short document needs a short summary.
+3. **Key Concepts/Sections**: Explain up to 5 important concepts in plain language. For each, include a short sourceQuote copied VERBATIM from the supplied text, at most 25 words, that directly supports the explanation. If no precise excerpt supports a concept, omit that concept. Never fabricate a quote or a page number.
+4. **Points of Attention**: Identify only genuine nuances or likely misunderstandings supported by the document. Do not predict exam questions or invent risks.
+5. **Practice Questions**: Ask questions answerable from this document.
+6. **Study Actions**: Suggest concrete next review steps suited to the material.
 
-Base every factual statement on the supplied text. If the source lacks information, do not invent it. Keep technical terminology accurate and explain it in plain language. Use the source language for all fields.
+Base every factual statement on the supplied text. If the source lacks information, do not invent it. Keep technical terminology accurate and explain it in plain language. Use the source language for every field. Avoid generic filler and promotional language.
 
 Return your analysis in the following JSON format:
 {
   "documentType": "string",
-  "summary": ["bullet 1", "bullet 2", ...],
-  "keyClauses": [{"title": "string", "description": "string"}, ...],
+  "summary": ["two-sentence overview", "key idea 1", "key idea 2", ...],
+  "keyClauses": [{"title": "string", "description": "string", "sourceQuote": "exact short excerpt from source"}, ...],
   "risks": [{"title": "string", "description": "string", "severity": "high|medium|low"}, ...],
   "questions": ["question 1", "question 2", ...],
   "actions": [{"action": "string", "priority": "high|medium|low"}, ...]
@@ -50,7 +51,25 @@ Return your analysis in the following JSON format:
   const content = response.choices[0].message.content
   if (!content) throw new Error('No response from OpenAI')
   
-  return { digest: JSON.parse(content), tokensUsed: response.usage?.total_tokens ?? 0 }
+  const parsed = JSON.parse(content) as DocumentDigest
+  if (!Array.isArray(parsed.summary) || !parsed.summary.some(item => typeof item === 'string' && item.trim())) {
+    throw new Error('The document summary is empty')
+  }
+  const normalizedSource = text.replace(/\s+/g, ' ').normalize('NFKC')
+  const keyClauses = Array.isArray(parsed.keyClauses) ? parsed.keyClauses : []
+  const digest: DocumentDigest = {
+    documentType: typeof parsed.documentType === 'string' ? parsed.documentType : 'Document',
+    summary: parsed.summary.filter((item): item is string => typeof item === 'string' && !!item.trim()).map(item => item.trim()),
+    keyClauses: keyClauses.filter(item => item && typeof item.title === 'string' && typeof item.description === 'string').map(item => {
+      const quote = typeof item.sourceQuote === 'string' ? item.sourceQuote.trim() : ''
+      const verified = quote.length > 0 && normalizedSource.includes(quote.replace(/\s+/g, ' ').normalize('NFKC'))
+      return { title: item.title.trim(), description: item.description.trim(), ...(verified ? { sourceQuote: quote } : {}) }
+    }),
+    risks: Array.isArray(parsed.risks) ? parsed.risks : [],
+    questions: Array.isArray(parsed.questions) ? parsed.questions : [],
+    actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+  }
+  return { digest, tokensUsed: response.usage?.total_tokens ?? 0 }
 }
 
 export async function generateEasyReading(text: string) {
@@ -69,6 +88,8 @@ Guidelines:
 - Keep the essential meaning intact
 - Organize with clear headings and bullet points where appropriate
 - Highlight important definitions, examples, dates and numbers accurately
+- Write in the same language as the source document
+- If the PDF is not study material, explain its actual contents instead of inventing a lesson
 
 Return a well-formatted, easy-to-read version that anyone can understand.`
       },
