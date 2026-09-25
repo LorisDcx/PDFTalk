@@ -63,6 +63,8 @@ for (const [label, endpoint] of [
   ['Auth', '/auth/v1/health'],
   ['Table users', '/rest/v1/users?select=id&limit=0'],
   ['Colonnes de suivi d’essai', '/rest/v1/users?select=trial_pages_processed_today,trial_usage_reset_at&limit=0'],
+  ['Texte source des fiches', '/rest/v1/summaries?select=source_text&limit=0'],
+  ['Table flashcards', '/rest/v1/flashcards?select=id&limit=0'],
 ]) {
   try {
     const response = await fetch(new URL(endpoint, projectUrl), {
@@ -82,4 +84,27 @@ for (const [label, endpoint] of [
     console.error(`${label} : connexion impossible (${error.cause?.code ?? error.name}).`)
     process.exitCode = 1
   }
+}
+
+try {
+  const response = await fetch(new URL('/rest/v1/rpc/consume_pages', projectUrl), {
+    method: 'POST',
+    headers: {
+      apikey: settings.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${settings.SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      p_user_id: '00000000-0000-0000-0000-000000000000',
+      p_pages: 1,
+      p_document: false,
+    }),
+    signal: AbortSignal.timeout(10000),
+  })
+  const result = await response.json().catch(() => null)
+  console.log(`Fonction de quota : HTTP ${response.status}, résultat ${result}`)
+  if (!response.ok || result !== false) process.exitCode = 1
+} catch (error) {
+  console.error(`Fonction de quota : connexion impossible (${error.cause?.code ?? error.name}).`)
+  process.exitCode = 1
 }

@@ -26,10 +26,13 @@ create table if not exists public.flashcards (
 create index if not exists flashcards_document_id_idx on public.flashcards(document_id);
 alter table public.flashcards enable row level security;
 
+drop policy if exists "Users can view own flashcards" on public.flashcards;
 create policy "Users can view own flashcards" on public.flashcards for select
   using (exists (select 1 from public.documents d where d.id = document_id and d.user_id = auth.uid()));
+drop policy if exists "Users can insert own flashcards" on public.flashcards;
 create policy "Users can insert own flashcards" on public.flashcards for insert
   with check (exists (select 1 from public.documents d where d.id = document_id and d.user_id = auth.uid()));
+drop policy if exists "Users can delete own flashcards" on public.flashcards;
 create policy "Users can delete own flashcards" on public.flashcards for delete
   using (exists (select 1 from public.documents d where d.id = document_id and d.user_id = auth.uid()));
 
