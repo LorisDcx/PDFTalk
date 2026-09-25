@@ -39,7 +39,7 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
       const response = await fetch('/api/chat/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentContent: documentContent.substring(0, 5000), language }),
+        body: JSON.stringify({ documentId, language }),
       })
       if (response.ok) {
         const data = await response.json()
@@ -88,7 +88,6 @@ export function PDFChat({ documentId, documentContent, documentName }: PDFChatPr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
-          documentContent,
           question: content.trim(),
           history: messages.slice(-6),
         }),

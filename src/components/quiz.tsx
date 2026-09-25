@@ -159,7 +159,6 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
-          documentContent,
           count: questionCount,
           language,
         }),

@@ -1,159 +1,50 @@
-# PDFTalk
+# CramDesk
 
-AI-powered PDF document analysis. Upload contracts, quotes, and business documents to get instant summaries, risk analysis, questions to ask, and simplified versions.
+CramDesk est une application web de révision à partir de cours PDF. Elle extrait le texte d'un PDF, crée une synthèse et une lecture simplifiée, puis permet de générer des flashcards, des quiz, des présentations et de poser des questions sur le document. Le site public propose une page française et huit pages localisées pour les étudiants internationaux. Les PDF image sans texte sélectionnable ne sont pas pris en charge.
 
-## Features
+## Stack et parcours
 
-- **Executive Summaries**: Get 5-10 key bullet points covering the most important information
-- **Risk Analysis**: Identify potential risks, unusual clauses, and points requiring attention
-- **Questions to Ask**: Suggested questions to clarify with the other party
-- **Easy Reading Mode**: Complex legal language transformed into plain English
-- **Document History**: Track all your uploaded documents
-- **Usage Tracking**: Monitor your monthly page quota
+- Next.js 16 (App Router), React 19, TypeScript et Tailwind CSS.
+- Supabase Auth, PostgreSQL avec RLS et Storage privé.
+- OpenAI pour l'analyse et les outils de révision ; Stripe pour les abonnements ; Resend pour le formulaire de contact.
+- Le visiteur peut choisir un PDF avant son inscription. Le fichier reste dans son navigateur jusqu'à la connexion, puis le tableau de bord lance l'analyse.
+- Les routes d'application sont exclues de l'indexation. Les pages publiques possèdent des métadonnées, un sitemap, des URL canoniques et des liens hreflang.
+- Le planificateur (`/planificateur-revisions`), le calculateur de moyenne (`/calculateur-moyenne`) et les flashcards manuelles (`/flashcards-gratuites`, `/en/free-flashcards`) sont gratuits et sans compte. Ils fonctionnent localement dans le navigateur ; le premier exporte un calendrier `.ics`, le second calcule la note à viser, et le troisième permet de créer, réviser, importer et exporter un jeu de cartes.
 
-## Tech Stack
+Les prochaines fonctions web et leurs priorités sont décrites dans [docs/product-roadmap-web.md](docs/product-roadmap-web.md). La stratégie de coût et de qualité IA est dans [docs/ai-strategy.md](docs/ai-strategy.md). Toute évolution d'interface suit [docs/ui-ux-rules.md](docs/ui-ux-rules.md).
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Styling**: Tailwind CSS, shadcn/ui components
-- **Backend**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL)
-- **Auth**: Supabase Auth
-- **AI**: OpenAI GPT-4 Turbo
-- **Payments**: Stripe
-- **File Storage**: Supabase Storage
+L'ancien dossier `mobile/` n'est pas requis pour construire le site web.
 
-## Getting Started
+## Installation
 
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- Supabase account
-- OpenAI API key
-- Stripe account
-
-### 1. Clone and Install
-
-```bash
-cd PDFTalk
-npm install
-```
-
-### 2. Set Up Supabase
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor and run the schema from `supabase/schema.sql`
-3. Go to Settings > API to get your keys
-
-### 3. Set Up Stripe
-
-1. Create a Stripe account at [stripe.com](https://stripe.com)
-2. Create three products with monthly prices:
-   - Basic: €3.99/month
-   - Growth: €12.99/month
-   - Pro: €20.99/month
-3. Get your API keys and price IDs
-
-### 4. Configure Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in your values:
-
-```bash
-cp .env.example .env.local
-```
-
-Required variables:
+Installer les dépendances avec `npm install`. Créer `.env.local` avec les variables suivantes :
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# OpenAI
-OPENAI_API_KEY=your_openai_api_key
-
-# Stripe
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_BASIC_PRICE_ID=price_xxx
-STRIPE_GROWTH_PRICE_ID=price_xxx
-STRIPE_PRO_PRICE_ID=price_xxx
-
-# App URL
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_STARTER_PRICE_ID=
+STRIPE_STUDENT_PRICE_ID=
+STRIPE_GRADUATE_PRICE_ID=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+RESEND_API_KEY=
 ```
 
-### 5. Run Development Server
+La clé Supabase `SUPABASE_SERVICE_ROLE_KEY` est obligatoire côté serveur pour les quotas, la facturation et la suppression de compte. Ne jamais la préfixer par `NEXT_PUBLIC_` ni l'exposer au navigateur.
 
-```bash
-npm run dev
-```
+Dans Supabase Auth, autoriser les URL de redirection `http://localhost:3000/auth/callback`, `http://localhost:3000/reset-password/callback` et leurs équivalents sur le domaine de production. La seconde URL permet au lien reçu par email d'ouvrir le formulaire de réinitialisation du mot de passe.
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Pour une base neuve, appliquer `supabase/schema.sql` dans Supabase SQL Editor. Pour une base déjà créée, appliquer **avant le nouveau code** `supabase/migrations/20260924_align_web_schema.sql`. Cette migration ajoute les flashcards et le texte source des résumés, aligne les forfaits, rend les décomptes atomiques et retire aux clients la possibilité de modifier leur forfait ou quota. Sauvegarder la base avant la migration et vérifier les politiques RLS dans le projet cible.
 
-### 6. Set Up Stripe Webhook (for production)
+Créer dans Stripe trois prix mensuels correspondant aux forfaits Starter (3,99 €), Student (7,99 €) et Graduate (12,99 €), puis renseigner leurs identifiants. Configurer le webhook `/api/webhooks/stripe` pour les événements `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_succeeded` et `invoice.payment_failed`. Configurer l'envoi depuis `no-reply@cramdesk.com` chez Resend avant d'activer le formulaire de contact.
 
-1. In Stripe Dashboard, go to Developers > Webhooks
-2. Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
-3. Select events:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
-4. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`
+Lancer `npm run dev` pour le développement, `npm run build` pour valider la production et `npm start` pour servir la version compilée.
 
-## Project Structure
+`npm run db:check` vérifie que l'URL Supabase et les clés correspondent au même projet, que son DNS répond, puis que l'API Auth et la table `users` sont accessibles. La commande n'affiche jamais les clés.
 
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── (auth)/            # Auth pages (login, signup)
-│   ├── (dashboard)/       # Protected dashboard pages
-│   ├── api/               # API routes
-│   └── page.tsx           # Landing page
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── ...               # App-specific components
-├── lib/                   # Utility functions
-│   ├── openai.ts         # OpenAI integration
-│   ├── stripe.ts         # Stripe configuration
-│   ├── pdf.ts            # PDF extraction
-│   └── supabase/         # Supabase clients
-└── types/                 # TypeScript types
-```
+## Points de mise en production
 
-## Pricing Plans
-
-| Feature | Basic (€3.99) | Growth (€12.99) | Pro (€20.99) |
-|---------|---------------|-----------------|--------------|
-| Pages/month | 150 | 600 | 1,500 |
-| Max pages/doc | 20 | 60 | 100 |
-| Document history | 30 | 200 | Unlimited |
-| Document comparison | - | 2 PDFs | 3 PDFs |
-| Team seats | - | - | 5 |
-| API access | - | - | Yes |
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push to GitHub
-2. Import to Vercel
-3. Add environment variables
-4. Deploy
-
-### Netlify
-
-1. Push to GitHub
-2. Import to Netlify
-3. Set build command: `npm run build`
-4. Set publish directory: `.next`
-5. Add environment variables
-6. Deploy
-
-## License
-
-MIT
+Vérifier sur l'environnement réel l'inscription et sa redirection email, le stockage privé, un PDF de test, les quotas d'essai et d'abonnement, la réception des webhooks Stripe et la délivrabilité du contact. Les secrets externes ne sont pas nécessaires au build, mais les fonctionnalités correspondantes ne peuvent pas être testées complètement sans eux. Soumettre ensuite `/sitemap.xml` dans Google Search Console et suivre l'indexation ainsi que les performances réelles : le code SEO ne garantit pas une position donnée.

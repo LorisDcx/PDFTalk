@@ -2,23 +2,22 @@
 
 import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, type FileRejection } from 'react-dropzone'
 import { Upload, FileText, ArrowRight, Sparkles } from 'lucide-react'
-import { Button } from './ui/button'
-import { cn, formatFileSize } from '@/lib/utils'
+import { formatFileSize } from '@/lib/utils'
 import { useToast } from './ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
+import { savePendingDocument } from '@/lib/pending-document'
 
 const MAX_SIZE = 20 * 1024 * 1024 // 20MB
 
 export function DemoUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useLanguage()
 
-  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
       toast({
@@ -41,11 +40,9 @@ export function DemoUpload() {
     accept: { 'application/pdf': ['.pdf'] },
     maxSize: MAX_SIZE,
     multiple: false,
-    onDragEnter: () => setIsDragging(true),
-    onDragLeave: () => setIsDragging(false),
   })
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!selectedFile) return
     
     // Store file info in sessionStorage for after signup
@@ -55,15 +52,13 @@ export function DemoUpload() {
       type: selectedFile.type,
       lastModified: selectedFile.lastModified,
     }
-    sessionStorage.setItem('pendingDocument', JSON.stringify(fileInfo))
-    
-    // Store the actual file data
-    const reader = new FileReader()
-    reader.onload = () => {
-      sessionStorage.setItem('pendingDocumentData', reader.result as string)
+    try {
+      await savePendingDocument(selectedFile)
+      sessionStorage.setItem('pendingDocument', JSON.stringify(fileInfo))
       router.push('/signup?demo=true')
+    } catch {
+      toast({ title: t('uploadError'), description: t('unexpectedError'), variant: 'destructive' })
     }
-    reader.readAsDataURL(selectedFile)
   }
 
   const clearFile = () => {
@@ -71,71 +66,49 @@ export function DemoUpload() {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto animate-fade-in-up stagger-2">
+    <div className="w-full">
       {!selectedFile ? (
         <div
           {...getRootProps()}
-          className={cn(
-            'relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all duration-300 cursor-pointer group',
-            'bg-background/50 backdrop-blur-sm',
-            isDragActive || isDragging
-              ? 'border-primary bg-primary/5 scale-[1.02] shadow-xl shadow-primary/10' 
-              : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 hover:shadow-lg'
-          )}
+          className={`group flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-[1.4rem] border-2 border-dashed px-6 py-10 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b84432] ${isDragActive ? 'border-[#b45438] bg-[#faf0f7]' : 'border-[#e6dbe3] bg-[#fcf9fb] hover:border-[#a9849f] hover:bg-[#faf4f8]'}`}
         >
           <input {...getInputProps()} />
-          
-          {/* Animated background gradient */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className={cn(
-            "relative z-10 transition-all duration-300",
-            isDragActive ? "scale-110 -translate-y-2" : "group-hover:scale-105"
-          )}>
-            <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-              <Upload className="h-8 w-8 text-primary" />
-            </div>
+          <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-[#ffe0d1] text-[#ae4731] transition group-hover:scale-105">
+            <Upload className="size-7" />
           </div>
-          
-          <p className="text-lg font-semibold mb-1 relative z-10">
-            {isDragActive ? `🎯 ${t('dropPdfHere')}` : t('tryForFree')}
+          <p className="font-editorial text-3xl tracking-tight text-[#352837]">
+            {isDragActive ? t('dropPdfHere') : 'Glisse ton PDF ici'}
           </p>
-          <p className="text-sm text-muted-foreground mb-4 relative z-10">
-            {t('dragOrClickToSelect')}
+          <p className="mt-2 text-sm text-[#776c78]">
+            ou choisis un fichier sur ton appareil
           </p>
-          
-          <Button variant="outline" size="sm" className="relative z-10">
-            <FileText className="mr-2 h-4 w-4" />
-            {t('selectPdf')}
-          </Button>
-          
-          <p className="text-xs text-muted-foreground mt-3 relative z-10">
-            Max {formatFileSize(MAX_SIZE)} • {t('dataStaysPrivate')}
+          <span className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#b84432] px-5 py-3 text-sm font-bold text-white transition group-hover:bg-[#963326]">
+            <FileText className="size-4" />Choisir un PDF
+          </span>
+          <p className="mt-5 text-xs font-medium text-[#8e8390]">
+            PDF avec texte sélectionnable · {formatFileSize(MAX_SIZE)} max
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border bg-background/50 backdrop-blur-sm p-6 animate-scale-in shadow-lg">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-              <FileText className="h-7 w-7 text-primary" />
+        <div className="rounded-[1.3rem] border border-[#e6dbe3] bg-[#fcf9fb] p-6 sm:p-8">
+          <div className="mb-6 flex items-center gap-4">
+            <div className="flex size-14 items-center justify-center rounded-xl bg-[#ffe0d1] text-[#ae4731]">
+              <FileText className="size-6" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{selectedFile.name}</p>
-              <p className="text-sm text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-bold text-[#352837]">{selectedFile.name}</p>
+              <p className="text-sm text-[#776c78]">{formatFileSize(selectedFile.size)}</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={clearFile} className="text-muted-foreground hover:text-destructive">
+            <button type="button" onClick={clearFile} className="text-sm font-semibold text-[#776c78] underline-offset-4 hover:text-[#b84432] hover:underline">
               {t('change')}
-            </Button>
+            </button>
           </div>
-          
-          <Button onClick={handleAnalyze} size="lg" className="w-full group">
-            <Sparkles className="mr-2 h-5 w-5 group-hover:animate-pulse" />
-            {t('analyzeMyDocument')}
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          
-          <p className="text-xs text-center text-muted-foreground mt-3">
-            {t('createFreeAccountToSeeResults')}
+          <button type="button" onClick={handleAnalyze} className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#b84432] px-5 py-3.5 font-bold text-white transition hover:bg-[#963326]">
+            <Sparkles className="size-5" /> Préparer ma révision
+            <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+          </button>
+          <p className="mt-4 text-center text-xs text-[#776c78]">
+            Crée ton compte gratuit pour lancer l’analyse.
           </p>
         </div>
       )}

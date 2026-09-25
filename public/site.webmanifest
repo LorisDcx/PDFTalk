@@ -1,11 +1,11 @@
 {
   "name": "Cramdesk",
   "short_name": "Cramdesk",
-  "description": "Transforme tes cours PDF en fiches, flashcards et quiz en 2 minutes grâce à l'IA",
+  "description": "Transforme tes cours PDF en fiches, flashcards et quiz pour réviser activement.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#6366f1",
+  "background_color": "#fffaf5",
+  "theme_color": "#b84432",
   "icons": [
     {
       "src": "/logo.png",

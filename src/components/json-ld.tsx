@@ -4,10 +4,10 @@ export function OrganizationJsonLd() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Cramdesk',
+    name: 'CramDesk',
     url: 'https://cramdesk.com',
     logo: 'https://cramdesk.com/logo.png',
-    description: 'Transforme tes cours PDF en fiches, flashcards et quiz en 2 minutes grâce à l\'IA.',
+    description: 'Transforme tes cours PDF en fiches de révision, flashcards et quiz.',
     sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',
@@ -28,22 +28,14 @@ export function ProductJsonLd() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Cramdesk',
+    name: 'CramDesk',
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     offers: {
-      '@type': 'AggregateOffer',
-      lowPrice: '3.99',
-      highPrice: '12.99',
+      '@type': 'Offer',
+      price: '3.99',
       priceCurrency: 'EUR',
-      offerCount: 3,
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '150',
-      bestRating: '5',
-      worstRating: '1',
+      url: 'https://cramdesk.com/#pricing',
     },
     description: 'Application IA pour transformer des PDF en fiches de révision, flashcards et quiz.',
   }

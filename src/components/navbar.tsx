@@ -1,265 +1,111 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { CreditCard, FolderOpen, GraduationCap, LayoutDashboard, LogOut, Menu, PenTool, Settings, X } from 'lucide-react'
 import { useAuth } from './auth-provider'
-import { Button } from './ui/button'
 import { Avatar, AvatarFallback } from './ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { FileText, LogOut, Settings, CreditCard, LayoutDashboard, FolderOpen, Menu, X, GraduationCap, PenTool } from 'lucide-react'
-import { Badge } from './ui/badge'
-import { isTrialExpired } from '@/lib/utils'
-import { useState } from 'react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
 import { LanguageSelector } from './language-selector'
-import { useLanguage } from '@/lib/i18n'
 import { TrialCountdown } from './trial-countdown'
+import { useLanguage } from '@/lib/i18n'
 
 export function Navbar() {
   const { user, profile, signOut, isLoading } = useAuth()
   const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const english = language !== 'fr'
+  const publicLinks = english ? [
+    { href: '/en#studio', label: 'The studio' },
+    { href: '/en#how-it-works', label: 'How it works' },
+    { href: '/en/free-flashcards', label: 'Free flashcards' },
+    { href: '/en#pricing', label: 'Plans' },
+  ] : [
+    { href: '/#produit', label: 'Le studio' },
+    { href: '/#comment-ca-marche', label: 'Comment ça marche' },
+    { href: '/#outils-gratuits', label: 'Outils gratuits' },
+    { href: '/#pricing', label: 'Tarifs' },
+  ]
+  const loginLabel = english ? 'Sign in' : 'Connexion'
+  const trialLabel = english ? 'Start free trial' : 'Essayer gratuitement'
 
-  console.log('🧭 Navbar RENDER - isLoading:', isLoading, 'user:', !!user, 'pathname:', pathname)
-
-  const getInitials = (name?: string | null, email?: string | null) => {
-    if (name) return name.substring(0, 2).toUpperCase()
-    return email?.substring(0, 2).toUpperCase() || 'U'
-  }
-
-  const getTrialStatus = () => {
-    if (!profile) return null
-    if (profile.subscription_status === 'active') {
-      return <Badge variant="success" className="text-xs">{profile.current_plan?.toUpperCase()}</Badge>
-    }
-    // Use TrialCountdown component for trial users
-    return <TrialCountdown />
-  }
-
-  const isActive = (path: string) => pathname === path
-
-  // Navigation links for non-logged in users
-  const publicLinks = [
-    { href: '/#features', labelKey: 'features' },
-    { href: '/#pricing', labelKey: 'pricing' },
+  const appLinks = [
+    { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { href: '/documents', label: t('documents'), icon: FolderOpen },
+    { href: '/flashcards', label: t('flashcards'), icon: GraduationCap },
+    { href: '/writer', label: t('writer'), icon: PenTool },
+    { href: '/billing', label: t('billing'), icon: CreditCard },
   ]
 
-  // Navigation links for logged-in users
-  const userLinks = [
-    { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard },
-    { href: '/flashcards', labelKey: 'flashcards', icon: GraduationCap },
-    { href: '/writer', labelKey: 'writer', icon: PenTool },
-    { href: '/billing', labelKey: 'billing', icon: CreditCard },
-  ]
+  const initials = (profile?.name || user?.email || 'U').slice(0, 2).toUpperCase()
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-      <div className="container flex h-16 items-center justify-between px-14">
-        {/* Logo - always go to home */}
-        <Link href="/" className="flex items-center gap-4 shrink-0">
-          <Image src="/logo.png" alt="Cramdesk" width={60} height={60} className="h-14 w-14 rounded" />
-          <span className="text-2xl font-bold text-foreground">Cramdesk</span>
+    <header className="sticky top-0 z-50 border-b border-[#f0dfd5] bg-[#fffaf5]/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8">
+        <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="CramDesk — accueil">
+          <Image src="/logo.png" width={36} height={36} alt="" className="size-9 rounded-xl shadow-sm" />
+          <span className="font-editorial text-[1.65rem] leading-none tracking-[-.045em] text-[#33252b]">CramDesk<span className="text-[#d05a39]">.</span></span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
-          {isLoading ? (
-            <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
-          ) : user ? (
-            <>
-              {/* Language selector */}
-              <LanguageSelector />
+        {isLoading ? <span className="hidden h-8 w-48 animate-pulse rounded-full bg-[#f1e9ef] xl:block" /> : user ? (
+          <nav className="hidden items-center gap-1 rounded-full border border-[#f0dfd5] bg-white p-1 xl:flex" aria-label="Navigation de l’application">
+            {appLinks.map(link => <Link key={link.href} href={link.href} className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition ${pathname === link.href ? 'bg-[#fff0e6] text-[#b84432]' : 'text-[#776c77] hover:bg-[#fff5ef] hover:text-[#463244]'}`}><link.icon className="size-3.5" />{link.label}</Link>)}
+          </nav>
+        ) : (
+          <nav className="hidden items-center gap-1 rounded-full border border-[#f0dfd5] bg-white p-1 xl:flex" aria-label={english ? 'Main navigation' : 'Navigation principale'}>
+            {publicLinks.map(link => <Link key={link.href} href={link.href} className="rounded-full px-4 py-2 text-xs font-bold text-[#756a76] transition hover:bg-[#fff5ef] hover:text-[#b84432]">{link.label}</Link>)}
+          </nav>
+        )}
 
-              {/* Logged in navigation */}
-              <div className="flex items-center gap-1">
-                {userLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isActive(link.href)
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {t(link.labelKey)}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="h-6 w-px bg-border" />
-
-              {/* User menu */}
-              <div className="flex items-center gap-3">
-                {getTrialStatus()}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {getInitials(profile?.name, user.email)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{profile?.name || 'Utilisateur'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="cursor-pointer">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        {t('dashboard')}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/billing" className="cursor-pointer">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        {t('billing')}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        {t('settings')}
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut} className="cursor-pointer text-red-600 focus:text-red-600">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      {t('logout')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Language selector */}
-              <LanguageSelector />
-
-              {/* Public navigation */}
-              <div className="flex items-center gap-6">
-                {publicLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t(link.labelKey)}
-                  </Link>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" asChild className="text-foreground hover:text-foreground">
-                  <Link href="/login">{t('login')}</Link>
-                </Button>
-                <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
-                  <Link href="/signup">{t('signup')}</Link>
-                </Button>
-              </div>
-            </>
-          )}
+        <div className="ml-auto hidden shrink-0 items-center gap-3 xl:flex">
+          {!isLoading && <LanguageSelector />}
+          {user ? <>
+            {profile?.subscription_status === 'active' ? <span className="rounded-full border border-[#e2d4df] bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#ae4731]">{profile.current_plan}</span> : <TrialCountdown />}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" aria-label="Ouvrir le menu du compte" className="rounded-full outline-offset-2 focus-visible:outline-2 focus-visible:outline-[#b84432]"><Avatar className="size-9 border border-[#e7cec0]"><AvatarFallback className="bg-[#fff0e6] text-xs font-bold text-[#b84432]">{initials}</AvatarFallback></Avatar></button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel className="font-normal"><p className="truncate text-sm font-bold">{profile?.name || 'Utilisateur'}</p><p className="truncate text-xs text-muted-foreground">{user.email}</p></DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link href="/dashboard"><LayoutDashboard className="mr-2 size-4" />{t('dashboard')}</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/billing"><CreditCard className="mr-2 size-4" />{t('billing')}</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" />{t('settings')}</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="text-red-700"><LogOut className="mr-2 size-4" />{t('logout')}</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </> : !isLoading ? <>
+            <Link href="/login" className="px-2 text-xs font-bold text-[#5a4d59] hover:text-[#b84432]">{loginLabel}</Link>
+            <Link href="/signup" className="inline-flex min-h-10 items-center rounded-full bg-[#b84432] px-5 text-xs font-bold text-white transition hover:bg-[#963326]">{trialLabel}</Link>
+          </> : null}
         </div>
 
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <button type="button" aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(!menuOpen)} className="ml-auto inline-flex size-10 items-center justify-center rounded-full border border-[#e6dce3] bg-white text-[#4b3848] xl:hidden">
+          {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+        </button>
       </div>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background">
-          <div className="container py-4 space-y-3">
-            {user ? (
-              <>
-                <div className="flex items-center gap-3 pb-3 border-b">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getInitials(profile?.name, user.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{profile?.name || 'Utilisateur'}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                  {getTrialStatus()}
-                </div>
-                {userLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md ${
-                      isActive(link.href) ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                    }`}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {t(link.labelKey)}
-                  </Link>
-                ))}
-                <Link
-                  href="/settings"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground"
-                >
-                  <Settings className="h-4 w-4" />
-                  {t('settings')}
-                </Link>
-                <button
-                  onClick={() => { signOut(); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md text-red-600 w-full text-left"
-                >
-                  <LogOut className="h-4 w-4" />
-                  {t('logout')}
-                </button>
-              </>
-            ) : (
-              <>
-                {publicLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-muted-foreground"
-                  >
-                    {t(link.labelKey)}
-                  </Link>
-                ))}
-                <div className="flex flex-col gap-2 pt-3 border-t">
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>{t('login')}</Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>{t('signup')}</Link>
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
+      {menuOpen && <div id="main-mobile-menu" className="border-t border-[#f0dfd5] bg-[#fffaf5] px-5 py-5 shadow-xl xl:hidden">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-4 flex items-center justify-between rounded-xl bg-[#fff0e6] px-4 py-2"><span className="text-xs font-bold text-[#766a75]">{english ? 'Language' : 'Langue'}</span><LanguageSelector /></div>
+          {user ? <>
+            <p className="mb-3 truncate px-3 text-xs font-semibold text-[#8b808c]">{user.email}</p>
+            <nav className="grid gap-1" aria-label="Navigation de l’application">{appLinks.map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold ${pathname === link.href ? 'bg-[#fff0e6] text-[#b84432]' : 'text-[#625563] hover:bg-[#fff0e6]'}`}><link.icon className="size-4" />{link.label}</Link>)}</nav>
+            <div className="my-4 h-px bg-[#f0dfd5]" />
+            <Link href="/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[#625563]"><Settings className="size-4" />{t('settings')}</Link>
+            <button type="button" onClick={() => { signOut(); setMenuOpen(false) }} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold text-red-700"><LogOut className="size-4" />{t('logout')}</button>
+          </> : <>
+            <nav className="grid gap-1" aria-label={english ? 'Main navigation' : 'Navigation principale'}>{publicLinks.map(link => <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-bold text-[#625563] hover:bg-[#fff0e6]">{link.label}</Link>)}</nav>
+            <div className="mt-4 grid gap-2 border-t border-[#f0dfd5] pt-4 sm:grid-cols-2">
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center justify-center rounded-full border border-[#dfd1dc] bg-white text-sm font-bold text-[#b84432]">{loginLabel}</Link>
+              <Link href="/signup" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center justify-center rounded-full bg-[#b84432] text-sm font-bold text-white">{trialLabel}</Link>
+            </div>
+          </>}
         </div>
-      )}
-    </nav>
+      </div>}
+    </header>
   )
 }

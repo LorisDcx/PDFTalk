@@ -48,7 +48,7 @@ interface FlashcardsProps {
   onFlashcardsChange?: (flashcards: Flashcard[]) => void
 }
 
-export function Flashcards({ documentId, documentContent, documentName, onFlashcardsChange }: FlashcardsProps) {
+export function Flashcards({ documentId, documentName, onFlashcardsChange }: FlashcardsProps) {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -63,24 +63,23 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
 
   // Load existing flashcards from localStorage on mount
   useEffect(() => {
-    loadFlashcards()
-  }, [documentId])
-
-  const loadFlashcards = () => {
-    try {
-      const stored = localStorage.getItem(`flashcards-${documentId}`)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed && parsed.length > 0) {
-          setFlashcards(parsed)
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      try {
+        const stored = localStorage.getItem(`flashcards-${documentId}`)
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed && parsed.length > 0) setFlashcards(parsed)
         }
+      } catch (error) {
+        console.error('Failed to load flashcards:', error)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error('Failed to load flashcards:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    })
+    return () => { active = false }
+  }, [documentId])
 
   // Save flashcards to localStorage whenever they change
   useEffect(() => {
@@ -99,7 +98,6 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
-          documentContent,
           count: cardCount,
           language,
         }),
@@ -223,12 +221,12 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
   return (
     <>
       {/* Trigger Buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {/* View existing flashcards */}
         {flashcards.length > 0 && !isLoading && (
           <Button 
             variant="outline" 
-            className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all"
+            className="group gap-2 border-[#e3cbbf] bg-white text-[#b84432] hover:border-[#b897ae] hover:bg-[#faf4f8]"
             onClick={() => setIsViewerOpen(true)}
           >
             <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
@@ -239,21 +237,21 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
         {/* Generate new flashcards */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
+            <Button variant="outline" className="group gap-2 border-[#e3cbbf] bg-white text-[#b84432] hover:border-[#b897ae] hover:bg-[#faf4f8]">
               <GraduationCap className="h-4 w-4 group-hover:text-primary transition-colors" />
               <span>{flashcards.length > 0 ? t('regenerate') : t('flashcards')}</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="max-h-[90vh] overflow-y-auto border-[#ead9cf] bg-[#fffaf5] sm:max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-[#b84432]">
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="flex items-center gap-2 text-xl">
+                  <DialogTitle className="font-editorial flex flex-wrap items-center gap-2 text-2xl">
                     {t('generateFlashcards')}
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">Beta</span>
+                    <span className="rounded-full border border-[#dec9d8] bg-[#f6e9f2] px-2 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wide text-[#80516f]">Beta</span>
                   </DialogTitle>
                   <DialogDescription>
                     {t('flashcardsDesc')}
@@ -274,7 +272,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                     onChange={(e) => setCardCount(parseInt(e.target.value))}
                     className="flex-1 accent-primary"
                   />
-                  <span className="text-2xl font-bold text-primary w-12">{cardCount}</span>
+                  <span className="font-editorial w-12 text-3xl text-[#b84432]">{cardCount}</span>
                 </div>
                 {/* Estimated time indicator */}
                 <p className="text-xs text-muted-foreground text-center">
@@ -299,8 +297,8 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 ))}
               </div>
               {/* Page cost indicator */}
-              <div className="flex items-center justify-center p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+              <div className="flex items-center justify-center rounded-xl border border-[#e9dfe6] bg-[#f7f0f5] p-3">
+                <span className="text-sm font-medium text-[#b84432]">
                   💰 {t('pageCost').replace('{count}', String(Math.ceil(cardCount / 5)))}
                 </span>
               </div>
@@ -309,7 +307,7 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
               <Button 
                 onClick={generateFlashcards} 
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 text-white shadow-lg"
+                className="min-h-11 w-full bg-[#b84432] text-white hover:bg-[#963326]"
               >
                 {isGenerating ? (
                   <>
@@ -330,23 +328,23 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
 
       {/* Flashcard Viewer Modal */}
       <Dialog open={isViewerOpen} onOpenChange={setIsViewerOpen}>
-        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+        <DialogContent className="max-h-[94vh] overflow-y-auto border-[#ead9cf] bg-[#fffaf5] p-0 sm:max-w-2xl">
             {/* Header */}
-            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-[#ead9cf] bg-[#f7eff4] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#b84432]">
                     <GraduationCap className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Flashcards</h3>
+                    <h3 className="font-editorial text-2xl">Flashcards</h3>
                     <p className="text-sm text-muted-foreground">{currentIndex + 1} / {flashcards.length}</p>
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" title={t('translateContent')} className="hover:bg-primary/10" disabled={isTranslating}>
+                      <Button variant="ghost" size="icon" title={t('translateContent')} aria-label={t('translateContent')} className="hover:bg-primary/10" disabled={isTranslating}>
                         {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
                       </Button>
                     </DropdownMenuTrigger>
@@ -359,16 +357,16 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button variant="ghost" size="icon" onClick={shuffleCards} title={t('shuffle')} className="hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" onClick={shuffleCards} title={t('shuffle')} aria-label={t('shuffle')} className="hover:bg-primary/10">
                     <Shuffle className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={resetCards} title={t('restart')} className="hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" onClick={resetCards} title={t('restart')} aria-label={t('restart')} className="hover:bg-primary/10">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={exportToCSV} title={t('exportCSV')} className="hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" onClick={exportToCSV} title={t('exportCSV')} aria-label={t('exportCSV')} className="hover:bg-primary/10">
                     <Download className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={deleteFlashcards} title={t('delete')} className="hover:bg-destructive/10 text-destructive">
+                  <Button variant="ghost" size="icon" onClick={deleteFlashcards} title={t('delete')} aria-label={t('delete')} className="hover:bg-destructive/10 text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -376,23 +374,23 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
             </div>
 
             {/* Card */}
-            <div className="p-6">
-              <div 
-                className="relative h-64 cursor-pointer group"
+            <div className="p-4 sm:p-6">
+              <button type="button"
+                aria-label={isFlipped ? t('clickToShowQuestion') : t('clickToRevealAnswer')}
+                className="group relative block h-64 w-full cursor-pointer text-center sm:h-72"
                 onClick={() => setIsFlipped(!isFlipped)}
               >
                 {/* Question Side */}
                 <div 
                   className={cn(
-                    "absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all duration-500",
-                    "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-2 shadow-xl",
+                    "absolute inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-2xl border border-[#e4d5df] bg-[#f6edf3] p-6 text-center shadow-[0_20px_45px_-30px_rgba(65,37,58,.35)] transition-all duration-500 sm:p-8",
                     isFlipped ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
                   )}
                 >
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-4 px-3 py-1 bg-primary/10 rounded-full">
                     {t('question')}
                   </span>
-                  <p className="text-lg font-medium leading-relaxed">{currentCard?.question}</p>
+                  <p className="font-editorial text-xl leading-relaxed sm:text-2xl">{currentCard?.question}</p>
                   <p className="text-xs text-muted-foreground mt-6 opacity-0 group-hover:opacity-100 transition-opacity">
                     👆 {t('clickToRevealAnswer')}
                   </p>
@@ -401,15 +399,14 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 {/* Answer Side */}
                 <div 
                   className={cn(
-                    "absolute inset-0 rounded-2xl p-8 flex flex-col items-center justify-center text-center transition-all duration-500",
-                    "bg-gradient-to-br from-emerald-50 to-red-50 dark:from-emerald-950 dark:to-red-950 border-2 border-emerald-200 dark:border-emerald-800 shadow-xl",
+                    "absolute inset-0 flex flex-col items-center justify-center overflow-y-auto rounded-2xl border border-[#dce5da] bg-[#f1f6ef] p-6 text-center shadow-[0_20px_45px_-30px_rgba(65,75,58,.25)] transition-all duration-500 sm:p-8",
                     isFlipped ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
                   )}
                 >
                   <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-4 px-3 py-1 bg-emerald-500/10 rounded-full">
                     {t('answer')}
                   </span>
-                  <p className="text-base leading-relaxed">{currentCard?.answer}</p>
+                  <p className="font-editorial text-lg leading-relaxed sm:text-2xl">{currentCard?.answer}</p>
                   {currentCard?.sourceRef && (
                     <p className="text-xs text-muted-foreground mt-4 px-2 py-1 bg-muted/50 rounded">
                       📍 {currentCard.sourceRef}
@@ -419,10 +416,10 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                     👆 {t('clickToShowQuestion')}
                   </p>
                 </div>
-              </div>
+              </button>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between mt-6">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                 <Button 
                   variant="outline" 
                   onClick={prevCard}
@@ -434,14 +431,14 @@ export function Flashcards({ documentId, documentContent, documentName, onFlashc
                 </Button>
                 
                 {/* Progress dots */}
-                <div className="flex gap-1.5 max-w-[200px] overflow-x-auto py-2">
+                <div className="hidden max-w-[200px] gap-1.5 overflow-x-auto py-2 sm:flex">
                   {flashcards.map((_, i) => (
                     <button
                       key={i}
                       className={cn(
                         "w-2.5 h-2.5 rounded-full transition-all shrink-0",
-                        i === currentIndex 
-                          ? "bg-gradient-to-r from-primary to-orange-500 scale-125" 
+                        i === currentIndex
+                          ? "bg-[#b84432] scale-125"
                           : "bg-muted hover:bg-muted-foreground/30"
                       )}
                       onClick={(e) => {

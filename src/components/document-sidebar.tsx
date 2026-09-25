@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth-provider'
@@ -34,24 +34,24 @@ interface FolderItem {
 }
 
 const FOLDER_COLORS = [
-  { name: 'Bleu', value: '#3b82f6' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Vert', value: '#22c55e' },
-  { name: 'Jaune', value: '#eab308' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Rouge', value: '#ef4444' },
-  { name: 'Rose', value: '#ec4899' },
-  { name: 'Violet', value: '#8b5cf6' },
+  { name: 'Prune', value: '#a84431' },
+  { name: 'Sauge', value: '#66856d' },
+  { name: 'Terracotta', value: '#bb7866' },
+  { name: 'Bleu', value: '#658296' },
+  { name: 'Miel', value: '#c29a5f' },
+  { name: 'Violet', value: '#8b739e' },
 ]
 
 interface DocumentSidebarProps {
   currentDocumentId: string
+  onSelect?: () => void
 }
 
-export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
+export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebarProps) {
   const router = useRouter()
   const { user } = useAuth()
-  const supabase = createClient()
+  const userId = user?.id
+  const [supabase] = useState(() => createClient())
   const { t } = useLanguage()
   const { toast } = useToast()
   
@@ -67,17 +67,14 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   const [editingFolder, setEditingFolder] = useState<FolderItem | null>(null)
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (user) loadData()
-  }, [user])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!userId) return
     setIsLoading(true)
     try {
       const { data: docs } = await supabase
         .from('documents')
         .select('id, file_name, created_at, pages_count, status')
-        .eq('user_id', user!.id)
+        .eq('user_id', userId)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
 
@@ -90,20 +87,20 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           const slides = localStorage.getItem(`slides-${doc.id}`)
           const slidesData = slides ? JSON.parse(slides) : null
           const slidesCount = slidesData?.slides?.length || 0
-          const assignments = localStorage.getItem(`doc-folders-${user!.id}`)
+          const assignments = localStorage.getItem(`doc-folders-${userId}`)
           const folderAssignments = assignments ? JSON.parse(assignments) : {}
           return { ...doc, flashcardsCount, quizSessionsCount, slidesCount, folder_id: folderAssignments[doc.id] || null }
         })
         setDocuments(enrichedDocs)
       }
-      const storedFolders = localStorage.getItem(`folders-${user!.id}`)
+      const storedFolders = localStorage.getItem(`folders-${userId}`)
       if (storedFolders) setFolders(JSON.parse(storedFolders))
     } catch (error) {
       console.error('Error loading sidebar data:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [supabase, userId])
 
   const saveFolders = (newFolders: FolderItem[]) => {
     setFolders(newFolders)
@@ -218,8 +215,16 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   }
 
   const navigateToDocument = (docId: string) => {
+    onSelect?.()
     if (docId !== currentDocumentId) router.push(`/documents/${docId}`)
   }
+
+  useEffect(() => {
+    if (!userId) return
+    let active = true
+    queueMicrotask(() => { if (active) void loadData() })
+    return () => { active = false }
+  }, [loadData, userId])
 
   const filteredDocuments = documents.filter(doc => doc.file_name.toLowerCase().includes(searchQuery.toLowerCase()))
   const unassignedDocs = filteredDocuments.filter(doc => !doc.folder_id)
@@ -228,12 +233,9 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
 
   if (isLoading) {
     return (
-      <div className="w-72 border-r bg-gradient-to-b from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-950 flex items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center bg-[#f8f5f0]">
         <div className="flex flex-col items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-            <Loader2 className="h-8 w-8 animate-spin text-primary relative" />
-          </div>
+          <Loader2 className="size-6 animate-spin text-[#673b58]" />
           <span className="text-sm text-muted-foreground">{t('processing')}</span>
         </div>
       </div>
@@ -241,20 +243,19 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
   }
 
   return (
-    <div className="w-72 border-r bg-gradient-to-b from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-950 flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b bg-gradient-to-r from-primary/5 via-orange-500/5 to-primary/5 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#f8f5f0] text-[#392639]">
+      <div className="border-b border-[#e8dedb] bg-[#f4eee9] p-4">
         <div className="relative space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg shadow-primary/25">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-[#a84431]">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold text-sm">{t('myDocuments')}</span>
+              <span className="font-editorial text-lg">{t('myDocuments')}</span>
             </div>
             <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors">
+                <Button variant="ghost" size="icon" aria-label={t('newFolder')} className="h-8 w-8 hover:bg-[#e9dfe5] hover:text-[#a84431]">
                   <FolderPlus className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
@@ -271,13 +272,13 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                     <label className="text-sm font-medium">{t('color')}</label>
                     <div className="flex flex-wrap gap-2">
                       {FOLDER_COLORS.map((color) => (
-                        <button key={color.value} onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all shadow-md hover:scale-110", newFolderColor === color.value && "ring-2 ring-offset-2 ring-primary scale-110")} style={{ backgroundColor: color.value }} title={color.name} />
+                        <button key={color.value} type="button" onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all", newFolderColor === color.value && "ring-2 ring-offset-2 ring-[#a84431]")} style={{ backgroundColor: color.value }} title={color.name} aria-label={color.name} aria-pressed={newFolderColor === color.value} />
                       ))}
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={createFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90">
+                  <Button onClick={createFolder} disabled={!newFolderName.trim()} className="w-full bg-[#a84431] text-white hover:bg-[#4f2d45]">
                     <FolderPlus className="h-4 w-4 mr-2" />
                     {t('createFolder')}
                   </Button>
@@ -287,18 +288,18 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           </div>
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input placeholder={t('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 pl-9 text-sm bg-background/80 backdrop-blur-sm border-2 focus:border-primary focus:shadow-lg focus:shadow-primary/10 transition-all" />
+            <Input aria-label={t('search')} placeholder={t('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 border-[#dfd2d3] bg-white pl-9 text-sm focus:border-[#a84431]" />
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {folders.map((folder) => {
           const docsInFolder = getDocsInFolder(folder.id)
           const isExpanded = expandedFolders.has(folder.id)
           return (
             <div key={folder.id} className="space-y-1">
-              <div className={cn("flex items-center group rounded-xl transition-all hover:bg-white/50 dark:hover:bg-white/5", isExpanded && "bg-gradient-to-r from-white/30 to-transparent dark:from-white/5")} style={isExpanded ? { boxShadow: `0 2px 12px ${folder.color}20` } : undefined}>
+              <div className={cn("group flex items-center rounded-xl transition-colors hover:bg-white", isExpanded && "bg-white")}>
                 <button onClick={() => toggleFolder(folder.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-sm transition-colors">
                   <div className="w-5 h-5 rounded-md flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style={{ backgroundColor: folder.color, boxShadow: `0 2px 8px ${folder.color}40` }}>
                     {isExpanded ? <ChevronDown className="h-3 w-3 text-white" /> : <ChevronRight className="h-3 w-3 text-white" />}
@@ -308,7 +309,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity mr-1">
+                    <Button variant="ghost" size="icon" aria-label={t('editFolder')} className="mr-1 h-8 w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -364,7 +365,7 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
         )}
       </div>
 
-      <div className="p-3 border-t bg-gradient-to-r from-primary/5 to-orange-500/5">
+      <div className="border-t border-[#e8dedb] bg-[#f4eee9] p-3">
         <div className="flex items-center justify-around text-center">
           <div>
             <p className="text-lg font-bold text-primary">{documents.length}</p>
@@ -372,12 +373,12 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
-            <p className="text-lg font-bold text-orange-500">{folders.length}</p>
+            <p className="text-lg font-bold text-[#8c6a6d]">{folders.length}</p>
             <p className="text-xs text-muted-foreground">{t('folders')}</p>
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
-            <p className="text-lg font-bold text-violet-500">{documents.reduce((acc, d) => acc + d.flashcardsCount, 0)}</p>
+            <p className="text-lg font-bold text-[#6f836e]">{documents.reduce((acc, d) => acc + d.flashcardsCount, 0)}</p>
             <p className="text-xs text-muted-foreground">{t('flashcards')}</p>
           </div>
         </div>
@@ -397,13 +398,13 @@ export function DocumentSidebar({ currentDocumentId }: DocumentSidebarProps) {
               <label className="text-sm font-medium">{t('color')}</label>
               <div className="flex flex-wrap gap-2">
                 {FOLDER_COLORS.map((color) => (
-                  <button key={color.value} onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all shadow-md hover:scale-110", newFolderColor === color.value && "ring-2 ring-offset-2 ring-primary scale-110")} style={{ backgroundColor: color.value }} title={color.name} />
+                  <button key={color.value} type="button" onClick={() => setNewFolderColor(color.value)} className={cn("w-8 h-8 rounded-lg transition-all", newFolderColor === color.value && "ring-2 ring-offset-2 ring-[#a84431]")} style={{ backgroundColor: color.value }} title={color.name} aria-label={color.name} aria-pressed={newFolderColor === color.value} />
                 ))}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90">{t('save')}</Button>
+            <Button onClick={updateFolder} disabled={!newFolderName.trim()} className="w-full bg-[#a84431] text-white hover:bg-[#4f2d45]">{t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -416,15 +417,13 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
   const isDeleting = deletingDocId === doc.id
 
   return (
-    <div className={cn("rounded-xl transition-all overflow-hidden", isActive ? "bg-gradient-to-r from-primary/10 to-orange-500/10 shadow-lg shadow-primary/10 ring-1 ring-primary/20" : "hover:bg-white/50 dark:hover:bg-white/5", isDeleting && "opacity-50")}>
+    <div className={cn("overflow-hidden rounded-xl border transition-colors", isActive ? "border-[#decbd6] bg-[#eee4ea]" : "border-transparent hover:border-[#e8dedb] hover:bg-white", isDeleting && "opacity-50")}>
       <div className="flex items-center group">
-        <button onClick={() => hasData ? onToggleExpand(doc.id) : onNavigate(doc.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-left min-w-0" disabled={isDeleting}>
-          {hasData && (
-            <div className="shrink-0">
-              {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-            </div>
-          )}
-          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all", isActive ? "bg-gradient-to-br from-primary to-orange-500 shadow-md shadow-primary/25" : "bg-muted/50")}>
+        {hasData && <button type="button" onClick={() => onToggleExpand(doc.id)} aria-label={isExpanded ? t('back') : t('openDocument')} aria-expanded={isExpanded} className="ml-1 flex size-8 shrink-0 items-center justify-center rounded-lg text-[#806979] hover:bg-[#e8dce5]">
+          {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        </button>}
+        <button type="button" onClick={() => onNavigate(doc.id)} className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2.5 text-left" disabled={isDeleting} aria-current={isActive ? 'page' : undefined}>
+          <div className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", isActive ? "bg-[#a84431]" : "bg-[#ece6e2]")}>
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <FileText className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground")} />}
           </div>
           <div className="min-w-0 flex-1">
@@ -438,7 +437,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity mr-1 shrink-0" disabled={isDeleting}>
+            <Button variant="ghost" size="icon" aria-label={t('edit')} className="mr-1 h-8 w-8 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100" disabled={isDeleting}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -483,13 +482,13 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
               </div>
             )}
             {doc.quizSessionsCount > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+              <div className="flex items-center gap-1.5 rounded-lg bg-[#ecdfd8] px-2 py-1.5 text-[#805b55]">
                 <Target className="h-3.5 w-3.5" />
                 <span className="text-xs font-medium">{doc.quizSessionsCount}</span>
               </div>
             )}
             {doc.slidesCount > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+              <div className="flex items-center gap-1.5 rounded-lg bg-[#e2e9e2] px-2 py-1.5 text-[#55705b]">
                 <Presentation className="h-3.5 w-3.5" />
                 <span className="text-xs font-medium">{doc.slidesCount}</span>
               </div>

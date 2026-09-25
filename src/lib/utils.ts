@@ -24,11 +24,22 @@ export function formatFileSize(bytes: number): string {
 export function getTrialDaysRemaining(trialEndAt: Date | string): number {
   const now = new Date()
   const trialEnd = new Date(trialEndAt)
+  if (Number.isNaN(trialEnd.getTime())) return 0
   const diffTime = trialEnd.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   return Math.max(0, diffDays)
 }
 
 export function isTrialExpired(trialEndAt: Date | string): boolean {
-  return new Date(trialEndAt) < new Date()
+  const end = new Date(trialEndAt)
+  return Number.isNaN(end.getTime()) || end < new Date()
+}
+
+export function isSameUtcDay(value: Date | string | null | undefined, reference = new Date()): boolean {
+  if (value == null) return false
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime()) || Number.isNaN(reference.getTime())) return false
+  return date.getUTCFullYear() === reference.getUTCFullYear() &&
+    date.getUTCMonth() === reference.getUTCMonth() &&
+    date.getUTCDate() === reference.getUTCDate()
 }

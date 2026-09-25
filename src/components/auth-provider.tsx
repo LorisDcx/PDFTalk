@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useRef } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import type { User } from '@/types/database'
@@ -14,126 +14,69 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  profile: null,
-  session: null,
-  isLoading: true,
-  signOut: async () => {},
-  refreshProfile: async () => {},
-})
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [profile, setProfile] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  
-  // Create client once per component mount
   const [supabase] = useState(() => createClient())
 
-  console.log('🔵 AuthProvider RENDER - isLoading:', isLoading, 'user:', !!user, 'profile:', !!profile)
-
   useEffect(() => {
-    let isMounted = true
-    console.log('🟡 AuthProvider useEffect running')
-
-    const fetchProfile = async (userId: string) => {
-      console.log('🟢 fetchProfile START for:', userId)
-      
-      // Add timeout to prevent infinite hang (3s is reasonable for DB query)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 3000)
-      )
-      
-      try {
-        const queryPromise = supabase
-          .from('users')
-          .select('*')
-          .eq('id', userId)
-          .single()
-        
-        const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
-        
-        console.log('🟢 fetchProfile RESULT:', { data: !!data, error: error?.message, isMounted })
-        
-        if (error) {
-          console.error('❌ fetchProfile error:', error)
-          return
-        }
-        
-        if (data && isMounted) {
-          setProfile(data)
-        }
-      } catch (error: any) {
-        console.error('❌ fetchProfile CATCH:', error?.message || error)
-        // Continue anyway - don't block the app
-      }
+    let mounted = true
+    const applySession = (nextSession: Session | null) => {
+      if (!mounted) return
+      setSession(nextSession)
+      setUser(nextSession?.user ?? null)
+      setIsLoading(false)
     }
 
-    // Use onAuthStateChange as the single source of truth
-    // It fires immediately with current session, then on any changes
+    // Keep database requests outside the auth callback so token refresh cannot stall.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🟣 onAuthStateChange:', event, { hasSession: !!session, isMounted })
-        
-        if (!isMounted) {
-          console.log('🟠 Skipping - not mounted')
-          return
-        }
-        
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          console.log('🟢 Has user, fetching profile...')
-          await fetchProfile(session.user.id)
-        } else {
-          console.log('🔴 No user, clearing profile')
-          setProfile(null)
-        }
-        
-        console.log('✅ Setting isLoading to false')
-        setIsLoading(false)
-      }
+      (_event, nextSession) => applySession(nextSession)
     )
-    
-    // Trigger initial check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔵 Initial getSession:', { hasSession: !!session })
-      // onAuthStateChange will handle the state update
-    })
+    supabase.auth.getSession()
+      .then(({ data }) => applySession(data.session))
+      .catch(error => {
+        console.error('Failed to restore session:', error)
+        if (mounted) setIsLoading(false)
+      })
 
     return () => {
-      console.log('🔴 AuthProvider CLEANUP')
-      isMounted = false
+      mounted = false
       subscription.unsubscribe()
     }
   }, [supabase])
 
+  useEffect(() => {
+    if (!user) {
+      setProfile(null)
+      return
+    }
+
+    let mounted = true
+    supabase.from('users').select('*').eq('id', user.id).single()
+      .then(({ data, error }) => {
+        if (error) console.error('Failed to load profile:', error)
+        if (mounted) setProfile(data as User | null)
+      })
+
+    return () => { mounted = false }
+  }, [supabase, user?.id])
+
   const signOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
-    setProfile(null)
     setSession(null)
+    setProfile(null)
   }
 
   const refreshProfile = async () => {
-    if (user) {
-      try {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-        
-        if (data) {
-          setProfile(data)
-        }
-      } catch (error) {
-        console.error('Error refreshing profile:', error)
-      }
-    }
+    if (!user) return
+    const { data, error } = await supabase.from('users').select('*').eq('id', user.id).single()
+    if (error) throw error
+    setProfile(data as User)
   }
 
   return (
@@ -143,10 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
 }

@@ -172,7 +172,6 @@ export function Slides({ documentId, documentContent, documentName }: SlidesProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
-          documentContent,
           slideCount,
           language,
           theme,

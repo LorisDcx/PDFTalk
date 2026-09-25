@@ -1,97 +1,71 @@
 'use client'
 
-import { Progress } from './ui/progress'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Button } from './ui/button'
-import { useAuth } from './auth-provider'
-import { getPlanLimits, PLANS, PlanId } from '@/lib/stripe'
 import Link from 'next/link'
-import { getTrialDaysRemaining, isTrialExpired } from '@/lib/utils'
+import { ArrowUpRight, Clock3, Layers3 } from 'lucide-react'
+import { useAuth } from './auth-provider'
+import { getPlanLimits, PLANS, type PlanId } from '@/lib/plans'
+import { getTrialDaysRemaining, isSameUtcDay } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n'
 
 export function UsageCard() {
   const { profile } = useAuth()
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
 
   if (!profile) return null
 
-  // Map old plan IDs to new ones
   const oldToNewPlanMap: Record<string, PlanId> = {
-    'basic': 'starter',
-    'growth': 'student', 
-    'pro': 'graduate',
-    'intense': 'graduate',
+    basic: 'starter',
+    growth: 'student',
+    pro: 'graduate',
+    intense: 'graduate',
   }
-  const currentPlanId = profile.current_plan ? (oldToNewPlanMap[profile.current_plan] || profile.current_plan) as PlanId : null
-
-  const planLimits = getPlanLimits(currentPlanId)
-  const pagesUsed = profile.pages_processed_this_month
-  const pagesLimit = planLimits.pagesPerMonth
-  const displayLimit = pagesLimit >= 10000 ? '∞' : pagesLimit
-  const divisor = pagesLimit >= 10000 ? 10000 : pagesLimit
-  const usagePercentage = Math.min((pagesUsed / divisor) * 100, 100)
-
-  const isInTrial = profile.trial_end_at && !isTrialExpired(profile.trial_end_at) && !profile.subscription_status
+  const currentPlanId = profile.current_plan
+    ? (oldToNewPlanMap[profile.current_plan] || profile.current_plan) as PlanId
+    : null
+  const isTrial = profile.subscription_status === 'trialing'
+  const pagesLimit = isTrial ? 200 : getPlanLimits(currentPlanId).pagesPerMonth
+  const pagesUsed = isTrial
+    ? isSameUtcDay(profile.trial_usage_reset_at)
+      ? profile.trial_pages_processed_today
+      : 0
+    : profile.pages_processed_this_month
+  const usagePercentage = Math.min(Math.round((pagesUsed / pagesLimit) * 100), 100)
   const trialDays = profile.trial_end_at ? getTrialDaysRemaining(profile.trial_end_at) : 0
+  const planName = isTrial ? t('freeTrial') : currentPlanId && PLANS[currentPlanId] ? PLANS[currentPlanId].name : t('freeTrial')
+  const format = new Intl.NumberFormat(language)
 
   return (
-    <Card className="animate-fade-in-up overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">{t('usageThisMonth')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-muted-foreground">{t('pagesProcessed')}</span>
-            <span className="font-medium">{pagesUsed} / {displayLimit}</span>
-          </div>
-          <div className="relative">
-            <Progress value={usagePercentage} className="h-2" />
-            <div 
-              className="absolute top-0 left-0 h-2 bg-gradient-to-r from-primary/50 to-primary rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${usagePercentage}%` }}
-            />
+    <aside aria-label={t('usageThisMonth')} className="relative flex h-full min-h-[290px] flex-col overflow-hidden rounded-[28px] bg-[#33252b] p-6 text-white shadow-[0_24px_65px_-38px_rgba(43,34,48,0.8)] sm:p-7">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full bg-[#7e5576]/30 blur-3xl" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 items-center justify-center rounded-xl border border-white/15 bg-white/10">
+            <Layers3 className="size-5 text-[#ebcddd]" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#d7bacd]">{t('currentPlan')}</p>
+            <p className="font-medium text-white">{planName}</p>
           </div>
         </div>
+        <Link href="/billing" aria-label={`${profile.subscription_status === 'active' ? t('manage') : t('upgrade')} · ${t('currentPlan')}`} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+          <ArrowUpRight className="size-4" aria-hidden="true" />
+        </Link>
+      </div>
 
-        {isInTrial && (
-          <div className="rounded-lg bg-amber-500/10 p-3 animate-pulse-soft">
-            <p className="text-sm font-medium text-amber-600">
-              {trialDays} {t('daysRemainingInTrial')}
-            </p>
-            <p className="text-xs text-amber-600/80 mt-1">
-              {t('upgradeToKeepAccess')}
-            </p>
-          </div>
-        )}
-
-        {usagePercentage >= 80 && (
-          <div className="rounded-lg bg-amber-500/10 p-3 animate-fade-in">
-            <p className="text-sm font-medium text-amber-600">
-              {usagePercentage >= 100 ? t('monthlyLimitReached') : t('monthlyLimitAlmostReached')}
-            </p>
-            <p className="text-xs text-amber-600/80 mt-1">
-              {usagePercentage >= 100 
-                ? t('upgradeToUnlock') 
-                : t('considerUpgrading')}
-            </p>
-          </div>
-        )}
-
-        <div className="pt-2 flex gap-2">
-          <Button variant="outline" size="sm" asChild className="flex-1 btn-press">
-            <Link href="/billing">
-              {profile.subscription_status === 'active' ? t('manage') : t('upgrade')}
-            </Link>
-          </Button>
+      <div className="relative mt-auto pt-9">
+        <p className="text-sm text-white/65">{t(isTrial ? 'pagesToday' : 'pagesThisMonth')}</p>
+        <p className="mt-1 flex items-baseline gap-2">
+          <span className="font-editorial text-5xl leading-none tracking-tight sm:text-[3.5rem]">{format.format(pagesUsed)}</span>
+          <span className="text-sm text-white/60">/ {format.format(pagesLimit)}</span>
+        </p>
+        <div role="progressbar" aria-label={t('pagesProcessed')} aria-valuenow={pagesUsed} aria-valuemin={0} aria-valuemax={pagesLimit} className="mt-5 h-2 overflow-hidden rounded-full bg-white/15">
+          <div className="h-full rounded-full bg-[#e9bfd5] transition-[width] duration-500" style={{ width: `${usagePercentage}%` }} />
         </div>
-
-        <div className="border-t pt-4">
-          <p className="text-xs text-muted-foreground">
-            {t('currentPlan')}: <span className="font-medium">{currentPlanId ? PLANS[currentPlanId].name : t('freeTrial')}</span>
-          </p>
+        <div className="mt-4 flex items-center justify-between gap-4 text-xs text-white/65">
+          <span>{usagePercentage >= 100 ? t('monthlyLimitReached') : usagePercentage >= 80 ? t('monthlyLimitAlmostReached') : t('pagesProcessed')}</span>
+          {isTrial && <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Clock3 className="size-3.5" aria-hidden="true" />{trialDays} {t('daysRemainingInTrial')}</span>}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </aside>
   )
 }

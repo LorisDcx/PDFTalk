@@ -1,11 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Clock, File, Trash2 } from 'lucide-react'
-import { Card, CardContent } from './ui/card'
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import { formatDate } from '@/lib/utils'
+import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, FileText, Loader2, Trash2 } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 import type { Document } from '@/types/database'
 
 interface DocumentCardProps {
@@ -14,74 +11,67 @@ interface DocumentCardProps {
   onDelete?: (id: string) => void
 }
 
+const cardLabels = {
+  fr: { processing: 'En cours', completed: 'Prêt', failed: 'Échec', pages: 'pages', delete: 'Supprimer le document' },
+  en: { processing: 'Processing', completed: 'Ready', failed: 'Failed', pages: 'pages', delete: 'Delete document' },
+  es: { processing: 'En curso', completed: 'Listo', failed: 'Error', pages: 'páginas', delete: 'Eliminar documento' },
+  de: { processing: 'In Bearbeitung', completed: 'Bereit', failed: 'Fehler', pages: 'Seiten', delete: 'Dokument löschen' },
+  it: { processing: 'In corso', completed: 'Pronto', failed: 'Errore', pages: 'pagine', delete: 'Elimina documento' },
+  pt: { processing: 'Em curso', completed: 'Pronto', failed: 'Erro', pages: 'páginas', delete: 'Excluir documento' },
+  zh: { processing: '处理中', completed: '已就绪', failed: '失败', pages: '页', delete: '删除文档' },
+  ja: { processing: '処理中', completed: '準備完了', failed: '失敗', pages: 'ページ', delete: '文書を削除' },
+  ar: { processing: 'قيد المعالجة', completed: 'جاهز', failed: 'فشل', pages: 'صفحات', delete: 'حذف المستند' },
+} as const
+
 export function DocumentCard({ document, summaryPreview, onDelete }: DocumentCardProps) {
-  const getStatusBadge = () => {
-    switch (document.status) {
-      case 'processing':
-        return <Badge variant="warning">Processing</Badge>
-      case 'completed':
-        return <Badge variant="success">Ready</Badge>
-      case 'failed':
-        return <Badge variant="destructive">Failed</Badge>
-      default:
-        return null
-    }
-  }
-
-  const getDocumentTypeIcon = () => {
-    return <FileText className="h-5 w-5" />
-  }
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (onDelete) {
-      onDelete(document.id)
-    }
-  }
+  const { language } = useLanguage()
+  const labels = cardLabels[language]
+  const status = document.status
+  const StatusIcon = status === 'completed' ? CheckCircle2 : status === 'failed' ? AlertTriangle : Loader2
+  const statusClasses = status === 'completed'
+    ? 'bg-[#eff5f0] text-[#407255]'
+    : status === 'failed'
+      ? 'bg-[#fff0ed] text-[#a44d48]'
+      : 'bg-[#fbf1e6] text-[#9a6a33]'
+  const date = new Intl.DateTimeFormat(language, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(document.created_at))
+  const pageCount = new Intl.NumberFormat(language).format(document.pages_count)
 
   return (
-    <Card className="card-hover cursor-pointer group relative">
-      <Link href={`/documents/${document.id}`}>
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
-              {getDocumentTypeIcon()}
-            </div>
-            <div className="flex-1 min-w-0 pr-8">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-medium truncate group-hover:text-primary transition-colors">{document.file_name}</h3>
-                {getStatusBadge()}
-              </div>
-              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <File className="h-3.5 w-3.5" />
-                  {document.pages_count} pages
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {formatDate(document.created_at)}
-                </span>
-              </div>
-              {summaryPreview && document.status === 'completed' && (
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                  {summaryPreview}
-                </p>
-              )}
-            </div>
+    <article className="group relative flex h-full min-h-[194px] flex-col rounded-[24px] border border-[#e9e0e5] bg-white p-5 text-[#33252b] shadow-[0_10px_40px_-32px_rgba(43,34,48,0.4)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[#c9b6c4] hover:shadow-[0_24px_48px_-34px_rgba(43,34,48,0.45)] sm:p-6">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#f4ebf1] text-[#b84432]" aria-hidden="true">
+          <FileText className="size-5" strokeWidth={1.7} />
+        </span>
+        <span className={`mr-8 inline-flex min-h-7 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusClasses}`}>
+          <StatusIcon className={`size-3.5 ${status === 'processing' ? 'animate-spin' : ''}`} aria-hidden="true" />
+          {labels[status]}
+        </span>
+      </div>
+
+      <Link href={`/documents/${document.id}`} className="flex flex-1 flex-col rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#b84432] focus-visible:ring-offset-4">
+        <h3 className="line-clamp-2 pr-4 text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-[#b84432]">{document.file_name}</h3>
+        {summaryPreview && status === 'completed' && (
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[#766b75]">{summaryPreview}</p>
+        )}
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-xs text-[#807480]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{pageCount} {labels.pages}</span>
+            <span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" aria-hidden="true" />{date}</span>
           </div>
-        </CardContent>
+          <ArrowUpRight className="size-4 shrink-0 text-[#b84432] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+        </div>
       </Link>
+
       {onDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-3 right-3 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          onClick={handleDelete}
+        <button
+          type="button"
+          onClick={() => onDelete(document.id)}
+          aria-label={`${labels.delete}: ${document.file_name}`}
+          className="absolute right-5 top-5 inline-flex size-8 items-center justify-center rounded-full text-[#968995] transition-colors hover:bg-[#fff0ed] hover:text-[#a44d48] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b84432]"
         >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+          <Trash2 className="size-4" aria-hidden="true" />
+        </button>
       )}
-    </Card>
+    </article>
   )
 }

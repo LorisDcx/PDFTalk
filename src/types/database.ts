@@ -23,6 +23,8 @@ export interface Database {
           pages_processed_this_month: number
           docs_processed_this_month: number
           usage_reset_at: string
+          trial_pages_processed_today: number
+          trial_usage_reset_at: string
         }
         Insert: {
           id: string
@@ -37,6 +39,8 @@ export interface Database {
           pages_processed_this_month?: number
           docs_processed_this_month?: number
           usage_reset_at?: string
+          trial_pages_processed_today?: number
+          trial_usage_reset_at?: string
         }
         Update: {
           id?: string
@@ -45,12 +49,14 @@ export interface Database {
           created_at?: string
           trial_end_at?: string
           stripe_customer_id?: string | null
-          current_plan?: 'basic' | 'growth' | 'pro' | null
+          current_plan?: 'starter' | 'student' | 'graduate' | null
           subscription_status?: 'active' | 'canceled' | 'past_due' | 'trialing' | null
           subscription_id?: string | null
           pages_processed_this_month?: number
           docs_processed_this_month?: number
           usage_reset_at?: string
+          trial_pages_processed_today?: number
+          trial_usage_reset_at?: string
         }
       }
       documents: {
@@ -98,6 +104,7 @@ export interface Database {
           actions: Json
           key_clauses: Json
           easy_reading: string | null
+          source_text: string | null
           tokens_used: number
           created_at: string
         }
@@ -110,6 +117,7 @@ export interface Database {
           actions: Json
           key_clauses: Json
           easy_reading?: string | null
+          source_text?: string | null
           tokens_used?: number
           created_at?: string
         }
@@ -122,6 +130,7 @@ export interface Database {
           actions?: Json
           key_clauses?: Json
           easy_reading?: string | null
+          source_text?: string | null
           tokens_used?: number
           created_at?: string
         }
@@ -146,6 +155,35 @@ export interface Database {
           user_id?: string | null
           event_type?: string
           event_data?: Json | null
+          created_at?: string
+        }
+      }
+      flashcards: {
+        Row: {
+          id: string
+          document_id: string
+          question: string
+          answer: string
+          source_ref: string | null
+          order_index: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          question: string
+          answer: string
+          source_ref?: string | null
+          order_index?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          question?: string
+          answer?: string
+          source_ref?: string | null
+          order_index?: number
           created_at?: string
         }
       }
