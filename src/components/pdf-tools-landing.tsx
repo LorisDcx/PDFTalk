@@ -8,13 +8,13 @@ const content = {
   fr: {
     eyebrow: 'Atelier PDF gratuit · Sans inscription',
     title: <>Tes PDF, <span className="italic text-[#b84432]">prêts pour travailler.</span></>,
-    lead: 'Fusionne, extrais, réorganise et annote tes documents de cours. Huit outils simples, gratuits et disponibles directement dans ton navigateur.',
+    lead: 'Fusionne, extrais, réorganise et annote tes documents de cours. Visualise les pages, choisis-les au clic et télécharge le résultat, gratuitement dans ton navigateur.',
     action: 'Choisir un outil PDF',
     note: 'Aucun transfert : tes fichiers restent sur ton appareil.',
     method: 'L’essentiel du PDF, sans détour.',
     steps: [
       ['01', 'Choisis une tâche', 'Commence par l’action dont tu as besoin, sans créer de compte.'],
-      ['02', 'Ajoute ton document', 'Le traitement s’effectue sur ton appareil, dans le navigateur.'],
+      ['02', 'Organise les pages', 'Vois les miniatures, choisis les pages utiles et change leur ordre sans saisir de numéros.'],
       ['03', 'Télécharge le résultat', 'Récupère un nouveau PDF, puis continue tes révisions.'],
     ],
     studyTitle: 'Un PDF propre. Puis un cours compris.',
@@ -31,13 +31,13 @@ const content = {
   en: {
     eyebrow: 'Free PDF workspace · No account',
     title: <>Your PDFs, <span className="italic text-[#b84432]">ready to study.</span></>,
-    lead: 'Merge, extract, reorder and annotate your course documents. Eight practical tools, free to use right in your browser.',
+    lead: 'Merge, extract, reorder and annotate your course documents. Preview pages, choose them with a click and download the result for free in your browser.',
     action: 'Choose a PDF tool',
     note: 'No upload: your files stay on your device.',
     method: 'The PDF essentials, without friction.',
     steps: [
       ['01', 'Choose a task', 'Start with what you need, without creating an account.'],
-      ['02', 'Add your document', 'The work happens on your device, in your browser.'],
+      ['02', 'Organize your pages', 'See thumbnails, choose useful pages and change their order without typing page numbers.'],
       ['03', 'Download the result', 'Get a new PDF and carry on studying.'],
     ],
     studyTitle: 'A tidy PDF. Then a course you understand.',
