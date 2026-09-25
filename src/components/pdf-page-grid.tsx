@@ -17,6 +17,8 @@ const labels = {
     loading: 'Création des aperçus…', error: 'Impossible d’afficher les miniatures. Le traitement du PDF reste disponible.',
     previous: 'Pages précédentes', next: 'Pages suivantes', page: 'Page', of: 'sur', moveLeft: 'Déplacer avant', moveRight: 'Déplacer après',
     included: 'incluse', excluded: 'retirée', rotated: 'à tourner', unchanged: 'inchangée',
+    quickTitle: 'Saisie rapide (facultative)', quickLabel: 'Numéros de pages', quickPlaceholder: 'Exemple : 1-3, 5', quickApply: 'Appliquer aux miniatures',
+    quickHelp: 'Remplace la sélection visuelle. Pour réorganiser, indique le nouvel ordre ; les pages omises seront retirées.', quickError: 'Indique des pages valides entre 1 et',
   },
   en: {
     title: 'Page preview', original: 'Original document preview',
@@ -26,11 +28,13 @@ const labels = {
     loading: 'Creating previews…', error: 'Could not display thumbnails. PDF processing is still available.',
     previous: 'Previous pages', next: 'Next pages', page: 'Page', of: 'of', moveLeft: 'Move before', moveRight: 'Move after',
     included: 'included', excluded: 'removed', rotated: 'to rotate', unchanged: 'unchanged',
+    quickTitle: 'Quick entry (optional)', quickLabel: 'Page numbers', quickPlaceholder: 'Example: 1-3, 5', quickApply: 'Apply to thumbnails',
+    quickHelp: 'Replaces the visual selection. To reorder, enter the new order; omitted pages will be removed.', quickError: 'Enter valid pages between 1 and',
   },
 }
 
 export function PdfPageGrid({
-  file, pageCount, order, selected, tool, angle, locale, onToggle, onMove, onSelectAll, onSelectNone,
+  file, pageCount, order, selected, tool, angle, locale, onToggle, onMove, onSelectAll, onSelectNone, onApplyPages,
 }: {
   file: File
   pageCount: number
@@ -43,12 +47,15 @@ export function PdfPageGrid({
   onMove: (from: number, to: number) => void
   onSelectAll: () => void
   onSelectNone: () => void
+  onApplyPages: (pages: number[]) => void
 }) {
   const c = labels[locale]
   const [previewDocument, setPreviewDocument] = useState<PDFDocumentProxy | null>(null)
   const [thumbnails, setThumbnails] = useState<Record<number, string>>({})
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [batch, setBatch] = useState(0)
+  const [quickInput, setQuickInput] = useState('')
+  const [quickError, setQuickError] = useState('')
   const dragIndex = useRef<number | null>(null)
   const selectedSet = new Set(selected)
   const isEditable = tool === 'extract' || tool === 'organize' || tool === 'rotate'
@@ -107,6 +114,19 @@ export function PdfPageGrid({
   }, [previewDocument, batch, order])
 
   const instruction = tool === 'extract' ? c.extract : tool === 'organize' ? c.organize : tool === 'rotate' ? c.rotate : c.original
+
+  async function applyQuickInput() {
+    try {
+      const { parsePages } = await import('@/lib/pdf-tools')
+      const pages = parsePages(quickInput, pageCount)
+      onApplyPages(pages)
+      setBatch(0)
+      setQuickError('')
+    } catch {
+      setQuickError(`${c.quickError} ${pageCount}.`)
+    }
+  }
+
   return <div className="mt-8 border-t border-[var(--cd-line)] pt-7">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div><h4 className="font-editorial text-2xl text-[var(--cd-ink)]">{c.title}</h4><p className="mt-2 max-w-2xl text-base leading-7 text-[var(--cd-muted)]">{instruction}</p></div>
@@ -140,5 +160,6 @@ export function PdfPageGrid({
     </div>
 
     {batchCount > 1 && <nav aria-label={c.title} className="mt-6 flex items-center justify-between gap-3"><button type="button" disabled={batch === 0} onClick={() => setBatch(current => current - 1)} className="min-h-11 rounded-xl border border-[#e6d8d0] px-3 text-sm font-semibold disabled:opacity-40">{c.previous}</button><span className="text-sm tabular-nums text-[#776b6b]">{batch + 1} {c.of} {batchCount}</span><button type="button" disabled={batch === batchCount - 1} onClick={() => setBatch(current => current + 1)} className="min-h-11 rounded-xl border border-[#e6d8d0] px-3 text-sm font-semibold disabled:opacity-40">{c.next}</button></nav>}
+    {isEditable && <details className="mt-7 rounded-xl border border-[#e8dcd4] bg-[#fffaf6] p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-bold text-[#6b4d45]">{c.quickTitle}</summary><div className="pt-3"><label htmlFor="pdf-quick-pages" className="block text-sm font-semibold text-[#463a3c]">{c.quickLabel}</label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><input id="pdf-quick-pages" value={quickInput} onChange={event => { setQuickInput(event.target.value); setQuickError('') }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void applyQuickInput() } }} placeholder={c.quickPlaceholder} className="min-h-12 min-w-0 flex-1 rounded-xl border border-[#d8ccc7] bg-white px-4 text-base focus-visible:outline-2 focus-visible:outline-[#b84432]" /><button type="button" onClick={() => void applyQuickInput()} className="min-h-12 rounded-xl border border-[#d8b8a8] bg-white px-5 text-sm font-bold text-[#963326] hover:bg-[#fff0e7]">{c.quickApply}</button></div><p className="mt-2 text-sm leading-6 text-[#786d6b]">{c.quickHelp}</p>{quickError && <p role="alert" className="mt-2 text-sm font-semibold text-red-700">{quickError}</p>}</div></details>}
   </div>
 }
