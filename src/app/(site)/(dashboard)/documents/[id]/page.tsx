@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import {
   AlertCircle, ArrowLeft, BookOpenText, Check, CheckCircle2, Clock3, Copy,
   Eye, FileText, Layers3, ListChecks, Loader2, Menu, MessageCircle,
-  PanelLeftClose, PanelLeftOpen, Sparkles, X,
+  PanelLeftClose, PanelLeftOpen, X,
 } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { DocumentSidebar } from '@/components/document-sidebar'
@@ -40,7 +40,7 @@ export default function DocumentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [activeView, setActiveView] = useState<WorkspaceView>('summary')
-  const [desktopLibraryOpen, setDesktopLibraryOpen] = useState(true)
+  const [desktopLibraryOpen, setDesktopLibraryOpen] = useState(false)
   const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false)
   const [pdfVisible, setPdfVisible] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -173,7 +173,7 @@ export default function DocumentPage() {
   const documentContent = summary?.source_text || summary?.easy_reading || digest?.summary.join('\n') || ''
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f8f5f0] text-[#291c2b] lg:flex">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#faf8f5] text-[#291c2b] lg:flex">
       {desktopLibraryOpen && <aside className="hidden w-72 shrink-0 border-r border-[#e8dedb] lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)]">
         <DocumentSidebar currentDocumentId={document.id} />
       </aside>}
@@ -186,33 +186,28 @@ export default function DocumentPage() {
       </Sheet>
 
       <div className="min-w-0 flex-1">
-        <header className="border-b border-[#e8dedb] bg-[#fbf9f5] px-4 py-5 sm:px-8 sm:py-7">
-          <div className="mx-auto max-w-[1320px]">
-            <div className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-[#8d7484]">
+        <header className="border-b border-[#e8dedb] bg-white px-4 py-5 sm:px-8 sm:py-6">
+          <div className="mx-auto max-w-[1060px]">
+            <div className="mb-4 flex items-center gap-2 text-sm text-[#786d72]">
               <button type="button" className="rounded-lg p-2 text-[#5d4256] hover:bg-[#f0e8e9] lg:hidden" onClick={() => setMobileLibraryOpen(true)} aria-label={t('myDocuments')}>
                 <Menu className="size-5" />
               </button>
               <button type="button" className="hidden rounded-lg p-2 text-[#5d4256] hover:bg-[#f0e8e9] lg:inline-flex" onClick={() => setDesktopLibraryOpen(value => !value)} aria-label={t('myDocuments')}>
                 {desktopLibraryOpen ? <PanelLeftClose className="size-5" /> : <PanelLeftOpen className="size-5" />}
               </button>
-              <Link href="/documents" className="transition hover:text-[#5f2f52]">{t('myDocuments')}</Link>
-              <span aria-hidden="true">/</span>
-              <span className="max-w-[45vw] truncate text-[#503348] normal-case tracking-normal">{document.file_name}</span>
+              <Link href="/documents" className="inline-flex items-center gap-1.5 transition hover:text-[#b84432]"><ArrowLeft className="size-3.5" />{t('myDocuments')}</Link>
             </div>
 
-            <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-[#87516f]">
-                  <Sparkles className="size-3.5" /> {t('documentAnalysis')}
-                </p>
-                <h1 className="font-editorial max-w-3xl break-words text-3xl leading-tight sm:text-4xl">{document.file_name.replace(/\.pdf$/i, '')}</h1>
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#786a73]">
+                <h1 className="max-w-[min(720px,78vw)] truncate font-editorial text-2xl leading-tight text-[#35282d] sm:text-3xl" title={document.file_name}>{document.file_name.replace(/\.pdf$/i, '')}</h1>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#786a73]">
                   <span>{document.pages_count} pages</span>
                   <span>{formatDate(document.created_at)}</span>
-                  {document.document_type && <span className="rounded-full border border-[#e8dcd9] px-2.5 py-0.5 text-xs">{document.document_type}</span>}
+                  {document.document_type && <span>· {document.document_type}</span>}
                 </div>
               </div>
-              <Button type="button" variant="outline" className="gap-2 border-[#d9cbd2] bg-white text-[#5f2f52] hover:bg-[#f4edf0]" onClick={togglePdf} disabled={pdfLoading}>
+              <Button type="button" variant="outline" className="gap-2 border-[#e3d9d2] bg-white text-[#51414a] hover:bg-[#fff3eb]" onClick={togglePdf} disabled={pdfLoading}>
                 {pdfLoading ? <Loader2 className="size-4 animate-spin" /> : pdfVisible ? <X className="size-4" /> : <Eye className="size-4" />}
                 {pdfVisible ? t('back') : t('viewPdf')}
               </Button>
@@ -239,40 +234,39 @@ export default function DocumentPage() {
             <Button variant="outline" className="mt-6" onClick={() => void loadDocument()}>{t('back')}</Button>
           </div>
         ) : (
-          <div className="mx-auto max-w-[1320px] px-4 pb-14 sm:px-8">
-            <nav aria-label={t('documentAnalysis')} className="-mx-4 flex gap-1 overflow-x-auto border-b border-[#e8dedb] px-4 sm:-mx-8 sm:px-8">
+          <div className="mx-auto max-w-[1060px] px-4 pb-14 sm:px-8">
+            <nav aria-label={t('documentAnalysis')} className="flex gap-1 overflow-x-auto border-b border-[#e8dedb]">
               {views.map(view => <button
                 key={view.id}
                 type="button"
                 aria-current={activeView === view.id ? 'page' : undefined}
                 onClick={() => setActiveView(view.id)}
-                className={`group relative flex min-h-16 shrink-0 items-center gap-2 px-4 text-sm font-semibold transition-colors ${activeView === view.id ? 'text-[#62364f]' : 'text-[#877984] hover:text-[#3c2938]'}`}
+                className={`group relative flex min-h-14 shrink-0 items-center gap-2 px-3 text-sm font-semibold transition-colors sm:px-4 ${activeView === view.id ? 'text-[#b84432]' : 'text-[#82787b] hover:text-[#3c2938]'}`}
               >
                 <view.icon className="size-4" />
                 {view.label}
-                {activeView === view.id && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-full bg-[#62364f]" />}
+                {activeView === view.id && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#b84432]" />}
               </button>)}
             </nav>
 
-            <div className={pdfVisible ? 'grid gap-6 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]' : 'pt-8'}>
+            <div className={pdfVisible ? 'grid gap-6 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]' : 'pt-6'}>
               <div className="min-w-0">
-                {activeView === 'summary' && <div className="space-y-7">
-                  <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#fffefd] p-6 shadow-[0_16px_45px_-35px_rgba(48,27,43,.28)] sm:p-9">
-                    <div className="mb-8 flex flex-wrap items-start justify-between gap-4 border-b border-[#eee6e0] pb-6">
+                {activeView === 'summary' && <div className="space-y-5">
+                  <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
+                    <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-[#eee6e0] pb-5">
                       <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-[#8e5973]">{t('documentAnalysis')}</p>
-                        <h2 className="font-editorial text-3xl text-[#2c1d2b] sm:text-4xl">{t('summary')}</h2>
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#776b73]">{t('summaryDesc')}</p>
+                        <h2 className="font-editorial text-2xl text-[#2c1d2b] sm:text-3xl">{t('summary')}</h2>
+                        <p className="mt-1 max-w-2xl text-sm leading-6 text-[#776b73]">{t('summaryDesc')}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <TranslateButton content={digest.summary.join('\n\n')} onTranslate={text => setTranslatedSummary(text.split('\n\n').filter(Boolean))} />
                         <Button type="button" size="icon" variant="ghost" aria-label={t('copySummary')} onClick={() => void copyText((translatedSummary || digest.summary).join('\n'))}><Copy className="size-4" /></Button>
                       </div>
                     </div>
-                    <ol className="space-y-5">
-                      {(translatedSummary || digest.summary).map((point, index) => <li key={index} className="flex gap-4 border-b border-[#f0eae5] pb-5 last:border-0 last:pb-0">
-                        <span className="font-editorial w-8 shrink-0 text-2xl text-[#a4718e]">{String(index + 1).padStart(2, '0')}</span>
-                        <p className="pt-0.5 text-base leading-7 text-[#483a47]">{point}</p>
+                    <ol className="space-y-0">
+                      {(translatedSummary || digest.summary).map((point, index) => <li key={index} className="flex gap-4 border-b border-[#f0eae5] py-4 first:pt-0 last:border-0 last:pb-0">
+                        <span className="w-6 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-[#b84432]">{String(index + 1).padStart(2, '0')}</span>
+                        <p className="text-[15px] leading-7 text-[#483a47]">{point}</p>
                       </li>)}
                     </ol>
                   </section>
@@ -324,18 +318,18 @@ export default function DocumentPage() {
                   </section>}
                 </div>}
 
-                {activeView === 'tools' && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#fffefd] p-6 sm:p-9">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-[#8e5973]">{t('studyTools')}</p>
-                  <h2 className="font-editorial text-3xl sm:text-4xl">{t('studyToolsDesc')}</h2>
-                  <div className="mt-8 flex flex-wrap gap-3 rounded-xl border border-[#eee7e3] bg-[#fbf9f6] p-5">
+                {activeView === 'tools' && <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
+                  <h2 className="font-editorial text-2xl sm:text-3xl">{t('studyTools')}</h2>
+                  <p className="mt-1 text-sm text-[#776b73]">{t('studyToolsDesc')}</p>
+                  <div className="mt-6 flex flex-wrap gap-3">
                     <Flashcards documentId={document.id} documentContent={documentContent} documentName={document.file_name} onFlashcardsChange={setFlashcards} />
                     <Quiz documentId={document.id} documentContent={documentContent} documentName={document.file_name} flashcards={flashcards} />
                     <Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} />
                   </div>
                 </section>}
 
-                {activeView === 'chat' && <section className="space-y-5">
-                  <div><p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-[#8e5973]">{t('documentAnalysis')}</p><h2 className="font-editorial text-3xl sm:text-4xl">{t('chatTitle')}</h2></div>
+                {activeView === 'chat' && <section className="space-y-4">
+                  <h2 className="font-editorial text-2xl sm:text-3xl">{t('chatTitle')}</h2>
                   <PDFChat documentId={document.id} documentContent={documentContent} documentName={document.file_name} />
                 </section>}
               </div>

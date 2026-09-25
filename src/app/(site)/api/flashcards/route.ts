@@ -98,35 +98,43 @@ FORMAT:
       return NextResponse.json({ error: 'AI returned invalid format', details: content?.substring(0, 200) }, { status: 500 })
     }
     
-    const flashcards = parsed.flashcards || []
+    type GeneratedCard = { question: string; answer: string; sourceRef?: string }
+    const generated: unknown = parsed.flashcards
+    const flashcards = Array.isArray(generated)
+      ? generated.filter((card: unknown): card is GeneratedCard => {
+          if (!card || typeof card !== 'object') return false
+          const item = card as Record<string, unknown>
+          return typeof item.question === 'string' && !!item.question.trim() &&
+            typeof item.answer === 'string' && !!item.answer.trim()
+        })
+      : []
     const actualCardCount = flashcards.length
     const actualPageCost = calculatePageCost('flashcards', actualCardCount)
     if (actualPageCost === 0) throw new Error('AI returned no flashcards')
-    const charge = await deductPages(supabase, user.id, actualPageCost)
-    if (!charge.success) return NextResponse.json({ error: charge.error }, { status: 403 })
 
-    // Save flashcards to database
-    if (documentId && flashcards.length > 0) {
-      // Delete existing flashcards for this document
-      await supabase
-        .from('flashcards')
-        .delete()
-        .eq('document_id', documentId)
-
-      // Insert new flashcards
-      const flashcardsToInsert = flashcards.map((card: any, index: number) => ({
+    const { data: previousCards, error: previousError } = await supabase.from('flashcards')
+      .select('id').eq('document_id', documentId)
+    if (previousError) throw previousError
+    const { data: insertedCards, error: insertError } = await supabase.from('flashcards')
+      .insert(flashcards.map((card, index) => ({
         document_id: documentId,
-        question: card.question,
-        answer: card.answer,
-        source_ref: card.sourceRef || null,
-        order_index: index
-      }))
+        question: card.question.trim(),
+        answer: card.answer.trim(),
+        source_ref: typeof card.sourceRef === 'string' ? card.sourceRef : null,
+        order_index: index,
+      })))
+      .select('id')
+    if (insertError || !insertedCards?.length) throw insertError || new Error('Could not save flashcards')
 
-      const { error: insertError } = await supabase
-        .from('flashcards')
-        .insert(flashcardsToInsert)
-
-      if (insertError) throw insertError
+    const charge = await deductPages(supabase, user.id, actualPageCost)
+    if (!charge.success) {
+      await supabase.from('flashcards').delete().in('id', insertedCards.map(card => card.id))
+      return NextResponse.json({ error: charge.error }, { status: 403 })
+    }
+    if (previousCards?.length) {
+      const { error: cleanupError } = await supabase.from('flashcards')
+        .delete().in('id', previousCards.map(card => card.id))
+      if (cleanupError) console.error('Could not remove previous flashcards:', cleanupError)
     }
     
     return NextResponse.json({ 
@@ -135,10 +143,10 @@ FORMAT:
       pagesUsed: actualPageCost
     })
 
-  } catch (error: any) {
-    console.error('Flashcards error:', error?.message || error)
+  } catch (error) {
+    console.error('Flashcards error:', error instanceof Error ? error.message : error)
     
-    if (error?.status === 429) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
       return NextResponse.json({ error: 'AI service busy. Try again.' }, { status: 429 })
     }
     

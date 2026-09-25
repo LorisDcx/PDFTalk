@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
 import { useToast } from '@/components/ui/use-toast'
+import { createClient } from '@/lib/supabase/client'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,23 +62,36 @@ export function Flashcards({ documentId, documentName, onFlashcardsChange }: Fla
   const { t, language } = useLanguage()
   const { toast } = useToast()
 
-  // Load existing flashcards from localStorage on mount
+  // The database is the source of truth across devices; local storage covers offline sessions.
   useEffect(() => {
     let active = true
-    queueMicrotask(() => {
-      if (!active) return
+    const loadCards = async () => {
       try {
         const stored = localStorage.getItem(`flashcards-${documentId}`)
-        if (stored) {
+        const { data, error } = await createClient().from('flashcards')
+          .select('id, question, answer, source_ref')
+          .eq('document_id', documentId)
+          .order('order_index', { ascending: true })
+        if (!active) return
+        if (!error && data) {
+          setFlashcards(data.map(card => ({
+            id: card.id,
+            question: card.question,
+            answer: card.answer,
+            sourceRef: card.source_ref || undefined,
+          })))
+          if (data.length === 0) localStorage.removeItem(`flashcards-${documentId}`)
+        } else if (stored) {
           const parsed = JSON.parse(stored)
-          if (parsed && parsed.length > 0) setFlashcards(parsed)
+          if (Array.isArray(parsed) && parsed.length > 0) setFlashcards(parsed)
         }
       } catch (error) {
         console.error('Failed to load flashcards:', error)
       } finally {
-        setIsLoading(false)
+        if (active) setIsLoading(false)
       }
-    })
+    }
+    void loadCards()
     return () => { active = false }
   }, [documentId])
 
@@ -85,8 +99,8 @@ export function Flashcards({ documentId, documentName, onFlashcardsChange }: Fla
   useEffect(() => {
     if (flashcards.length > 0) {
       localStorage.setItem(`flashcards-${documentId}`, JSON.stringify(flashcards))
-      onFlashcardsChange?.(flashcards)
     }
+    onFlashcardsChange?.(flashcards)
   }, [flashcards, documentId, onFlashcardsChange])
 
   const generateFlashcards = async () => {
@@ -135,7 +149,12 @@ export function Flashcards({ documentId, documentName, onFlashcardsChange }: Fla
     }
   }
 
-  const deleteFlashcards = () => {
+  const deleteFlashcards = async () => {
+    const { error } = await createClient().from('flashcards').delete().eq('document_id', documentId)
+    if (error) {
+      toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
+      return
+    }
     localStorage.removeItem(`flashcards-${documentId}`)
     setFlashcards([])
     setIsViewerOpen(false)

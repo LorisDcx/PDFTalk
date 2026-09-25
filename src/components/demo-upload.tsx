@@ -8,6 +8,7 @@ import { formatFileSize } from '@/lib/utils'
 import { useToast } from './ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
 import { savePendingDocument } from '@/lib/pending-document'
+import { useAuth } from '@/components/auth-provider'
 
 const MAX_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -16,6 +17,7 @@ export function DemoUpload() {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useLanguage()
+  const { user } = useAuth()
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (rejectedFiles.length > 0) {
@@ -55,7 +57,12 @@ export function DemoUpload() {
     try {
       await savePendingDocument(selectedFile)
       sessionStorage.setItem('pendingDocument', JSON.stringify(fileInfo))
-      router.push('/signup?demo=true')
+      if (user) {
+        sessionStorage.setItem('processPendingDocument', 'true')
+        router.push('/dashboard')
+      } else {
+        router.push('/signup?demo=true')
+      }
     } catch {
       toast({ title: t('uploadError'), description: t('unexpectedError'), variant: 'destructive' })
     }
@@ -70,7 +77,7 @@ export function DemoUpload() {
       {!selectedFile ? (
         <div
           {...getRootProps()}
-          className={`group flex min-h-72 cursor-pointer flex-col items-center justify-center rounded-[1.4rem] border-2 border-dashed px-6 py-10 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b84432] ${isDragActive ? 'border-[#b45438] bg-[#faf0f7]' : 'border-[#e6dbe3] bg-[#fcf9fb] hover:border-[#a9849f] hover:bg-[#faf4f8]'}`}
+          className={`group flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-[1.1rem] border-2 border-dashed px-6 py-8 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b84432] ${isDragActive ? 'border-[#b45438] bg-[#fff3ec]' : 'border-[#e7cfc2] bg-[#fffaf7] hover:border-[#b84432] hover:bg-[#fff4ed]'}`}
         >
           <input {...getInputProps()} />
           <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-[#ffe0d1] text-[#ae4731] transition group-hover:scale-105">
@@ -108,7 +115,7 @@ export function DemoUpload() {
             <ArrowRight className="size-4 transition group-hover:translate-x-1" />
           </button>
           <p className="mt-4 text-center text-xs text-[#776c78]">
-            Crée ton compte gratuit pour lancer l’analyse.
+            {user ? 'Le document sera ajouté à ton espace.' : 'Crée ton compte pour lancer l’analyse.'}
           </p>
         </div>
       )}

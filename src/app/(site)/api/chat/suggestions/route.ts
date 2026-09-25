@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
 
     const response = await openai.chat.completions.create({
       model: 'gpt-5-nano',
+      reasoning_effort: 'minimal',
       messages: [
         { 
           role: 'system', 
@@ -45,7 +46,7 @@ Respond ONLY with valid JSON in this format:
           content: `Document:\n${documentContent.substring(0, 5000)}`
         },
       ],
-      max_completion_tokens: 200,
+      max_completion_tokens: 400,
       response_format: { type: 'json_object' },
     })
 
@@ -57,8 +58,10 @@ Respond ONLY with valid JSON in this format:
 
     const parsed = JSON.parse(content)
     
-    return NextResponse.json({ 
-      suggestions: parsed.suggestions || []
+    return NextResponse.json({
+      suggestions: Array.isArray(parsed.suggestions)
+        ? parsed.suggestions.filter((item: unknown) => typeof item === 'string' && item.trim()).slice(0, 3)
+        : [],
     })
 
   } catch (error) {

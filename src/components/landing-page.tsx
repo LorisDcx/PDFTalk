@@ -125,21 +125,27 @@ export default function LandingPage() {
     <div className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
       <Navbar />
       <main>
-        <section className="relative border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-20 pt-16 sm:px-8 sm:pt-24 lg:pb-28 lg:pt-28">
-          <div className="mx-auto max-w-6xl">
-            <div className="max-w-4xl">
+        <section id="essayer" className="relative scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 py-14 sm:px-8 sm:py-20 lg:py-24">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(380px,.86fr)] lg:gap-16">
+            <div>
               <p className="mb-6 text-xs font-bold uppercase tracking-[.22em] text-[var(--cd-brand)]">CramDesk · ton espace de révision</p>
-              <h1 className="font-editorial text-[clamp(3.5rem,7.6vw,7rem)] leading-[1.01] tracking-[-.06em] text-[var(--cd-ink)]">Du PDF au <span className="italic text-[var(--cd-brand)]">cours retenu.</span></h1>
-              <p className="mt-7 max-w-2xl text-base leading-8 text-[#655a62] sm:text-xl">Comprends les notions de ton cours, retrouve-les dans le document, puis entraîne-toi avec des cartes et des quiz. Un même espace pour lire, vérifier et progresser.</p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="#essayer" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-xl bg-[var(--cd-brand)] px-7 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[var(--cd-brand-hover)] sm:w-auto"><Upload className="size-4" /> Importer mon cours</Link>
-                <Link href="#produit" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-xl border border-[var(--cd-line)] bg-white px-7 py-3.5 text-sm font-bold text-[var(--cd-ink)] transition-colors hover:bg-[#fff4ed] sm:w-auto">Voir comment ça marche <ArrowRight className="size-4" /></Link>
+              <h1 className="font-editorial text-[clamp(3.2rem,6vw,6rem)] leading-[1.04] tracking-[-.055em] text-[var(--cd-ink)]">Ton PDF mérite mieux <span className="italic text-[var(--cd-brand)]">qu’une relecture.</span></h1>
+              <p className="mt-7 max-w-xl text-base leading-8 text-[#655a62] sm:text-lg">Importe ton cours et passe directement à l’essentiel : une synthèse claire, des réponses liées au document, puis des cartes et des quiz pour retenir.</p>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <a href="#deposer-pdf" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--cd-brand)] px-6 text-sm font-bold text-white transition-colors hover:bg-[var(--cd-brand-hover)] lg:hidden"><Upload className="size-4" /> Déposer mon PDF</a>
+                <Link href="#produit" className="inline-flex items-center gap-2 text-sm font-semibold text-[#664957] underline decoration-[#cbb1c3] underline-offset-8 hover:text-[#b84432]">Voir le résultat <ArrowRight className="size-4" /></Link>
               </div>
-              <p className="mt-5 text-xs font-medium text-[#756b70]">Essai de 7 jours sans carte bancaire · PDF avec texte sélectionnable</p>
+              <p className="mt-7 text-xs font-medium text-[#756b70]">7 jours d’essai sans carte bancaire · PDF avec texte sélectionnable</p>
             </div>
-            <div className="mt-14 grid gap-3 border-y border-[var(--cd-line)] py-5 text-xs font-bold uppercase tracking-[.12em] text-[#76696e] sm:grid-cols-3 sm:gap-6"><span><strong className="mr-3 text-[var(--cd-brand)]">01</strong> Importer le cours</span><span><strong className="mr-3 text-[var(--cd-brand)]">02</strong> Vérifier l’essentiel</span><span><strong className="mr-3 text-[var(--cd-brand)]">03</strong> S’entraîner</span></div>
-            <div className="mt-10"><StudioPreview /></div>
+            <div id="deposer-pdf" className="scroll-mt-24 rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 shadow-[0_28px_70px_-44px_rgba(61,36,56,.4)] sm:p-6">
+              <div className="mb-4 flex items-center justify-between gap-3 px-1"><p className="text-sm font-bold text-[#3b2e34]">Commence avec ton cours</p><span className="rounded-full bg-[#f4f7ef] px-2.5 py-1 text-xs font-semibold text-[#58744f]">Étape 1 sur 2</span></div>
+              <DemoUpload />
+            </div>
           </div>
+        </section>
+
+        <section className="bg-[#fffaf5] px-5 py-16 sm:px-8 lg:py-24">
+          <div className="mx-auto max-w-6xl"><div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><SectionEyebrow>Un espace pour comprendre et réviser</SectionEyebrow><h2 className="font-editorial text-3xl sm:text-4xl">Après l’import, tout est au même endroit.</h2></div><p className="max-w-sm text-sm leading-6 text-[#756b73]">Consulte le résumé, interroge ton document et teste ta compréhension à ton rythme.</p></div><StudioPreview /></div>
         </section>
 
         <section className="border-y border-[#f0dfd5] bg-white px-5 py-7 sm:px-8">
@@ -211,12 +217,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="essayer" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:py-32">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[.85fr_1.15fr] lg:gap-20">
-            <div><SectionEyebrow>À toi d’essayer</SectionEyebrow><h2 className="font-editorial text-5xl leading-[1.08] tracking-[-.045em] sm:text-6xl">Ton prochain chapitre commence <span className="italic text-[#c25334]">ici.</span></h2><p className="mt-6 max-w-lg text-lg leading-8 text-[#706671]">Sélectionne ton PDF maintenant. Tu créeras ton compte avant le traitement et retrouveras ton document dans ton espace de travail.</p><p className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#766a76]"><CheckCircle2 className="size-4 text-[#7b9a72]" /> PDF avec texte sélectionnable, 20 Mo maximum</p></div>
-            <div className="rounded-[1.8rem] border border-[#efdcd0] bg-white p-5 shadow-[0_24px_70px_-42px_rgba(61,36,56,.35)] sm:p-8"><DemoUpload /></div>
-          </div>
-        </section>
 
         <section id="pricing" className="scroll-mt-24 border-y border-[#f0dfd5] bg-[#fff9f5] px-5 py-24 sm:px-8 lg:py-32">
           <div className="mx-auto max-w-6xl"><div className="mb-12 max-w-3xl"><SectionEyebrow>Tarifs clairs</SectionEyebrow><h2 className="font-editorial text-5xl leading-[1.08] tracking-[-.045em] sm:text-6xl">À chaque rythme, <span className="italic text-[#c25334]">son espace.</span></h2><p className="mt-5 text-lg leading-8 text-[#706671]">Commence avec 7 jours d’essai sans carte bancaire. Choisis ensuite le volume qui te convient.</p></div>

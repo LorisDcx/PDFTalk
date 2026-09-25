@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { FileText, FolderPlus, ChevronRight, ChevronDown, MoreHorizontal, Pencil, Trash2, Loader2, Search, GraduationCap, Target, Presentation, Sparkles, FileCheck, Folder } from 'lucide-react'
+import { FileText, FolderPlus, ChevronRight, ChevronDown, MoreHorizontal, Pencil, Trash2, Loader2, Search, GraduationCap, Target, Presentation, FileCheck, Folder } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface DocumentItem {
@@ -244,14 +244,11 @@ export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebar
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#f8f5f0] text-[#392639]">
-      <div className="border-b border-[#e8dedb] bg-[#f4eee9] p-4">
+      <div className="border-b border-[#e8dedb] bg-white p-4">
         <div className="relative space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-[#a84431]">
-                <Sparkles className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-editorial text-lg">{t('myDocuments')}</span>
+              <span className="text-sm font-bold text-[#392639]">{t('myDocuments')}</span>
             </div>
             <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
               <DialogTrigger asChild>
@@ -301,7 +298,7 @@ export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebar
             <div key={folder.id} className="space-y-1">
               <div className={cn("group flex items-center rounded-xl transition-colors hover:bg-white", isExpanded && "bg-white")}>
                 <button onClick={() => toggleFolder(folder.id)} className="flex items-center gap-2 flex-1 px-3 py-2.5 text-sm transition-colors">
-                  <div className="w-5 h-5 rounded-md flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style={{ backgroundColor: folder.color, boxShadow: `0 2px 8px ${folder.color}40` }}>
+                  <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: folder.color }}>
                     {isExpanded ? <ChevronDown className="h-3 w-3 text-white" /> : <ChevronRight className="h-3 w-3 text-white" />}
                   </div>
                   <span className="font-medium truncate">{folder.name}</span>
@@ -365,25 +362,6 @@ export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebar
         )}
       </div>
 
-      <div className="border-t border-[#e8dedb] bg-[#f4eee9] p-3">
-        <div className="flex items-center justify-around text-center">
-          <div>
-            <p className="text-lg font-bold text-primary">{documents.length}</p>
-            <p className="text-xs text-muted-foreground">{t('documents')}</p>
-          </div>
-          <div className="w-px h-8 bg-border" />
-          <div>
-            <p className="text-lg font-bold text-[#8c6a6d]">{folders.length}</p>
-            <p className="text-xs text-muted-foreground">{t('folders')}</p>
-          </div>
-          <div className="w-px h-8 bg-border" />
-          <div>
-            <p className="text-lg font-bold text-[#6f836e]">{documents.reduce((acc, d) => acc + d.flashcardsCount, 0)}</p>
-            <p className="text-xs text-muted-foreground">{t('flashcards')}</p>
-          </div>
-        </div>
-      </div>
-
       <Dialog open={!!editingFolder} onOpenChange={(open) => !open && setEditingFolder(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -417,7 +395,7 @@ function DocumentCard({ doc, isActive, isExpanded, folders, onNavigate, onAssign
   const isDeleting = deletingDocId === doc.id
 
   return (
-    <div className={cn("overflow-hidden rounded-xl border transition-colors", isActive ? "border-[#decbd6] bg-[#eee4ea]" : "border-transparent hover:border-[#e8dedb] hover:bg-white", isDeleting && "opacity-50")}>
+    <div className={cn("overflow-hidden rounded-lg border transition-colors", isActive ? "border-[#efcdbb] bg-[#fff1e8]" : "border-transparent hover:border-[#e8dedb] hover:bg-white", isDeleting && "opacity-50")}>
       <div className="flex items-center group">
         {hasData && <button type="button" onClick={() => onToggleExpand(doc.id)} aria-label={isExpanded ? t('back') : t('openDocument')} aria-expanded={isExpanded} className="ml-1 flex size-8 shrink-0 items-center justify-center rounded-lg text-[#806979] hover:bg-[#e8dce5]">
           {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}

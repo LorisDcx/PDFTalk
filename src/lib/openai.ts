@@ -56,6 +56,7 @@ Return your analysis in the following JSON format:
 export async function generateEasyReading(text: string) {
   const response = await openai.chat.completions.create({
     model: 'gpt-5-nano',
+    reasoning_effort: 'minimal',
     messages: [
       {
         role: 'system',
@@ -79,12 +80,15 @@ Return a well-formatted, easy-to-read version that anyone can understand.`
     max_completion_tokens: 6000,
   })
 
-  return { easyReading: response.choices[0].message.content || '', tokensUsed: response.usage?.total_tokens ?? 0 }
+  const easyReading = response.choices[0]?.message?.content?.trim()
+  if (!easyReading) throw new Error('No easy-reading response from OpenAI')
+  return { easyReading, tokensUsed: response.usage?.total_tokens ?? 0 }
 }
 
 export async function compareDocuments(text1: string, text2: string) {
   const response = await openai.chat.completions.create({
     model: 'gpt-5-nano',
+    reasoning_effort: 'minimal',
     messages: [
       {
         role: 'system',
@@ -139,6 +143,7 @@ export async function translateText(text: string, targetLanguage: string = 'fr')
 
   const response = await openai.chat.completions.create({
     model: 'gpt-5-nano',
+    reasoning_effort: 'minimal',
     messages: [
       {
         role: 'system',
@@ -159,5 +164,7 @@ Guidelines:
     max_completion_tokens: 6000,
   })
 
-  return response.choices[0].message.content || ''
+  const translation = response.choices[0]?.message?.content?.trim()
+  if (!translation) throw new Error('No translation response from OpenAI')
+  return translation
 }

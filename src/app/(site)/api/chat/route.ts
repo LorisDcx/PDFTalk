@@ -14,19 +14,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { documentId, question, history } = await request.json()
+    const { documentId, question, history }: { documentId: unknown; question: unknown; history?: unknown } = await request.json()
     const documentContent = await getDocumentContext(supabase, user.id, documentId)
 
     if (!documentContent) return NextResponse.json({ error: 'Document unavailable' }, { status: 403 })
-    if (typeof question !== 'string' || !question.trim() || question.length > 2000 ||
-        (history != null && (!Array.isArray(history) || history.length > 12 || history.some((msg: any) =>
-          !['user', 'assistant'].includes(msg?.role) || typeof msg?.content !== 'string' || msg.content.length > 2000)))) {
+    const validHistory = history == null || (Array.isArray(history) && history.length <= 12 &&
+      history.every((msg: unknown) => {
+        if (!msg || typeof msg !== 'object') return false
+        const entry = msg as Record<string, unknown>
+        return (entry.role === 'user' || entry.role === 'assistant') &&
+          typeof entry.content === 'string' && entry.content.length <= 2000
+      }))
+    if (typeof question !== 'string' || !question.trim() || question.length > 2000 || !validHistory) {
       return NextResponse.json({ error: 'Invalid question or history' }, { status: 400 })
     }
 
     // Build conversation history for context
-    const conversationHistory = history?.map((msg: any) => ({
-      role: msg.role as 'user' | 'assistant',
+    const conversationHistory = (history as { role: 'user' | 'assistant'; content: string }[] | undefined)?.map(msg => ({
+      role: msg.role,
       content: msg.content,
     })) || []
 
@@ -45,16 +50,21 @@ CRITICAL INSTRUCTIONS:
 - If asked for a summary, structure it clearly`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-5-nano',
+      model: 'gpt-5-mini',
+      reasoning_effort: 'minimal',
       messages: [
         { role: 'system', content: systemPrompt },
         ...conversationHistory,
         { role: 'user', content: question },
       ],
-      max_completion_tokens: 1000,
+      max_completion_tokens: 1600,
     })
 
-    const answer = response.choices[0]?.message?.content || "I couldn't generate a response."
+    const answer = response.choices[0]?.message?.content?.trim()
+    if (!answer) {
+      console.error('Chat returned no text', { finishReason: response.choices[0]?.finish_reason, usage: response.usage })
+      return NextResponse.json({ error: 'The assistant did not return an answer. Please try again.' }, { status: 502 })
+    }
 
     return NextResponse.json({ answer })
 
