@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ArrowRight, BookOpenText, CheckCircle2, FileQuestion, FileText, Globe2, Layers3, Sparkles } from 'lucide-react'
 import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd } from '@/components/json-ld'
+import { Navbar } from '@/components/navbar'
 import { localizedLandings, SEO_LOCALES, languageAlternates, type SeoLocale } from '@/lib/seo-locales'
 
 const baseUrl = 'https://cramdesk.com'
@@ -63,7 +64,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
     <main lang={locale} dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
       <LocalePreference locale={locale} />
       <FAQJsonLd faqs={content.faqs} />
-      <header className="border-b border-[#f0dfd5] bg-[#fffaf5]/95 px-5 sm:px-8">
+      {locale === 'en' ? <Navbar publicLocale="en" /> : <header className="border-b border-[#f0dfd5] bg-[#fffaf5]/95 px-5 sm:px-8">
         <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-3">
           <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="CramDesk">
             <Image src="/logo.png" width={36} height={36} alt="" className="size-9 rounded-xl shadow-sm" />
@@ -81,7 +82,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
             <Link href="/signup" className="hidden rounded-full bg-[#b84432] px-5 py-2.5 text-white hover:bg-[#963326] md:inline-flex">{content.start}</Link>
           </nav>
         </div>
-      </header>
+      </header>}
 
       <section className="relative px-5 pb-24 pt-[4.25rem] text-center sm:px-8 sm:pt-24 lg:pb-32">
         <div className="pointer-events-none absolute left-1/2 top-0 h-[580px] w-[800px] -translate-x-1/2 rounded-full bg-[#f8eef4] opacity-80 blur-[110px]" />

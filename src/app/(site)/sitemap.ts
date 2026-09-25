@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { SEO_LOCALES } from '@/lib/seo-locales'
+import { pdfToolPages, pdfToolPath } from '@/lib/pdf-tool-pages'
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://cramdesk.com'
 
@@ -14,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/use-cases/medical-students', '/use-cases/language-learning', '/use-cases/law-students',
   ]
 
-  return [...publicPaths, ...SEO_LOCALES.map(locale => `/${locale}`)]
+  const toolPaths = pdfToolPages.flatMap(page => [pdfToolPath(page, 'fr'), pdfToolPath(page, 'en')])
+  return [...publicPaths, ...toolPaths, ...SEO_LOCALES.map(locale => `/${locale}`)]
     .map(path => ({ url: `${baseUrl}${path === '/' ? '' : path}` }))
 }

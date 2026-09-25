@@ -125,22 +125,21 @@ export default function LandingPage() {
     <div className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
       <Navbar />
       <main>
-        <section id="essayer" className="relative scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 py-14 sm:px-8 sm:py-20 lg:py-24">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(380px,.86fr)] lg:gap-16">
-            <div>
-              <p className="mb-6 text-xs font-bold uppercase tracking-[.22em] text-[var(--cd-brand)]">CramDesk · ton espace de révision</p>
-              <h1 className="font-editorial text-[clamp(3.2rem,6vw,6rem)] leading-[1.04] tracking-[-.055em] text-[var(--cd-ink)]">Ton PDF mérite mieux <span className="italic text-[var(--cd-brand)]">qu’une relecture.</span></h1>
-              <p className="mt-7 max-w-xl text-base leading-8 text-[#655a62] sm:text-lg">Importe ton cours et passe directement à l’essentiel : une synthèse claire, des réponses liées au document, puis des cartes et des quiz pour retenir.</p>
-              <div className="mt-8 flex flex-wrap items-center gap-5">
-                <a href="#deposer-pdf" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--cd-brand)] px-6 text-sm font-bold text-white transition-colors hover:bg-[var(--cd-brand-hover)] lg:hidden"><Upload className="size-4" /> Déposer mon PDF</a>
-                <Link href="#produit" className="inline-flex items-center gap-2 text-sm font-semibold text-[#664957] underline decoration-[#cbb1c3] underline-offset-8 hover:text-[#b84432]">Voir le résultat <ArrowRight className="size-4" /></Link>
-              </div>
-              <p className="mt-7 text-xs font-medium text-[#756b70]">7 jours d’essai sans carte bancaire · PDF avec texte sélectionnable</p>
+        <section id="essayer" className="relative scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-20">
+          <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[min(800px,100vw)] -translate-x-1/2 rounded-full bg-[#f8e8e2] opacity-65 blur-[100px]" />
+          <div className="relative mx-auto max-w-6xl text-center">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ead8cf] bg-[#fff0e6] px-4 py-2 text-xs font-bold text-[var(--cd-brand)]"><Sparkles className="size-3.5" />CramDesk · ton espace de révision</p>
+            <h1 className="font-editorial mx-auto max-w-4xl text-[clamp(3.1rem,6.7vw,6.5rem)] leading-[1.02] tracking-[-.055em] text-[var(--cd-ink)]">Ton PDF mérite mieux <span className="italic text-[var(--cd-brand)]">qu’une relecture.</span></h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#655a62] sm:text-lg">Importe ton cours et passe directement à l’essentiel : une synthèse claire, des réponses liées au document, puis des cartes et des quiz pour retenir.</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <a href="#deposer-pdf" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--cd-brand)] px-6 text-sm font-bold text-white transition-colors hover:bg-[var(--cd-brand-hover)]"><Upload className="size-4" /> Déposer mon PDF</a>
+              <Link href="#produit" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#e7d3c8] bg-white px-6 text-sm font-semibold text-[#664957] hover:border-[#b84432] hover:text-[#b84432]">Voir le résultat <ArrowRight className="size-4" /></Link>
             </div>
-            <div id="deposer-pdf" className="scroll-mt-24 rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 shadow-[0_28px_70px_-44px_rgba(61,36,56,.4)] sm:p-6">
+            <div id="deposer-pdf" className="mx-auto mt-10 max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 text-left shadow-[0_28px_70px_-44px_rgba(61,36,56,.4)] sm:p-6">
               <div className="mb-4 flex items-center justify-between gap-3 px-1"><p className="text-sm font-bold text-[#3b2e34]">Commence avec ton cours</p><span className="rounded-full bg-[#f4f7ef] px-2.5 py-1 text-xs font-semibold text-[#58744f]">Étape 1 sur 2</span></div>
               <DemoUpload />
             </div>
+            <p className="mt-5 text-xs font-medium text-[#756b70]">7 jours d’essai sans carte bancaire · PDF avec texte sélectionnable</p>
           </div>
         </section>
 
