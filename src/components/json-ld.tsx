@@ -145,7 +145,7 @@ export function ArticleJsonLd({
   headline: string
   description: string
   authorName: string
-  datePublished: string
+  datePublished?: string
   dateModified?: string
   url: string
   image?: string
@@ -162,8 +162,8 @@ export function ArticleJsonLd({
     },
     url,
     image: image ? [image] : undefined,
-    datePublished,
-    dateModified: dateModified || datePublished,
+    ...(datePublished ? { datePublished } : {}),
+    ...(dateModified ? { dateModified } : {}),
     mainEntityOfPage: url,
     keywords,
   }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { extractTextFromPDF, truncateText } from '@/lib/pdf'
+import { extractTextFromPDF, prepareDocumentText } from '@/lib/pdf'
 import { generateDocumentDigest, generateEasyReading } from '@/lib/openai'
 import { getPlanLimits } from '@/lib/plans'
 import { isTrialExpired } from '@/lib/utils'
@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Warn about scanned documents but still proceed if some text was extracted
-    const pdfWarning = pdfData.warning
+    const prepared = prepareDocumentText(pdfData)
+    const pdfWarning = pdfData.warning || (prepared.sampled ? 'The document is long. The initial summary uses excerpts from every page; ask focused questions and verify the source.' : undefined)
 
     // Sanitize filename for storage (Supabase is very strict on patterns)
     const sanitizeFileName = (name: string): string => {
@@ -146,6 +147,7 @@ export async function POST(request: NextRequest) {
 
     if (docError || !document) {
       console.error('Document creation error:', docError)
+      await supabase.storage.from('documents').remove([fileName])
       return NextResponse.json({ error: 'Failed to create document record' }, { status: 500 })
     }
 
@@ -162,12 +164,12 @@ export async function POST(request: NextRequest) {
 
     // Process document with AI (async - but we'll wait for it)
     try {
-      const truncatedText = truncateText(pdfData.text)
+      const sourceText = prepared.text
       
       // Generate digest and easy reading in parallel
       const [digestResult, easyReadingResult] = await Promise.all([
-        generateDocumentDigest(truncatedText),
-        generateEasyReading(truncatedText),
+        generateDocumentDigest(sourceText),
+        generateEasyReading(sourceText),
       ])
       const { digest } = digestResult
       const { easyReading } = easyReadingResult
@@ -181,7 +183,7 @@ export async function POST(request: NextRequest) {
         questions: digest.questions,
         actions: digest.actions,
         easy_reading: easyReading,
-        source_text: truncatedText,
+        source_text: sourceText,
         tokens_used: digestResult.tokensUsed + easyReadingResult.tokensUsed,
       } as any)
       if (summaryError) throw summaryError
@@ -217,7 +219,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true,
       documentId: document.id,
-      warning: pdfWarning // Include warning about scanned/image PDFs if any
+      warning: pdfWarning,
+      sampled: prepared.sampled,
     })
 
   } catch (error) {

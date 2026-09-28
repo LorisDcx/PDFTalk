@@ -45,6 +45,7 @@ export default function DocumentPage() {
   const [pdfVisible, setPdfVisible] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [retrying, setRetrying] = useState(false)
   const [translatedSummary, setTranslatedSummary] = useState<string[] | null>(null)
   const [translatedReview, setTranslatedReview] = useState<string | null>(null)
   const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
@@ -122,23 +123,24 @@ export default function DocumentPage() {
     return () => window.clearInterval(interval)
   }, [document?.status, documentId, loadDocument, supabase, userId])
 
-  const togglePdf = async () => {
-    if (pdfVisible) {
-      setPdfVisible(false)
-      return
-    }
+  const openPdf = async (page?: number) => {
     if (!document) return
     setPdfLoading(true)
     try {
       const { data, error } = await supabase.storage.from('documents').createSignedUrl(document.file_path, 3600)
       if (error || !data?.signedUrl) throw error || new Error('PDF unavailable')
-      setPdfUrl(data.signedUrl)
+      setPdfUrl(`${data.signedUrl}#page=${page || 1}&toolbar=1&navpanes=0`)
       setPdfVisible(true)
     } catch {
       toast({ title: t('error'), description: t('notAvailable'), variant: 'destructive' })
     } finally {
       setPdfLoading(false)
     }
+  }
+
+  const togglePdf = async () => {
+    if (pdfVisible) { setPdfVisible(false); return }
+    await openPdf()
   }
 
   const copyText = async (content: string) => {
@@ -148,6 +150,24 @@ export default function DocumentPage() {
     } catch {
       toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
     }
+  }
+
+  const retryAnalysis = async () => {
+    if (!document || retrying) return
+    setRetrying(true)
+    try {
+      const response = await fetch('/api/process-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: document.id, filePath: document.file_path, fileName: document.file_name }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || t('unexpectedError'))
+      await loadDocument()
+      toast({ title: t('documentUploaded'), description: language === 'fr' ? 'Ton document est prêt à réviser.' : 'Your document is ready to study.' })
+    } catch (error) {
+      toast({ title: t('error'), description: error instanceof Error ? error.message : t('unexpectedError'), variant: 'destructive' })
+      await loadDocument()
+    } finally { setRetrying(false) }
   }
 
   if (authLoading || isLoading || !userId) {
@@ -226,7 +246,10 @@ export default function DocumentPage() {
             <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-[#f7e6e2] text-[#a0443d]"><AlertCircle className="size-7" /></div>
             <h2 className="font-editorial text-3xl">{t('error')}</h2>
             <p className="mt-3 text-[#756772]">{t('unexpectedError')}</p>
-            <Button asChild className="mt-7 bg-[#62364f] text-white"><Link href="/dashboard"><ArrowLeft className="mr-2 size-4" />{t('dashboard')}</Link></Button>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Button onClick={() => void retryAnalysis()} disabled={retrying} className="bg-[#b84432] text-white">{retrying && <Loader2 className="mr-2 size-4 animate-spin" />}{language === 'fr' ? 'Relancer l’analyse' : 'Retry analysis'}</Button>
+              <Button asChild variant="outline"><Link href="/dashboard"><ArrowLeft className="mr-2 size-4" />{t('dashboard')}</Link></Button>
+            </div>
           </div>
         ) : !digest ? (
           <div className="mx-auto max-w-3xl px-5 py-20 text-center">
@@ -252,6 +275,8 @@ export default function DocumentPage() {
             <div className={pdfVisible ? 'grid gap-6 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]' : 'pt-6'}>
               <div className="min-w-0">
                 {activeView === 'summary' && <div className="space-y-5">
+                  {summary?.source_text?.includes('[PARTIAL EXCERPTS') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Ce document est long : la synthèse utilise des extraits de chaque page. Vérifie les passages importants dans le PDF et pose des questions ciblées.' : 'This document is long: the summary uses excerpts from every page. Check important passages in the PDF and ask focused questions.'}</p>}
+                  {summary?.source_text?.includes('[[SOURCE_GAPS]]') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Certaines pages semblent contenir des images ou des scans : leur texte peut manquer dans cette analyse.' : 'Some pages appear to contain images or scans, so their text may be missing from this analysis.'}</p>}
                   <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
                     <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-[#eee6e0] pb-5">
                       <div>
@@ -287,7 +312,7 @@ export default function DocumentPage() {
                       {digest.keyClauses.map((concept, index) => <article key={index} className="py-5 first:pt-0 last:pb-0">
                         <h3 className="text-base font-bold text-[#40293a]">{concept.title}</h3>
                         <p className="mt-2 max-w-3xl text-base leading-7 text-[#635961]">{concept.description}</p>
-                        {concept.sourceQuote && <blockquote className="mt-4 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-sm leading-6 text-[#72666a]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}</span>“{concept.sourceQuote}”</blockquote>}
+                        {concept.sourceQuote && <button type="button" onClick={() => void openPdf(concept.sourcePage)} className="mt-4 block min-h-11 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-left text-sm leading-6 text-[#72666a] hover:text-[#a44331] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}{concept.sourcePage ? ` · page ${concept.sourcePage}` : ''}</span>“{concept.sourceQuote}”</button>}
                       </article>)}
                     </div>
                     <button type="button" onClick={() => void togglePdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
@@ -339,7 +364,7 @@ export default function DocumentPage() {
 
                 {activeView === 'chat' && <section className="space-y-4">
                   <h2 className="font-editorial text-2xl sm:text-3xl">{t('chatTitle')}</h2>
-                  <PDFChat documentId={document.id} documentContent={documentContent} documentName={document.file_name} />
+                  <PDFChat documentId={document.id} documentContent={documentContent} documentName={document.file_name} onOpenSource={page => void openPdf(page)} />
                 </section>}
               </div>
 
@@ -348,7 +373,7 @@ export default function DocumentPage() {
                   <span className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold"><FileText className="size-4 shrink-0 text-[#87516f]" />{document.file_name}</span>
                   <Button type="button" size="icon" variant="ghost" onClick={() => setPdfVisible(false)} aria-label={t('back')}><X className="size-4" /></Button>
                 </div>
-                <iframe src={`${pdfUrl}#toolbar=1&navpanes=0`} title={t('viewPdf')} className="min-h-0 w-full flex-1 border-0 bg-white" />
+                <iframe src={pdfUrl} title={t('viewPdf')} className="min-h-0 w-full flex-1 border-0 bg-white" />
               </aside>}
             </div>
           </div>

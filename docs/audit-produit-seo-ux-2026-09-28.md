@@ -1,0 +1,94 @@
+# Audit professionnel — CramDesk
+
+**Date :** 28 septembre 2026
+
+**Périmètre :** site public, outils PDF, espace étudiant, traitement documentaire, acquisition organique, comparaison concurrentielle.
+**Méthode :** lecture du code, inspection du site public en production à 375, 768 et 1280 px, exécution du build, du lint, du contrôle de base de données et des tests des outils PDF, consultation des pages officielles des concurrents et de Google Search Central. Aucun essai authentifié complet, aucune donnée Search Console, analytics de production ou facture IA n'étaient disponibles. Les risques techniques non reproduits sont signalés comme tels.
+
+**Suivi du 28 septembre — première livraison après cet audit :** le parseur historique a été remplacé par PDF.js après reproduction de son échec sur un PDF valide. Les nouveaux imports conservent les repères de page, le chat affiche uniquement des extraits retrouvés littéralement et peut ouvrir la page correspondante, cartes et quiz n'inventent plus de numéro de page, l'analyse échouée peut être relancée et l'import garde la sélection en cas d'erreur. Le dépôt est remonté dans le premier écran de l'accueil. Les anciennes promesses et dates structurées les plus manifestement fausses ont été corrigées. Le présent diagnostic reste le point de départ ; la synchronisation de la progression, l'OCR, les tests E2E authentifiés, l'instrumentation et la refonte complète du studio restent à faire.
+
+## Verdict
+
+CramDesk possède déjà une vraie base produit : une identité éditoriale reconnaissable, un site public opérationnel, huit outils PDF gratuits exécutés dans le navigateur, un flux PDF → résumé → chat → entraînement et une architecture SEO multilingue initiale. Le build passe, les huit tests des opérations PDF passent, et le contrôle de schéma Supabase répond correctement.
+
+Le produit n'est pas encore au niveau des meilleurs outils de sa catégorie sur le point décisif : **la confiance dans le résultat**. L'utilisateur ne peut pas remonter d'une réponse ou d'une question à la bonne page du document. La couverture des documents longs est incohérente avec les limites commercialisées. L'échec de traitement se récupère mal. En parallèle, la première action utile arrive trop bas sur mobile, et plusieurs pages SEO parlent une autre langue que leur contexte de navigation ou affichent des signaux éditoriaux peu fiables. Ajouter beaucoup de pages avant de corriger ces points amplifierait la promesse sans améliorer sa preuve.
+
+## Ce qui fonctionne déjà
+
+| Domaine | Observation étayée | À préserver |
+|---|---|---|
+| Outils gratuits | Huit actions réelles en FR et EN : fusion, extraction, réorganisation, rotation, numérotation, filigrane, métadonnées, images → PDF. Les opérations s'exécutent localement, avec prévisualisation, validation, succès et erreur. `src/components/pdf-toolkit.tsx`, `src/lib/pdf-tools.ts`. | Gratuit, sans compte, sans transfert, une URL par tâche. |
+| Identité visuelle | Typographie éditoriale, palette chaude, surfaces sobres et navigation claire en desktop. Aucun débordement horizontal constaté aux largeurs inspectées. | Le système de `docs/ui-ux-rules.md` et l'accent orange-rouge. |
+| Socle technique | `npm run build` réussi ; `npm run test:pdf-tools` réussi (8 opérations) ; `npm run db:check` confirme l'accès aux tables/fonctions attendues. | Contrôles d'accès serveur et consommation atomique du quota via `consume_pages`. |
+| Référencement technique initial | Sitemap, robots.txt, pages outils statiques, canonical et hreflang FR/EN sur les outils. `src/app/(site)/sitemap.ts`, `src/app/(site)/outils-pdf/[slug]/page.tsx`. | Pages de tâches vraiment distinctes et liens internes entre outils. |
+
+Ces contrôles ne prouvent **pas** qu'un étudiant peut réussir un import et obtenir une réponse IA en production aujourd'hui : il faut un test de bout en bout sur un compte de test, un PDF textuel, un PDF scanné et un long cours.
+
+## Constat priorisé
+
+### P0 — Fiabilité et honnêteté du cœur produit
+
+1. **Couverture incomplète des cours.** Le parseur limite le traitement à 200 pages (`src/lib/pdf.ts:63`), alors que le plan Graduate autorise 500 pages (`src/lib/plans.ts:20`). Le texte envoyé au résumé est tronqué après environ 400 000 caractères (`src/lib/pdf.ts:197`). Les flashcards ne voient que les 10 000 premiers caractères (`src/app/(site)/api/flashcards/route.ts:54`) et le quiz 12 000 (`src/app/(site)/api/quiz/route.ts:53`). Une bonne réponse sur le début d'un cours peut donc masquer l'absence des chapitres suivants. **Action :** extraction par page avec ordre de lecture conservé ; couverture et pages réellement analysées affichées avant génération ; traitement par sections ; tests sur documents longs, multi-colonnes, tableaux et scans.
+2. **Sources insuffisamment vérifiables.** Le résumé vérifie quelques courtes citations littérales, ce qui est bien, mais sans numéro de page. Le chat sélectionne des segments au score lexical puis renvoie seulement `{answer}` (`src/lib/document-retrieval.ts`, `src/app/(site)/api/chat/route.ts:78`). Flashcards et quiz demandent au modèle un `sourceRef` de type « Section X » ou « Page X, Section Y » alors que le texte transmis ne porte aucune carte fiable des pages (`src/app/(site)/api/flashcards/route.ts:71`, `src/app/(site)/api/quiz/route.ts:73`). **Action :** chaque unité générée doit porter des identifiants de passages vérifiés et un bouton « Voir la page » ouvrant le PDF au bon endroit ; rejeter ou marquer « source introuvable » si la preuve manque.
+3. **Échecs difficiles à récupérer.** Le tableau de bord téléverse d'abord dans Storage, puis appelle une route synchrone de 60 secondes qui extrait le PDF et lance deux générations IA (`src/app/(site)/(dashboard)/dashboard/page.tsx:177`, `src/app/(site)/api/process-document/route.ts:10`). Si l'analyse échoue, le document passe à `failed` et l'écran ne propose qu'un retour au tableau de bord (`src/app/(site)/(dashboard)/documents/[id]/page.tsx:231`). Les objets téléversés peuvent rester présents après certains refus ou échecs ; c'est un risque déduit du flux, à vérifier en staging. Dans `FileUpload`, `onUpload` est considéré réussi après le retour ; or le parent intercepte l'erreur sans la relancer, ce qui vide la sélection après un échec (`src/components/file-upload.tsx:49`, `src/app/(site)/(dashboard)/dashboard/page.tsx:225`). **Action :** traitement avec états durables, reprise sans réupload, nettoyage des objets orphelins, bouton Réessayer, codes d'erreur stables et fichier conservé lors d'un échec.
+4. **Promesse et limitation contradictoires.** Les pages « 500 pages » ou « n'importe quel PDF » doivent être alignées sur la vraie extraction et l'absence d'OCR. La promesse « résumé du cours » doit afficher les pages effectivement couvertes. Le quota ne doit jamais servir de libellé générique à une panne du service (`src/lib/usage.ts:95`).
+
+### P1 — UX d'un véritable atelier d'étude
+
+5. **Première action trop éloignée.** En production, à 375 px, la carte d'import de l'accueil commence vers 655 px et l'outil du hub PDF vers 942 px. Sur la page dédiée à la fusion, le formulaire commence sous le texte d'introduction. Les CTA de défilement fonctionnent, mais l'intention de l'utilisateur est souvent de déposer immédiatement. **Action :** placer un vrai champ de dépôt visible dans le premier écran, conserver un titre court et une preuve de confidentialité ; sur les pages outils, mettre l'outil au-dessus des explications. Tester les largeurs 375, 768 et 1280 px avec l'action primaire visible sans défilement excessif.
+6. **Hiérarchie centrée sur les fonctions plutôt que sur la tâche.** Dans l'espace document, quatre onglets séparent « résumé », « points d'attention », « outils de révision » et « chat » (`src/app/(site)/(dashboard)/documents/[id]/page.tsx:157`). Le PDF est fermé par défaut ; les outils de révision sont derrière un onglet et le chat derrière un autre. **Action :** un parcours unique : « Comprendre » (vue d'ensemble + plan de cours), « Vérifier » (PDF et extraits côte à côte), « S'entraîner » (questions et cartes), avec un champ « Pose une question sur ce passage » toujours accessible. Garder les options secondaires sous divulgation progressive.
+7. **L'apprentissage ne suit pas encore l'étudiant.** Le chat n'existe que dans l'état du composant ; recharger la page l'efface (`src/components/pdf-chat.tsx:17`). Les sessions de quiz, diapositives, dossiers et une partie du statut des cartes sont en `localStorage` (`src/components/quiz.tsx:88`, `src/components/document-sidebar.tsx:83`). La progression ne suit donc pas automatiquement l'utilisateur entre navigateurs. **Action :** sauvegarder les sessions et corrections dans la base, permettre de modifier une carte et une réponse, puis ajouter une vraie file de révision espacée avant de promettre la répétition espacée.
+8. **États à distinguer.** Le chat transforme tout 403 « document indisponible » en « accès expiré » et lien facturation (`src/components/pdf-chat.tsx:79`), même si la cause est autre. Les erreurs devraient distinguer droit, document, quota, extraction, fournisseur IA et réseau, avec une action propre à chaque cas.
+
+**Accessibilité à corriger dans ce chantier :** les règles du projet fixent 16 px pour le texte courant mobile et 44 px pour les cibles tactiles (`docs/ui-ux-rules.md`). Le chat affiche ses messages en `text-sm` (14 px), sa note en `text-xs` (12 px) et son bouton d'envoi en `size-10` (40 px) (`src/components/pdf-chat.tsx`). Ce sont des écarts concrets ; il reste à mener un audit complet clavier, contraste, lecteur d'écran et zoom.
+
+### P1 — SEO et acquisition crédibles
+
+9. **Langues et architecture éditoriale.** Les outils PDF FR/EN ont une bonne paire d'URLs, mais `/pdf`, `/resume`, `/quiz` et plusieurs articles/comparatifs sont en anglais sur des routes non préfixées ; `/pdf` déclare `lang=en` et renvoie à `/en` alors qu'un visiteur peut venir d'une navigation française. Google recommande des URLs par langue et une langue de contenu/navigation cohérente. **Action :** inventaire de chaque page indexable, langue cible, canonical, paire hreflang, intention et destination de la CTA ; une version française réelle pour les intentions françaises, pas une traduction du seul gabarit.
+10. **Dates et allégations éditoriales.** Trois articles annoncent « 2025 » dans leur URL/titre en 2026. Leur `datePublished` est calculé avec la date du build (`src/app/(site)/(content)/blog/*/page.tsx`) au lieu de la vraie publication. Des articles historiques attribuent au produit une répétition espacée ou une capacité « any PDF » que le code actuel ne démontre pas. **Action :** audit factuel ligne par ligne, dates de publication fixes, `dateModified` seulement pour une vraie révision, comparatifs avec critères, dates et captures de tests. Rediriger les pages annuelles uniquement après une mise à jour substantielle.
+11. **Ne pas confondre balisage et avantage concurrentiel.** Le `FAQPage` existe sur plusieurs pages, mais Google réserve généralement ce résultat enrichi aux sites de santé/gouvernement faisant autorité. Ajouter des dizaines de variantes de mots-clés ou pages minces risque l'effet inverse : Google classe l'abus de pages passerelles et de contenu à grande échelle. **Action :** une page par tâche réelle, une démonstration interactive, une réponse utile et originale, des limites précises, des liens vers l'étape suivante.
+12. **Mesure insuffisante pour piloter le SEO et la conversion.** Le code insère quelques événements (inscription, import, Stripe) mais n'instrumente pas le tunnel complet : recherche → page → sélection du fichier → analyse réussie → première question sourcée → retour pour réviser. Sans Search Console et mesures terrain, ni position, ni trafic organique, ni Core Web Vitals, ni conversion ne peuvent être affirmés. **Action :** tableau de bord par intention et langue, événement de succès utile, erreurs et coûts ; mesurer LCP, INP et CLS sur mobile. Repères Google : LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1.
+
+### P2 — Étendue, coût et qualité
+
+13. **Outils gratuits à étendre selon la valeur, pas le volume.** Priorité forte aux actions localement fiables et recherchées : supprimer des pages, diviser un PDF, PDF → JPG/PNG, extraire le texte d'un PDF sélectionnable, lire les propriétés et le nombre de pages. Le diagnostic « PDF scanné ou sélectionnable ? » serait un excellent aimant à utilisateurs pour le produit d'étude. Compression, OCR, Word/Excel et édition avancée demandent un moteur et des tests de fidélité spécifiques ; ne pas publier leurs pages avant d'avoir une expérience convaincante.
+14. **Économie IA et plafonds.** Le plan Graduate annonce 10 000 pages/mois à 12,99 € (`src/lib/plans.ts:19`) et le chat n'est pas décompté en pages. Le résumé et la lecture simplifiée envoient séparément le même texte à deux modèles ; les générations ont plusieurs modèles différents. **Action :** coût par document réussi, par question et par utilisateur, plafonds raisonnables, cache des résultats et routage de modèle selon tâche ; un jeu d'évaluation de qualité FR/EN, sciences, droit et documents longs avant de réduire le coût au détriment de la réponse.
+15. **Dette qualité visible.** `npm run lint` sort avec 0 erreur et 66 avertissements, dont `any`, dépendances d'effets et images non optimisées. Le build passe, mais il n'y a pas de test automatisé de l'import authentifié, du chat sourcé, du quiz, des quotas et des échecs de fournisseur. Ajouter ces scénarios avec des PDF de référence, pas des tests qui répètent l'implémentation.
+
+## Leçons des concurrents — sans copier leur surface
+
+| Référence | Mécanisme observé sur la source officielle | Application ciblée à CramDesk |
+|---|---|---|
+| [ChatPDF](https://www.chatpdf.com/fr) | Dépôt et question dans le premier écran, essai sans compte, citations cliquables, PDF et réponse côte à côte ; le compte sert à conserver l'historique. | Essai immédiat et preuve vérifiable dès la première réponse. |
+| [NotebookLM](https://blog.google/innovation-and-ai/models-and-research/google-labs/notebooklm-student-features/) | Flashcards et quiz ancrés dans les sources ; bouton d'explication avec citations ; choix du sujet, de la difficulté et du nombre d'exercices. | Transformer chaque extrait compris en entraînement réglable et traçable. |
+| [Quizlet](https://quizlet.com/features/ai-study-tools) et [Knowt](https://help.knowt.com/en/articles/16905163-what-s-included-in-the-free-plan-for-students) | Cartes modifiables, modes de pratique, tests, répétition espacée et progression réutilisable. | Une boucle de révision et une raison de revenir, au-delà du premier résumé. |
+| [iLovePDF](https://www.ilovepdf.com/) et [Smallpdf](https://smallpdf.com/pdf-tools) | Une tâche identifiable par URL, large couverture de problèmes PDF, action immédiate, liens entre outils. | Étendre les outils gratuits seulement avec une exécution réelle, visuelle et sans ambiguïté. |
+
+Ce sont des mécanismes de produit et d'acquisition observables, **pas** une preuve de leurs positions Google, trafic ou taux de conversion. Reproduire des écrans, textes, visuels ou marques à l'identique n'apporterait ni qualité ni différenciation.
+
+## Positionnement recommandé
+
+**« Le cours PDF qui devient un parcours de révision vérifiable. »** CramDesk peut battre un simple chatbot PDF sur l'étude active et un simple catalogue PDF sur la continuité : préparer son fichier localement, voir ce qui sera réellement analysé, obtenir une carte du cours liée aux pages, interroger un passage, générer quelques exercices expliqués puis retrouver sa progression. La confidentialité des outils locaux est un avantage concret ; la confiance du moteur d'étude doit être du même niveau.
+
+Pour l'acquisition, privilégier trois familles de pages : **outil immédiat** (« extraire des pages PDF »), **problème d'étude** (« faire une fiche de révision depuis un cours PDF »), **méthode vérifiable** (« réviser un chapitre avec questions corrigées »). Chaque page doit offrir le premier geste ou une démonstration fonctionnelle, annoncer les limites et mener vers une prochaine étape naturelle. Les pages traduites doivent être revues par langue et intention, surtout pour le public international.
+
+## Plan de travail recommandé
+
+| Horizon | Livraison | Critère de sortie |
+|---|---|---|
+| 0–2 semaines | Correction du flux d'échec, reprise, rétention du fichier, couverture réelle des pages, corrections des allégations et des dates ; tests E2E d'import/chat/quota. | Aucun document « réussi » sans couverture affichée ; un échec peut être repris ; aucune panne n'est affichée comme quota. |
+| 3–6 semaines | Extraction structurée par page, passages sourcés pour résumé/chat/cartes/quiz, PDF ouvert sur la bonne page ; nouveau héros avec dépôt immédiat ; refonte du parcours document. | Chaque réponse évaluée fournit une source vérifiable ou avoue l'absence de source ; l'action primaire est visible sur mobile. |
+| 6–12 semaines | Progression synchronisée, cartes éditables et révision espacée ; diagnostic PDF gratuit et outils locaux prioritaires ; pages FR/EN éditées et mesures SEO/conversion. | Activation, rétention, coût par session utile, couverture et erreurs suivis par langue et type de document. |
+
+**Décision produit :** suspendre la création massive de pages SEO jusqu'à ce que le parcours principal fournisse une valeur prouvable. Une première vague de cinq nouveaux outils réellement utiles et cinq pages d'étude originales sera plus solide que cinquante variations de titres.
+
+## Références SEO officielles
+
+- [Google Search Essentials](https://developers.google.com/search/docs/essentials) : contenu utile, termes recherchés dans les titres et liens explorables.
+- [Contenu utile et fiable](https://developers.google.com/search/docs/fundamentals/creating-helpful-content) et [règles antispam](https://developers.google.com/search/docs/essentials/spam-policies) : valeur propre et risque des pages produites en masse.
+- [Sites multilingues](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites) : URLs par langue, hreflang et contenu cohérent.
+- [Dates de publication](https://developers.google.com/search/docs/appearance/publication-dates) : dates visibles et structurées correspondant à la réalité.
+- [FAQ enrichies](https://developers.google.com/search/blog/2023/08/howto-faq-changes) : visibilité limitée aux sites de santé et gouvernement faisant autorité.
+- [Core Web Vitals](https://developers.google.com/search/docs/appearance/core-web-vitals) : LCP, INP et CLS mesurés auprès d'utilisateurs réels.
+
+Une première place Google ne peut pas être garantie. La bonne cible est une série de requêtes précises où le produit accomplit mieux la tâche, avec suivi des impressions, clics et conversions dans Search Console.

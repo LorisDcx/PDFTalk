@@ -35,7 +35,7 @@ const faqs = [
   {
     question: 'Which alternative is best for turning PDFs into flashcards?',
     answer:
-      'Cramdesk lets you upload any PDF and instantly generate flashcards, quizzes, and summaries—ideal for lecture notes, handouts, and textbooks.',
+      'CramDesk can generate flashcards, quizzes, and summaries from PDFs with selectable text. Image-only scans need OCR first.',
   },
   {
     question: 'Are these alternatives free?',
@@ -45,7 +45,7 @@ const faqs = [
   {
     question: 'Do these tools work offline?',
     answer:
-      'Anki works offline. Cramdesk and Brainscape are web-first with syncing; offline export is possible via downloads or print for some features.',
+      'Anki works offline. CramDesk needs a connection for AI generation; generated flashcards can be exported as CSV.',
   },
 ]
 
@@ -56,8 +56,8 @@ const picks = [
     bullets: [
       'Upload PDFs and auto-generate flashcards, quizzes, summaries',
       'AI humanizer for essay rewrites and clearer phrasing',
-      'Spaced repetition mode + quiz practice from the same source',
-      'Privacy controls and GDPR-ready hosting',
+      'Flashcards and quiz practice from the same PDF',
+      'Local, no-upload PDF preparation tools alongside the study workspace',
     ],
   },
   {
@@ -89,7 +89,6 @@ const picks = [
 ]
 
 export default function BestQuizletAlternatives2025Page() {
-  const todayIso = new Date().toISOString().split('T')[0]
 
   return (
     <>
@@ -102,7 +101,6 @@ export default function BestQuizletAlternatives2025Page() {
         headline="Best Quizlet alternatives in 2025"
         description="Roundup of the best Quizlet alternatives with AI flashcards, PDF-to-quiz, spaced repetition, and privacy-focused study tools."
         authorName="Cramdesk Team"
-        datePublished={todayIso}
         url="https://cramdesk.com/blog/best-quizlet-alternatives-2025"
         image="https://cramdesk.com/og.png"
         keywords={['quizlet alternative', 'ai flashcards', 'study tools 2025']}
@@ -198,13 +196,13 @@ export default function BestQuizletAlternatives2025Page() {
             <h2 className="text-2xl font-semibold">Cramdesk: fastest from PDF to flashcards & quizzes</h2>
             <div className="space-y-3 text-muted-foreground leading-relaxed">
               <p>
-                Cramdesk is built for students who live in PDFs. Upload a file and get flashcards, quizzes, and summaries in minutes. You can humanize long explanations, extract key terms, and practice with spaced repetition.
+                CramDesk is built for students who study from PDFs. Upload a file with selectable text to create flashcards, quizzes, and summaries. Check generated answers against the original passages before using them to revise.
               </p>
               <ul className="space-y-2 list-disc list-inside">
                 <li>PDF ingestion → flashcards, quizzes, summaries automatically</li>
-                <li>Spaced repetition practice plus quick quiz mode</li>
+                <li>Flashcard practice and quick quiz mode</li>
                 <li>AI humanizer to rewrite dense passages</li>
-                <li>Privacy-aware: GDPR-ready hosting and export options</li>
+                <li>CSV export for flashcards and free PDF tools that run locally</li>
               </ul>
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-primary-foreground/90">
                 Tip: start with one PDF chapter, generate flashcards, then switch to quiz mode for rapid recall.
@@ -245,7 +243,7 @@ export default function BestQuizletAlternatives2025Page() {
           <section className="section-card p-6 md:p-8 bg-background/80 border border-border/60 shadow-md shadow-primary/5 space-y-4">
             <h2 className="text-2xl font-semibold">Recommendations by use case</h2>
             <ul className="space-y-2 text-muted-foreground list-disc list-inside leading-relaxed">
-              <li><strong>Medical/law students:</strong> Cramdesk for PDF-to-quiz + spaced repetition.</li>
+              <li><strong>Medical/law students:</strong> CramDesk for PDF-to-quiz; verify every generated answer against the source.</li>
               <li><strong>Language learners:</strong> Brainscape for vocab drills; Cramdesk for idioms extracted from readings.</li>
               <li><strong>Power users/offline:</strong> Anki.</li>
               <li><strong>Team collaboration:</strong> Notion + add-ons.</li>

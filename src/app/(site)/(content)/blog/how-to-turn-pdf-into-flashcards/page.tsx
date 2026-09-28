@@ -4,12 +4,12 @@ import { ArrowRight, Sparkles, Star, ShieldCheck, Clock3, ListChecks, Flame, Boo
 import { ArticleJsonLd, FAQJsonLd, WebPageJsonLd } from '@/components/json-ld'
 
 export const metadata: Metadata = {
-  title: 'How to turn a PDF into flashcards in minutes (2025 guide) | Cramdesk',
-  description: 'Step-by-step guide to convert any PDF into flashcards and quizzes with AI. Perfect for students needing fast study decks.',
+  title: 'How to turn a readable PDF into flashcards | CramDesk',
+  description: 'A practical guide to making flashcards and quizzes from a PDF with selectable text, including how to check AI-generated cards against the source.',
   keywords: ['pdf to flashcards', 'ai flashcards', 'convert pdf to quiz', 'study faster pdf', 'cramdesk guide'],
   openGraph: {
     title: 'How to turn a PDF into flashcards in minutes',
-    description: 'Learn the fastest way to turn PDFs into flashcards and quizzes using AI. 2025 guide for students.',
+    description: 'Learn how to turn a readable PDF into flashcards and quizzes, then verify each card against your course.',
     url: 'https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards',
   },
   alternates: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 const faqs = [
   {
     question: 'Can I use any PDF format?',
-    answer: 'Yes. Upload course slides, handouts, case studies, or textbooks in PDF; the AI extracts key points and terms.',
+    answer: 'Use a PDF with selectable text. Image-only scans need OCR before CramDesk can analyze their contents.',
   },
   {
     question: 'Do I need to clean the PDF first?',
@@ -35,7 +35,7 @@ const faqs = [
 const steps = [
   {
     title: 'Upload your PDF',
-    desc: 'Drop your PDF or pick it from your device. Cramdesk reads headings, bullets, and tables.',
+    desc: 'Choose a PDF with selectable text. Check the extracted content carefully if your course has columns or tables.',
   },
   {
     title: 'Generate flashcards & quizzes',
@@ -43,31 +43,28 @@ const steps = [
   },
   {
     title: 'Review & iterate',
-    desc: 'Replay quizzes, export if needed, and refine with humanizer to simplify complex wording.',
+    desc: 'Review the generated answers against your course, replay a quiz, and export your cards as CSV if needed.',
   },
 ]
 
 const tips = [
   'Chunk large PDFs by chapter to stay focused and get faster results.',
-  'Add a short prompt with goals (e.g., “focus on definitions + mnemonics”).',
-  'Use quiz mode first, then spaced repetition to reinforce memory.',
+  'Check each generated answer against the quoted passage from the PDF.',
+  'Use quiz mode to find concepts you need to review again.',
 ]
 
 export default function HowToPdfFlashcardsPage() {
-  const todayIso = new Date().toISOString().split('T')[0]
-
   return (
     <>
       <WebPageJsonLd
         title="How to turn a PDF into flashcards in minutes"
-        description="Step-by-step guide to convert any PDF into flashcards and quizzes with AI."
+        description="Step-by-step guide to create flashcards and quizzes from a PDF with selectable text."
         url="https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
       />
       <ArticleJsonLd
         headline="How to turn a PDF into flashcards in minutes"
-        description="Step-by-step guide to convert any PDF into flashcards and quizzes with AI."
+        description="Step-by-step guide to create flashcards and quizzes from a PDF with selectable text."
         authorName="Cramdesk Team"
-        datePublished={todayIso}
         url="https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
         image="https://cramdesk.com/og.png"
         keywords={['pdf to flashcards', 'ai flashcards', 'quiz from pdf']}
@@ -84,7 +81,7 @@ export default function HowToPdfFlashcardsPage() {
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(255,115,29,0.08),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.08),transparent_30%)]" />
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm text-primary animate-fade-in-down">
               <Sparkles className="h-4 w-4" />
-              2025 step-by-step
+              Step-by-step guide
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mt-4 animate-fade-in-up">
               How to turn a PDF into flashcards in minutes

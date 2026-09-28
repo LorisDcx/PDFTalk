@@ -1,202 +1,123 @@
-// @ts-ignore - pdf-parse types
-import pdf from 'pdf-parse'
-
 export interface PDFExtractResult {
   text: string
   numPages: number
-  info: {
-    title?: string
-    author?: string
-    subject?: string
-    keywords?: string
-  }
+  pages: { pageNumber: number; text: string }[]
+  info: { title?: string; author?: string; subject?: string; keywords?: string }
   isScannedOrImageBased?: boolean
   warning?: string
 }
 
-/**
- * Clean and normalize extracted PDF text
- */
-function cleanPDFText(text: string): string {
-  if (!text) return ''
-  
+function cleanPDFText(text: string) {
   return text
-    // Remove null bytes and control characters (except newlines/tabs)
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    // Normalize various Unicode spaces to regular space
     .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g, ' ')
-    // Fix common PDF extraction artifacts
-    .replace(/\ufffd/g, '') // replacement character
-    .replace(/\u0000/g, '') // null
-    // Normalize multiple spaces to single space
+    .replace(/\ufffd/g, '')
     .replace(/[^\S\n]+/g, ' ')
-    // Normalize multiple newlines to max 2
     .replace(/\n{3,}/g, '\n\n')
-    // Remove lines that are just spaces
-    .replace(/^\s+$/gm, '')
-    // Trim each line
-    .split('\n')
-    .map(line => line.trim())
-    .join('\n')
-    // Final trim
+    .split('\n').map(line => line.trim()).join('\n')
     .trim()
 }
 
-/**
- * Check if PDF appears to be scanned/image-based (very little text per page)
- */
-function detectScannedPDF(text: string, numPages: number): boolean {
-  if (numPages === 0) return true
-  const cleanedText = text.replace(/\s+/g, '')
-  const avgCharsPerPage = cleanedText.length / numPages
-  // If less than 100 chars per page on average, likely scanned
-  return avgCharsPerPage < 100
+type PositionedText = { str: string; x: number; y: number; width: number }
+
+function textInReadingOrder(items: PositionedText[]) {
+  items.sort((a, b) => Math.abs(b.y - a.y) < 5 ? a.x - b.x : b.y - a.y)
+  const lines: PositionedText[][] = []
+  for (const item of items) {
+    const current = lines.at(-1)
+    if (current && Math.abs(current[0].y - item.y) < 5) current.push(item)
+    else lines.push([item])
+  }
+  return cleanPDFText(lines.map(line => {
+    line.sort((a, b) => a.x - b.x)
+    let value = ''
+    let lastRight = 0
+    for (const item of line) {
+      const gap = item.x - lastRight
+      if (value && gap > 50) value += '\t'
+      else if (value && gap > 10) value += ' '
+      value += item.str
+      lastRight = item.x + item.width
+    }
+    return value
+  }).join('\n'))
 }
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<PDFExtractResult> {
   try {
-    // pdf-parse options for better extraction
-    const options = {
-      // Limit pages to prevent memory issues
-      max: 200,
-      // Custom page renderer for better text extraction (handles tables/columns)
-      pagerender: function(pageData: any) {
-        return pageData.getTextContent({
-          normalizeWhitespace: true,
-          disableCombineTextItems: false,
-        }).then(function(textContent: any) {
-          // Collect all text items with their positions
-          const items: { str: string; x: number; y: number; width: number }[] = []
-          
-          for (const item of textContent.items) {
-            if ('str' in item && item.str.trim()) {
-              items.push({
-                str: item.str,
-                x: Math.round(item.transform[4]), // X position
-                y: Math.round(item.transform[5]), // Y position
-                width: item.width || 0
-              })
-            }
+    // Use the same modern PDF.js engine as the browser page preview.
+    const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    const loadingTask = getDocument({
+      data: new Uint8Array(buffer),
+      useSystemFonts: true,
+      disableFontFace: true,
+      stopAtErrors: true,
+    })
+    try {
+      const document = await loadingTask.promise
+      if (document.numPages > 500) throw new Error('Document exceeds the 500-page processing limit.')
+      const pages: PDFExtractResult['pages'] = []
+      for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber++) {
+        const page = await document.getPage(pageNumber)
+        const content = await page.getTextContent()
+        const items: PositionedText[] = []
+        for (const item of content.items) {
+          if ('str' in item && item.str.trim()) {
+            items.push({ str: item.str, x: item.transform[4], y: item.transform[5], width: item.width || 0 })
           }
-          
-          if (items.length === 0) return ''
-          
-          // Sort by Y (descending - PDF coordinates start from bottom) then X (ascending)
-          items.sort((a, b) => {
-            const yDiff = b.y - a.y
-            // If on same line (within 5 units), sort by X
-            if (Math.abs(yDiff) < 5) {
-              return a.x - b.x
-            }
-            return yDiff
-          })
-          
-          // Group items into lines based on Y position
-          const lines: { y: number; items: typeof items }[] = []
-          let currentLine: typeof items = []
-          let currentY = items[0]?.y
-          
-          for (const item of items) {
-            // New line if Y changed significantly
-            if (Math.abs(item.y - currentY) > 5) {
-              if (currentLine.length > 0) {
-                lines.push({ y: currentY, items: [...currentLine] })
-              }
-              currentLine = [item]
-              currentY = item.y
-            } else {
-              currentLine.push(item)
-            }
-          }
-          // Don't forget last line
-          if (currentLine.length > 0) {
-            lines.push({ y: currentY, items: currentLine })
-          }
-          
-          // Build text from lines, detecting columns/tables
-          let text = ''
-          for (const line of lines) {
-            // Sort items in line by X position
-            line.items.sort((a, b) => a.x - b.x)
-            
-            let lineText = ''
-            let lastX = 0
-            
-            for (const item of line.items) {
-              // Add tab/space if there's a significant gap (column separator)
-              const gap = item.x - lastX
-              if (lastX > 0 && gap > 50) {
-                lineText += '\t' // Tab for column separation
-              } else if (lastX > 0 && gap > 10) {
-                lineText += ' ' // Space for normal word separation
-              }
-              lineText += item.str
-              lastX = item.x + (item.width || item.str.length * 5)
-            }
-            
-            text += lineText.trim() + '\n'
-          }
-          
-          return text
-        })
+        }
+        pages.push({ pageNumber, text: textInReadingOrder(items) })
+        page.cleanup()
       }
+      const text = pages.map(page => page.text).filter(Boolean).join('\n\n')
+      const averageChars = text.replace(/\s+/g, '').length / document.numPages
+      const emptyPages = pages.filter(page => !page.text).length
+      const isScannedOrImageBased = averageChars < 100 || emptyPages > 0
+      const metadata = await document.getMetadata().catch(() => null)
+      const info = metadata?.info as Record<string, unknown> | undefined
+      return {
+        text, numPages: document.numPages, pages,
+        info: {
+          title: typeof info?.Title === 'string' ? info.Title : undefined,
+          author: typeof info?.Author === 'string' ? info.Author : undefined,
+          subject: typeof info?.Subject === 'string' ? info.Subject : undefined,
+          keywords: typeof info?.Keywords === 'string' ? info.Keywords : undefined,
+        },
+        isScannedOrImageBased,
+        warning: isScannedOrImageBased
+          ? text ? `${emptyPages || 'Some'} page${emptyPages === 1 ? '' : 's'} may contain scanned or image-only content. Text extraction may be incomplete.`
+            : 'No selectable text was found. Use a PDF with selectable text.'
+          : undefined,
+      }
+    } finally {
+      await loadingTask.destroy()
     }
-
-    const data = await pdf(buffer, options)
-    
-    // Clean the extracted text
-    const cleanedText = cleanPDFText(data.text)
-    
-    // Check if it appears to be a scanned document
-    const isScanned = detectScannedPDF(cleanedText, data.numpages)
-    
-    const result: PDFExtractResult = {
-      text: cleanedText,
-      numPages: data.numpages,
-      info: {
-        title: data.info?.Title,
-        author: data.info?.Author,
-        subject: data.info?.Subject,
-        keywords: data.info?.Keywords,
-      },
-      isScannedOrImageBased: isScanned,
-    }
-
-    // Add warning for scanned documents
-    if (isScanned && cleanedText.length > 0) {
-      result.warning = 'This PDF appears to contain mostly images or scanned content. Text extraction may be incomplete.'
-    } else if (cleanedText.length === 0) {
-      result.warning = 'No text could be extracted from this PDF. It may be a scanned document or contain only images.'
-    }
-
-    return result
-    
-  } catch (error: any) {
-    console.error('Error extracting PDF text:', error)
-    
-    // Provide more specific error messages
-    const errorMessage = error?.message || String(error)
-    
-    if (errorMessage.includes('password') || errorMessage.includes('encrypted')) {
-      throw new Error('This PDF is password-protected. Please provide an unencrypted version.')
-    }
-    
-    if (errorMessage.includes('Invalid') || errorMessage.includes('corrupt')) {
-      throw new Error('This PDF appears to be corrupted or invalid. Please try a different file.')
-    }
-    
-    if (errorMessage.includes('memory') || errorMessage.includes('heap')) {
-      throw new Error('This PDF is too complex to process. Please try a simpler document.')
-    }
-    
-    // Generic fallback
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (message.includes('500-page')) throw error
+    if (/password|encrypted/i.test(message)) throw new Error('This PDF is password-protected. Please provide an unencrypted version.')
+    if (/invalid|corrupt|format|structure/i.test(message)) throw new Error('This PDF appears to be corrupted or invalid. Please try a different file.')
+    if (/memory|heap/i.test(message)) throw new Error('This PDF is too complex to process. Please try a simpler document.')
+    console.error('PDF extraction failed:', error)
     throw new Error('Failed to read this PDF. Please ensure it is a valid, unencrypted PDF file.')
   }
 }
 
-export function truncateText(text: string, maxTokens: number = 100000): string {
-  // Rough estimate: 1 token ≈ 4 characters
-  const maxChars = maxTokens * 4
-  if (text.length <= maxChars) return text
-  return text.slice(0, maxChars) + '\n\n[Document truncated due to length...]'
+/** Preserve page references and sample every page when a document exceeds the AI budget. */
+export function prepareDocumentText(result: PDFExtractResult, maxChars = 400_000) {
+  const pages = result.pages.length ? result.pages : [{ pageNumber: 1, text: result.text }]
+  const totalChars = pages.reduce((sum, page) => sum + page.text.length, 0)
+  const sampled = totalChars > maxChars
+  const perPage = sampled ? Math.max(120, Math.floor((maxChars - pages.length * 24) / pages.length)) : Infinity
+  const text = pages.map(page => {
+    const content = page.text.length > perPage
+      ? `${page.text.slice(0, Math.ceil(perPage / 2))}\n[…]\n${page.text.slice(-Math.floor(perPage / 2))}`
+      : page.text
+    return `[[PAGE ${page.pageNumber}]]\n${content}`
+  }).join('\n\n')
+  const notices = [
+    sampled ? `[PARTIAL EXCERPTS FROM EACH PAGE — ${pages.length} PAGES]` : '',
+    result.isScannedOrImageBased ? '[[SOURCE_GAPS]]' : '',
+  ].filter(Boolean).join('\n')
+  return { text: notices ? `${notices}\n${text}` : text, sampled }
 }

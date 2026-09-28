@@ -8,7 +8,6 @@ const nextConfig = {
       { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
     ] }]
   },
-  serverExternalPackages: ['pdf-parse'],
   async redirects() {
     return [
       { source: '/comparatif/quizlet-alternative', destination: '/compare/quizlet-alternative', permanent: true },

@@ -5,6 +5,7 @@ import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
 import { getPlanLimits } from '@/lib/plans'
 import { getDocumentContext } from '@/lib/document-context'
+import { sampleDocumentSections, verifySourceQuote } from '@/lib/document-retrieval'
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,14 +51,14 @@ export async function POST(request: NextRequest) {
     const systemPrompt = `You are an expert quiz creator for students. Analyze the provided document and create exactly ${questionCount} multiple choice questions to test knowledge.
 
 DOCUMENT CONTENT:
-${documentContent.substring(0, 12000)} ${documentContent.length > 12000 ? '... [document truncated]' : ''}
+${sampleDocumentSections(documentContent, 14000)}
 
 CRITICAL INSTRUCTIONS:
 - Create exactly ${questionCount} multiple choice questions
 - ALL questions and answers MUST be written in ${targetLanguage}
 - Each question must have exactly 4 options (A, B, C, D)
 - Only ONE option should be correct
-- Include a source reference (approximate page/section) for each question
+- Include a short sourceQuote copied EXACTLY from the supplied excerpts for each question; never invent a page number
 - Cover the most important concepts from the document
 - Vary difficulty levels
 - Respond ONLY with valid JSON
@@ -70,7 +71,7 @@ RESPONSE FORMAT (strict JSON):
       "question": "Clear question in ${targetLanguage}?",
       "correctAnswer": "The correct answer text",
       "options": ["Option A", "Option B", "Option C", "Option D"],
-      "sourceRef": "Page X, Section Y"
+      "sourceQuote": "exact excerpt"
     }
   ]
 }`
@@ -94,13 +95,20 @@ RESPONSE FORMAT (strict JSON):
 
     const parsed = JSON.parse(content)
     
-    // Ensure correctAnswer is in options array
-    const questions = (parsed.questions || []).map((q: any) => {
-      if (!q.options.includes(q.correctAnswer)) {
-        q.options[0] = q.correctAnswer
-        q.options = q.options.sort(() => Math.random() - 0.5)
-      }
-      return q
+    type GeneratedQuestion = { id?: string; question: string; correctAnswer: string; options: string[]; sourceQuote?: string }
+    const generated: unknown = parsed.questions
+    const questions = (Array.isArray(generated) ? generated : []).filter((value: unknown): value is GeneratedQuestion => {
+      if (!value || typeof value !== 'object') return false
+      const q = value as Record<string, unknown>
+      return typeof q.question === 'string' && !!q.question.trim() &&
+        typeof q.correctAnswer === 'string' && !!q.correctAnswer.trim() &&
+        Array.isArray(q.options) && q.options.length === 4 && q.options.every(option => typeof option === 'string' && !!option.trim())
+    }).map((q, index) => {
+      const options = [...q.options]
+      if (!options.includes(q.correctAnswer)) options[0] = q.correctAnswer
+      const source = typeof q.sourceQuote === 'string' ? verifySourceQuote(documentContent, q.sourceQuote) : null
+      return { id: q.id || String(index + 1), question: q.question.trim(), correctAnswer: q.correctAnswer.trim(), options,
+        sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
     })
     
     // Deduct pages from user's quota after successful generation

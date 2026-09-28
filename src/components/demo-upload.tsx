@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone, type FileRejection } from 'react-dropzone'
-import { Upload, FileText, ArrowRight, Sparkles } from 'lucide-react'
+import { Upload, FileText, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
 import { formatFileSize } from '@/lib/utils'
 import { useToast } from './ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
@@ -14,6 +14,7 @@ const MAX_SIZE = 20 * 1024 * 1024 // 20MB
 
 export function DemoUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isPreparing, setIsPreparing] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useLanguage()
@@ -42,10 +43,12 @@ export function DemoUpload() {
     accept: { 'application/pdf': ['.pdf'] },
     maxSize: MAX_SIZE,
     multiple: false,
+    disabled: isPreparing,
   })
 
   const handleAnalyze = async () => {
-    if (!selectedFile) return
+    if (!selectedFile || isPreparing) return
+    setIsPreparing(true)
     
     // Store file info in sessionStorage for after signup
     const fileInfo = {
@@ -65,6 +68,8 @@ export function DemoUpload() {
       }
     } catch {
       toast({ title: t('uploadError'), description: t('unexpectedError'), variant: 'destructive' })
+    } finally {
+      setIsPreparing(false)
     }
   }
 
@@ -77,22 +82,22 @@ export function DemoUpload() {
       {!selectedFile ? (
         <div
           {...getRootProps()}
-          className={`group flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-[1.1rem] border-2 border-dashed px-6 py-8 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b84432] ${isDragActive ? 'border-[#b45438] bg-[#fff3ec]' : 'border-[#e7cfc2] bg-[#fffaf7] hover:border-[#b84432] hover:bg-[#fff4ed]'}`}
+          className={`group flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-5 py-5 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b84432] sm:min-h-52 sm:py-7 ${isDragActive ? 'border-[#b45438] bg-[#fff3ec]' : 'border-[#e7cfc2] bg-[#fffaf7] hover:border-[#b84432] hover:bg-[#fff4ed]'}`}
         >
           <input {...getInputProps()} />
-          <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-[#ffe0d1] text-[#ae4731] transition group-hover:scale-105">
-            <Upload className="size-7" />
+          <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-[#ffe0d1] text-[#ae4731] sm:mb-4 sm:size-14">
+            <Upload className="size-5 sm:size-6" />
           </div>
-          <p className="font-editorial text-3xl tracking-tight text-[#352837]">
+          <p className="font-editorial text-2xl tracking-tight text-[#352837] sm:text-3xl">
             {isDragActive ? t('dropPdfHere') : 'Glisse ton PDF ici'}
           </p>
-          <p className="mt-2 text-sm text-[#776c78]">
+          <p className="mt-1 text-base text-[#776c78]">
             ou choisis un fichier sur ton appareil
           </p>
-          <span className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#b84432] px-5 py-3 text-sm font-bold text-white transition group-hover:bg-[#963326]">
+          <span className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#b84432] px-5 py-3 text-sm font-bold text-white transition group-hover:bg-[#963326] sm:mt-5">
             <FileText className="size-4" />Choisir un PDF
           </span>
-          <p className="mt-5 text-xs font-medium text-[#8e8390]">
+          <p className="mt-3 text-sm font-medium text-[#786e77]">
             PDF avec texte sélectionnable · {formatFileSize(MAX_SIZE)} max
           </p>
         </div>
@@ -106,12 +111,12 @@ export function DemoUpload() {
               <p className="truncate font-bold text-[#352837]">{selectedFile.name}</p>
               <p className="text-sm text-[#776c78]">{formatFileSize(selectedFile.size)}</p>
             </div>
-            <button type="button" onClick={clearFile} className="text-sm font-semibold text-[#776c78] underline-offset-4 hover:text-[#b84432] hover:underline">
+            <button type="button" onClick={clearFile} disabled={isPreparing} className="min-h-11 text-sm font-semibold text-[#776c78] underline-offset-4 hover:text-[#b84432] hover:underline disabled:opacity-50">
               {t('change')}
             </button>
           </div>
-          <button type="button" onClick={handleAnalyze} className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#b84432] px-5 py-3.5 font-bold text-white transition hover:bg-[#963326]">
-            <Sparkles className="size-5" /> Préparer ma révision
+          <button type="button" onClick={handleAnalyze} disabled={isPreparing} className="group flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#b84432] px-5 py-3.5 font-bold text-white transition hover:bg-[#963326] disabled:opacity-60">
+            {isPreparing ? <Loader2 className="size-5 animate-spin" /> : <Sparkles className="size-5" />} {isPreparing ? 'Préparation du PDF…' : 'Préparer ma révision'}
             <ArrowRight className="size-4 transition group-hover:translate-x-1" />
           </button>
           <p className="mt-4 text-center text-xs text-[#776c78]">

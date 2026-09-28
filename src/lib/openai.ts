@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import type { DocumentDigest } from '@/types/database'
+import { verifySourceQuote } from '@/lib/document-retrieval'
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -55,15 +56,14 @@ Return your analysis in the following JSON format:
   if (!Array.isArray(parsed.summary) || !parsed.summary.some(item => typeof item === 'string' && item.trim())) {
     throw new Error('The document summary is empty')
   }
-  const normalizedSource = text.replace(/\s+/g, ' ').normalize('NFKC')
   const keyClauses = Array.isArray(parsed.keyClauses) ? parsed.keyClauses : []
   const digest: DocumentDigest = {
     documentType: typeof parsed.documentType === 'string' ? parsed.documentType : 'Document',
     summary: parsed.summary.filter((item): item is string => typeof item === 'string' && !!item.trim()).map(item => item.trim()),
     keyClauses: keyClauses.filter(item => item && typeof item.title === 'string' && typeof item.description === 'string').map(item => {
       const quote = typeof item.sourceQuote === 'string' ? item.sourceQuote.trim() : ''
-      const verified = quote.length > 0 && normalizedSource.includes(quote.replace(/\s+/g, ' ').normalize('NFKC'))
-      return { title: item.title.trim(), description: item.description.trim(), ...(verified ? { sourceQuote: quote } : {}) }
+      const source = verifySourceQuote(text, quote)
+      return { title: item.title.trim(), description: item.description.trim(), ...(source ? { sourceQuote: source.quote, ...(source.page ? { sourcePage: source.page } : {}) } : {}) }
     }),
     risks: Array.isArray(parsed.risks) ? parsed.risks : [],
     questions: Array.isArray(parsed.questions) ? parsed.questions : [],

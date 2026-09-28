@@ -5,6 +5,7 @@ import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
 import { getPlanLimits } from '@/lib/plans'
 import { getDocumentContext } from '@/lib/document-context'
+import { sampleDocumentSections, verifySourceQuote } from '@/lib/document-retrieval'
 
 export const maxDuration = 60 // Vercel max timeout (free plan)
 
@@ -49,15 +50,12 @@ export async function POST(request: NextRequest) {
     }
     const targetLanguage = languageNames[language] || 'English'
 
-    // Larger content limit with Vercel's longer timeout
-    const maxContentLength = 10000
-    const truncatedContent = documentContent.substring(0, maxContentLength)
-    const isTruncated = documentContent.length > maxContentLength
+    const selectedContent = sampleDocumentSections(documentContent, 14000)
 
     const systemPrompt = `You are an expert in creating educational flashcards. Create exactly ${cardCount} flashcards from this document.
 
 DOCUMENT:
-${truncatedContent}${isTruncated ? '\n... [document truncated]' : ''}
+${selectedContent}
 
 INSTRUCTIONS:
 - Create exactly ${cardCount} flashcards
@@ -65,10 +63,11 @@ INSTRUCTIONS:
 - Questions: clear and specific
 - Answers: concise (1-2 sentences max)
 - Cover the most important concepts
+- For each card, include a short sourceQuote copied EXACTLY from the supplied excerpts. Never invent a section or page number.
 - Return ONLY valid JSON
 
 FORMAT:
-{"flashcards":[{"id":"1","question":"...","answer":"...","sourceRef":"Section X"}]}`
+{"flashcards":[{"id":"1","question":"...","answer":"...","sourceQuote":"exact excerpt"}]}`
 
     // Calculate max tokens based on card count (approx 100 tokens per card)
     const maxTokens = Math.min(16000, Math.max(4000, cardCount * 80))
@@ -98,7 +97,7 @@ FORMAT:
       return NextResponse.json({ error: 'AI returned invalid format', details: content?.substring(0, 200) }, { status: 500 })
     }
     
-    type GeneratedCard = { question: string; answer: string; sourceRef?: string }
+    type GeneratedCard = { question: string; answer: string; sourceQuote?: string }
     const generated: unknown = parsed.flashcards
     const flashcards = Array.isArray(generated)
       ? generated.filter((card: unknown): card is GeneratedCard => {
@@ -108,7 +107,11 @@ FORMAT:
             typeof item.answer === 'string' && !!item.answer.trim()
         })
       : []
-    const actualCardCount = flashcards.length
+    const sourcedCards = flashcards.map(card => {
+      const source = typeof card.sourceQuote === 'string' ? verifySourceQuote(documentContent, card.sourceQuote) : null
+      return { question: card.question.trim(), answer: card.answer.trim(), sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
+    })
+    const actualCardCount = sourcedCards.length
     const actualPageCost = calculatePageCost('flashcards', actualCardCount)
     if (actualPageCost === 0) throw new Error('AI returned no flashcards')
 
@@ -116,11 +119,11 @@ FORMAT:
       .select('id').eq('document_id', documentId)
     if (previousError) throw previousError
     const { data: insertedCards, error: insertError } = await supabase.from('flashcards')
-      .insert(flashcards.map((card, index) => ({
+      .insert(sourcedCards.map((card, index) => ({
         document_id: documentId,
-        question: card.question.trim(),
-        answer: card.answer.trim(),
-        source_ref: typeof card.sourceRef === 'string' ? card.sourceRef : null,
+        question: card.question,
+        answer: card.answer,
+        source_ref: card.sourceRef || null,
         order_index: index,
       })))
       .select('id')
@@ -138,7 +141,7 @@ FORMAT:
     }
     
     return NextResponse.json({ 
-      flashcards,
+      flashcards: sourcedCards,
       count: actualCardCount,
       pagesUsed: actualPageCost
     })

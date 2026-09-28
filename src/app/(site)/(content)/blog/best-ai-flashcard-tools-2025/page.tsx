@@ -39,7 +39,7 @@ const picks = [
     bullets: [
       'Uploads PDFs and auto-builds cards + quizzes',
       'Humanizer to rewrite dense passages',
-      'Spaced repetition quiz mode',
+      'Quiz practice from the same readable PDF',
     ],
   },
   {
@@ -60,7 +60,6 @@ const picks = [
 ]
 
 export default function BestAiFlashcardTools2025Page() {
-  const todayIso = new Date().toISOString().split('T')[0]
 
   return (
     <>
@@ -73,7 +72,6 @@ export default function BestAiFlashcardTools2025Page() {
         headline="Best AI flashcard tools in 2025"
         description="Top AI flashcard tools compared: speed, quizzes, SRS, and PDF handling."
         authorName="Cramdesk Team"
-        datePublished={todayIso}
         url="https://cramdesk.com/blog/best-ai-flashcard-tools-2025"
         image="https://cramdesk.com/og.png"
         keywords={['ai flashcards', 'flashcard generator', 'quiz generator']}

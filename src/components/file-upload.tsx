@@ -9,7 +9,7 @@ import { useToast } from './ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
 
 interface FileUploadProps {
-  onUpload: (file: File) => Promise<void>
+  onUpload: (file: File) => Promise<boolean>
   maxSize?: number // in bytes
   disabled?: boolean
 }
@@ -53,8 +53,8 @@ export function FileUpload({ onUpload, maxSize = 20 * 1024 * 1024, disabled }: F
 
     setIsUploading(true)
     try {
-      await onUpload(selectedFile)
-      setSelectedFile(null)
+      const completed = await onUpload(selectedFile)
+      if (completed) setSelectedFile(null)
     } catch (error) {
       console.error('Upload error:', error)
       toast({

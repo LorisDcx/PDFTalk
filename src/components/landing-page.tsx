@@ -125,21 +125,19 @@ export default function LandingPage() {
     <div className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
       <Navbar />
       <main>
-        <section id="essayer" className="relative scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-20">
-          <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[min(800px,100vw)] -translate-x-1/2 rounded-full bg-[#f8e8e2] opacity-65 blur-[100px]" />
-          <div className="relative mx-auto max-w-6xl text-center">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ead8cf] bg-[#fff0e6] px-4 py-2 text-xs font-bold text-[var(--cd-brand)]"><Sparkles className="size-3.5" />CramDesk · ton espace de révision</p>
-            <h1 className="font-editorial mx-auto max-w-4xl text-[clamp(3.1rem,6.7vw,6.5rem)] leading-[1.02] tracking-[-.055em] text-[var(--cd-ink)]">Ton PDF mérite mieux <span className="italic text-[var(--cd-brand)]">qu’une relecture.</span></h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#655a62] sm:text-lg">Importe ton cours et passe directement à l’essentiel : une synthèse claire, des réponses liées au document, puis des cartes et des quiz pour retenir.</p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-              <a href="#deposer-pdf" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--cd-brand)] px-6 text-sm font-bold text-white transition-colors hover:bg-[var(--cd-brand-hover)]"><Upload className="size-4" /> Déposer mon PDF</a>
-              <Link href="#produit" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#e7d3c8] bg-white px-6 text-sm font-semibold text-[#664957] hover:border-[#b84432] hover:text-[#b84432]">Voir le résultat <ArrowRight className="size-4" /></Link>
-            </div>
-            <div id="deposer-pdf" className="mx-auto mt-10 max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 text-left shadow-[0_28px_70px_-44px_rgba(61,36,56,.4)] sm:p-6">
-              <div className="mb-4 flex items-center justify-between gap-3 px-1"><p className="text-sm font-bold text-[#3b2e34]">Commence avec ton cours</p><span className="rounded-full bg-[#f4f7ef] px-2.5 py-1 text-xs font-semibold text-[#58744f]">Étape 1 sur 2</span></div>
+        <section id="essayer" className="scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">
+          <div className="mx-auto max-w-6xl text-center">
+            <p className="mb-4 text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">CramDesk · ton atelier de révision</p>
+            <h1 className="font-editorial mx-auto max-w-4xl text-[clamp(2.65rem,6.7vw,6rem)] leading-[1.03] tracking-[-.05em] text-[var(--cd-ink)]">Ton cours PDF, <span className="italic text-[var(--cd-brand)]">prêt à réviser.</span></h1>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#655a62] sm:text-lg">Dépose ton cours pour obtenir une synthèse, poser tes questions et t’entraîner avec des cartes et des quiz.</p>
+            <div id="deposer-pdf" className="mx-auto mt-6 max-w-2xl scroll-mt-24 rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 text-left sm:mt-8 sm:p-6">
+              <div className="mb-3 px-1"><p className="text-base font-bold text-[#3b2e34]">Commence avec ton PDF</p></div>
               <DemoUpload />
             </div>
-            <p className="mt-5 text-xs font-medium text-[#756b70]">7 jours d’essai sans carte bancaire · PDF avec texte sélectionnable</p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#756b70]">
+              <p>7 jours d’essai sans carte bancaire · PDF avec texte sélectionnable</p>
+              <Link href="#produit" className="inline-flex min-h-11 items-center gap-1 font-semibold text-[#8d3e31] underline underline-offset-4">Voir comment ça marche <ArrowRight className="size-4" /></Link>
+            </div>
           </div>
         </section>
 

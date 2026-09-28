@@ -117,7 +117,7 @@ export default function DashboardPage() {
   }, [user, supabase, toast])
 
   const handleUpload = async (file: File) => {
-    if (!profile) return
+    if (!profile) return false
 
     // Check trial/subscription status
     const hasAccess = profile.subscription_status === 'active' ||
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         variant: 'destructive',
       })
       router.push('/billing')
-      return
+      return false
     }
 
     // Check quota
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         variant: 'destructive',
       })
       router.push('/billing')
-      return
+      return false
     }
 
     setIsUploading(true)
@@ -207,12 +207,16 @@ export default function DashboardPage() {
       }
 
       if (!response.ok) {
+        if (!result.documentId) {
+          const { error: cleanupError } = await supabase.storage.from('documents').remove([filePath])
+          if (cleanupError) console.error('Could not clean up rejected upload:', cleanupError)
+        }
         throw new Error(result.error || 'Upload failed')
       }
 
       toast({
         title: t('documentUploaded'),
-        description: t('aiAnalyzing'),
+        description: language === 'fr' ? 'Ton document est prêt à réviser.' : 'Your document is ready to study.',
       })
 
       // Refresh profile (for updated usage)
@@ -225,6 +229,7 @@ export default function DashboardPage() {
         sessionStorage.removeItem('pendingDocument')
       }
       router.push(`/documents/${result.documentId}`)
+      return true
     } catch (error: any) {
       console.error('Upload error:', error)
       toast({
@@ -232,6 +237,7 @@ export default function DashboardPage() {
         description: error.message,
         variant: 'destructive',
       })
+      return false
     } finally {
       setIsUploading(false)
     }

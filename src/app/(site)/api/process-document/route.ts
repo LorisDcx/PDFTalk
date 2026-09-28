@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { extractTextFromPDF, truncateText } from '@/lib/pdf'
+import { extractTextFromPDF, prepareDocumentText } from '@/lib/pdf'
 import { generateDocumentDigest, generateEasyReading } from '@/lib/openai'
 import { getPlanLimits } from '@/lib/plans'
 import { isTrialExpired } from '@/lib/utils'
@@ -20,15 +20,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Body
-    const { filePath, fileName } = await request.json()
+    const { filePath, fileName, documentId: retryDocumentId } = await request.json()
     if (typeof filePath !== 'string' || !filePath || filePath.length > 300 ||
-      typeof fileName !== 'string' || !fileName.trim() || fileName.length > 255) {
+      typeof fileName !== 'string' || !fileName.trim() || fileName.length > 255 ||
+      (retryDocumentId !== undefined && (typeof retryDocumentId !== 'string' || !/^[0-9a-f-]{36}$/i.test(retryDocumentId)))) {
       return NextResponse.json({ error: 'Missing filePath or fileName' }, { status: 400 })
     }
 
     // Optional safety: enforce user folder prefix
     if (!filePath.startsWith(`${user.id}/`)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (retryDocumentId) {
+      const { data: existing } = await supabase.from('documents')
+        .select('id, file_path, status').eq('id', retryDocumentId).eq('user_id', user.id).single()
+      if (!existing) return NextResponse.json({ error: 'Document unavailable' }, { status: 404 })
+      if (existing.file_path !== filePath || existing.status !== 'failed') {
+        return NextResponse.json({ error: 'This document cannot be retried' }, { status: 409 })
+      }
     }
 
     // Profile
@@ -100,34 +110,43 @@ export async function POST(request: NextRequest) {
       return usageFailureResponse(usage)
     }
 
-    const pdfWarning = pdfData.warning
+    const prepared = prepareDocumentText(pdfData)
+    const pdfWarning = pdfData.warning || (prepared.sampled ? 'The document is long. The initial summary uses excerpts from every page; ask focused questions and verify the source.' : undefined)
 
     // Create document record
-    const { data: document, error: docError } = await supabase
-      .from('documents')
-      .insert({
-        user_id: user.id,
-        file_name: fileName,
-        file_path: filePath,
-        file_size: buffer.byteLength,
-        pages_count: pdfData.numPages,
-        status: 'processing',
-      } as any)
-      .select()
-      .single()
+    const record = retryDocumentId
+      ? await supabase.from('documents').update({ status: 'processing', pages_count: pdfData.numPages } as any)
+          .eq('id', retryDocumentId).eq('user_id', user.id).eq('status', 'failed').select().single()
+      : await supabase.from('documents').insert({
+          user_id: user.id,
+          file_name: fileName,
+          file_path: filePath,
+          file_size: buffer.byteLength,
+          pages_count: pdfData.numPages,
+          status: 'processing',
+        } as any).select().single()
+    const { data: document, error: docError } = record
 
     if (docError || !document) {
       console.error('Document creation error:', docError)
       return NextResponse.json({ error: 'Failed to create document record' }, { status: 500 })
     }
 
+    if (retryDocumentId) {
+      const { error: staleSummaryError } = await supabase.from('summaries').delete().eq('document_id', document.id)
+      if (staleSummaryError) {
+        await supabase.from('documents').update({ status: 'failed' } as any).eq('id', document.id)
+        return NextResponse.json({ error: 'Could not reset previous analysis', documentId: document.id }, { status: 500 })
+      }
+    }
+
     // Process document with AI
     try {
-      const truncatedText = truncateText(pdfData.text)
+      const sourceText = prepared.text
 
       const [digestResult, easyReadingResult] = await Promise.all([
-        generateDocumentDigest(truncatedText),
-        generateEasyReading(truncatedText),
+        generateDocumentDigest(sourceText),
+        generateEasyReading(sourceText),
       ])
       const { digest } = digestResult
       const { easyReading } = easyReadingResult
@@ -140,7 +159,7 @@ export async function POST(request: NextRequest) {
         questions: digest.questions,
         actions: digest.actions,
         easy_reading: easyReading,
-        source_text: truncatedText,
+        source_text: sourceText,
         tokens_used: digestResult.tokensUsed + easyReadingResult.tokensUsed,
       } as any)
       if (summaryError) throw summaryError
@@ -173,7 +192,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       documentId: document.id,
-      warning: pdfWarning
+      warning: pdfWarning,
+      sampled: prepared.sampled,
     })
   } catch (error) {
     console.error('Process document error:', error)
