@@ -40,6 +40,7 @@ export default function DocumentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [activeView, setActiveView] = useState<WorkspaceView>('summary')
+  const [openCardsQuiz, setOpenCardsQuiz] = useState(false)
   const [desktopLibraryOpen, setDesktopLibraryOpen] = useState(false)
   const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false)
   const [pdfVisible, setPdfVisible] = useState(false)
@@ -99,6 +100,14 @@ export default function DocumentPage() {
     queueMicrotask(() => { if (active) void loadDocument() })
     return () => { active = false }
   }, [loadDocument, userId])
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search)
+    if (query.get('view') === 'tools') {
+      queueMicrotask(() => setActiveView('tools'))
+      if (query.get('quiz') === 'cards') queueMicrotask(() => setOpenCardsQuiz(true))
+    }
+  }, [])
 
   // The processing page actually checks for completion; the timer stops on unmount
   // or as soon as the status changes.
@@ -352,13 +361,13 @@ export default function DocumentPage() {
                   </section>}
                 </div>}
 
-                {activeView === 'tools' && <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
+                {activeView === 'tools' && <section className="py-2">
                   <h2 className="font-editorial text-2xl sm:text-3xl">{t('studyTools')}</h2>
                   <p className="mt-1 text-sm text-[#776b73]">{t('studyToolsDesc')}</p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Flashcards documentId={document.id} documentContent={documentContent} documentName={document.file_name} onFlashcardsChange={setFlashcards} />
-                    <Quiz documentId={document.id} documentContent={documentContent} documentName={document.file_name} flashcards={flashcards} />
-                    <Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} />
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    <Flashcards documentId={document.id} onFlashcardsChange={setFlashcards} />
+                    <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-quiz-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><ListChecks className="size-5" /></span><div><h3 id="document-quiz-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('quizMode')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('quizModeDesc')}</p></div></div><div className="mt-5"><Quiz documentId={document.id} flashcards={flashcards} openFromCards={openCardsQuiz} onAutoOpen={() => setOpenCardsQuiz(false)} /></div></section>
+                    <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-slides-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><Layers3 className="size-5" /></span><div><h3 id="document-slides-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('slides')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('slidesDesc')}</p></div></div><div className="mt-5"><Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} /></div></section>
                   </div>
                 </section>}
 

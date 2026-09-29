@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Dialog, 
@@ -22,7 +22,6 @@ import {
   Sparkles,
   TrendingUp,
   AlertCircle,
-  Lightbulb,
   ChevronRight,
   BarChart3
 } from 'lucide-react'
@@ -31,6 +30,8 @@ import { useLanguage } from '@/lib/i18n'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/components/auth-provider'
 import { getPlanLimits } from '@/lib/plans'
+import { quizFlowCopy, studyFlowCopy } from '@/lib/study-flow-locales'
+import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 
 function shuffled<T>(items: T[]): T[] {
   const copy = [...items]
@@ -61,12 +62,12 @@ interface QuizSession {
 
 interface QuizProps {
   documentId: string
-  documentContent: string
-  documentName: string
   flashcards?: { id: string; question: string; answer: string; sourceRef?: string }[]
+  openFromCards?: boolean
+  onAutoOpen?: () => void
 }
 
-export function Quiz({ documentId, documentContent, documentName, flashcards = [] }: QuizProps) {
+export function Quiz({ documentId, flashcards = [], openFromCards = false, onAutoOpen }: QuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
@@ -74,7 +75,6 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
   const [score, setScore] = useState({ correct: 0, wrong: 0 })
   const [wrongQuestions, setWrongQuestions] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [questionCount, setQuestionCount] = useState(10)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isQuizActive, setIsQuizActive] = useState(false)
@@ -82,62 +82,47 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
   const [sessions, setSessions] = useState<QuizSession[]>([])
   const [startTime, setStartTime] = useState<number>(0)
   const [showStats, setShowStats] = useState(false)
+  const openedFromCards = useRef(false)
   const { t, language } = useLanguage()
   const { toast } = useToast()
   const { profile } = useAuth()
+  const flow = quizFlowCopy[language as StudyPdfLocale] || quizFlowCopy.en
+  const common = studyFlowCopy[language as StudyPdfLocale] || studyFlowCopy.en
 
   const maxQuestions = getPlanLimits(profile?.current_plan ?? null).maxQuizQuestions
+  const selectedQuestionCount = Math.min(Math.max(questionCount, 5), maxQuestions)
   const distinctAnswers = Array.from(new Map(flashcards.map(card => card.answer.trim()).filter(Boolean).map(answer => [answer.toLocaleLowerCase(), answer])).values())
   const canQuizFromFlashcards = flashcards.length >= 4 && distinctAnswers.length >= 4
 
-  // The AI question limit depends on the user's plan, not on existing flashcards.
   useEffect(() => {
-    setQuestionCount((current) => {
-      const safe = Math.min(Math.max(current, 5), maxQuestions)
-      return Number.isFinite(safe) ? safe : Math.min(10, maxQuestions)
+    if (!openFromCards || flashcards.length === 0 || openedFromCards.current) return
+    openedFromCards.current = true
+    queueMicrotask(() => {
+      setIsDialogOpen(true)
+      onAutoOpen?.()
     })
-  }, [maxQuestions])
+  }, [flashcards.length, onAutoOpen, openFromCards])
 
-  // Load existing quiz data from localStorage
   useEffect(() => {
-    loadQuizData()
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      try {
+        const stored = localStorage.getItem(`quiz-sessions-${documentId}`)
+        const parsed: unknown = stored ? JSON.parse(stored) : []
+        setSessions(Array.isArray(parsed) ? parsed : [])
+      } catch (error) {
+        console.error('Failed to load quiz sessions:', error)
+        setSessions([])
+      }
+    })
+    return () => { active = false }
   }, [documentId])
-
-  const loadQuizData = () => {
-    try {
-      const storedQuestions = localStorage.getItem(`quiz-questions-${documentId}`)
-      const storedSessions = localStorage.getItem(`quiz-sessions-${documentId}`)
-      
-      if (storedQuestions) {
-        setQuestions(JSON.parse(storedQuestions))
-      }
-      if (storedSessions) {
-        setSessions(JSON.parse(storedSessions))
-      }
-    } catch (error) {
-      console.error('Failed to load quiz data:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Save quiz data
-  useEffect(() => {
-    if (questions.length > 0) {
-      localStorage.setItem(`quiz-questions-${documentId}`, JSON.stringify(questions))
-    }
-  }, [questions, documentId])
-
-  useEffect(() => {
-    if (sessions.length > 0) {
-      localStorage.setItem(`quiz-sessions-${documentId}`, JSON.stringify(sessions))
-    }
-  }, [sessions, documentId])
 
   const generateQuizFromFlashcards = () => {
     if (!canQuizFromFlashcards) return
 
-    const selectedCards = shuffled(flashcards).slice(0, Math.min(questionCount, flashcards.length))
+    const selectedCards = shuffled(flashcards).slice(0, Math.min(selectedQuestionCount, flashcards.length))
 
     const quizQuestions: QuizQuestion[] = selectedCards.map((card, index) => {
       // Generate wrong answers from other flashcards
@@ -167,7 +152,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
-          count: questionCount,
+          count: selectedQuestionCount,
           language,
         }),
       })
@@ -256,34 +241,19 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
       wrongQuestionIds: wrongQuestions
     }
 
-    setSessions(prev => [newSession, ...prev].slice(0, 20)) // Keep last 20 sessions
-    setIsComplete(true)
-  }
-
-  const getStudyTips = () => {
-    const tips: string[] = []
-    const successRate = (score.correct / questions.length) * 100
-
-    if (successRate < 50) {
-      tips.push("📚 Revois les concepts de base avant de refaire le quiz")
-      tips.push("🔄 Utilise les flashcards pour mémoriser les réponses")
-    } else if (successRate < 75) {
-      tips.push("💪 Bon travail ! Concentre-toi sur les questions ratées")
-      tips.push("📝 Prends des notes sur les points difficiles")
-    } else if (successRate < 100) {
-      tips.push("🌟 Excellent ! Tu maîtrises presque tout")
-      tips.push("🎯 Revois juste les quelques erreurs")
-    } else {
-      tips.push("🏆 Parfait ! Tu maîtrises ce sujet")
-      tips.push("📈 Passe au niveau suivant ou révise un autre chapitre")
+    const nextSessions = [newSession, ...sessions].slice(0, 20)
+    setSessions(nextSessions)
+    try {
+      localStorage.setItem(`quiz-sessions-${documentId}`, JSON.stringify(nextSessions))
+    } catch (error) {
+      console.error('Failed to save quiz session:', error)
     }
-
-    return tips
+    setIsComplete(true)
   }
 
   const getAverageScore = () => {
     if (sessions.length === 0) return 0
-    const total = sessions.reduce((acc, s) => acc + (s.correctAnswers / s.totalQuestions) * 100, 0)
+    const total = sessions.reduce((acc, s) => acc + (s.totalQuestions > 0 ? (s.correctAnswers / s.totalQuestions) * 100 : 0), 0)
     return Math.round(total / sessions.length)
   }
 
@@ -292,32 +262,29 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
 
   return (
     <>
-      {/* Trigger Buttons */}
-      <div className="flex gap-2">
-        {/* View stats */}
+      <div className="flex flex-wrap gap-2">
         {sessions.length > 0 && (
           <Button 
             variant="outline" 
-            className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all"
+            className="min-h-11 gap-2"
             onClick={() => setShowStats(true)}
           >
-            <BarChart3 className="h-4 w-4 group-hover:text-primary transition-colors" />
-            <span>Stats</span>
+            <BarChart3 className="h-4 w-4" />
+            <span>{flow.recent}</span>
           </Button>
         )}
 
-        {/* Start quiz */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="gap-2 group hover:border-primary/50 hover:bg-primary/5 transition-all">
-              <Target className="h-4 w-4 group-hover:text-primary transition-colors" />
-              <span>Quiz</span>
+            <Button className="min-h-11 gap-2 bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]">
+              <Target className="h-4 w-4" />
+              <span>{t('quizMode')}</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-xl">
+          <DialogContent lang={language} dir={language === 'ar' ? 'rtl' : 'ltr'} className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--cd-brand)]">
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -330,18 +297,19 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
             </DialogHeader>
             <div className="py-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t('numberOfQuestions')}</label>
+                <label htmlFor="quiz-question-count" className="text-sm font-medium">{t('numberOfQuestions')}</label>
                 <div className="flex items-center gap-4">
                   <input
+                    id="quiz-question-count"
                     type="range"
                     min={5}
                     max={maxQuestions}
                     step={5}
-                    value={questionCount}
+                    value={selectedQuestionCount}
                     onChange={(e) => setQuestionCount(parseInt(e.target.value))}
                     className="flex-1 accent-primary"
                   />
-                  <span className="text-2xl font-bold text-primary w-12">{questionCount}</span>
+                  <span className="text-2xl font-bold text-primary w-12">{selectedQuestionCount}</span>
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -353,7 +321,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                     onClick={() => setQuestionCount(num)}
                     className={cn(
                       "px-3 py-1 rounded-full text-sm font-medium transition-all",
-                      questionCount === num 
+                      selectedQuestionCount === num
                         ? "bg-primary text-primary-foreground" 
                         : "bg-muted hover:bg-muted/80"
                     )}
@@ -362,31 +330,29 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                   </button>
                 ))}
               </div>
-              {/* Page cost indicator */}
-              <div className="flex items-center justify-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  💰 {t('pageCost').replace('{count}', String(Math.ceil(questionCount / 5)))}
-                </span>
-              </div>
             </div>
-            <DialogFooter className="flex-col gap-2">
-      {flashcards.length > 0 && (
+            <DialogFooter className="flex-col gap-4 sm:flex-col">
+              {flashcards.length > 0 && (
+                <div className="w-full space-y-2">
                 <Button 
                   onClick={generateQuizFromFlashcards}
                   disabled={!canQuizFromFlashcards}
-                  className="w-full"
+                  className="min-h-11 w-full"
                   variant="outline"
                   title={!canQuizFromFlashcards ? t('quizNeedsDistinctCards') : undefined}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <Target className="h-4 w-4 mr-2" />
                   {t('quizFromFlashcards')} ({flashcards.length})
                 </Button>
+                <p className="text-xs text-muted-foreground">{flow.freeCards}</p>
+                </div>
               )}
               {flashcards.length > 0 && !canQuizFromFlashcards && <p className="text-sm text-muted-foreground">{t('quizNeedsDistinctCards')}</p>}
+              <div className="w-full space-y-2">
               <Button 
                 onClick={generateQuizFromAI} 
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 text-white shadow-lg"
+                className="min-h-11 w-full bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]"
               >
                 {isGenerating ? (
                   <>
@@ -400,26 +366,27 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                   </>
                 )}
               </Button>
+              <p className="text-xs text-muted-foreground">{flow.aiCost} {t('pageCost').replace('{count}', String(Math.ceil(selectedQuestionCount / 5)))}</p>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Quiz Modal */}
       <Dialog open={isQuizActive} onOpenChange={(open) => !open && setIsQuizActive(false)}>
-        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+        <DialogContent lang={language} dir={language === 'ar' ? 'rtl' : 'ltr'} className="max-h-[90dvh] overflow-y-auto p-0 sm:max-w-2xl">
+          <DialogTitle className="sr-only">{t('quizMode')}</DialogTitle>
           {!isComplete ? (
             <>
-              {/* Header */}
-              <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-orange-500/10">
+              <div className="border-b p-4 pr-12">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--cd-brand)]">
                       <Target className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Quiz</h3>
-                      <p className="text-sm text-muted-foreground">Question {currentIndex + 1} / {questions.length}</p>
+                      <h3 className="font-semibold">{t('quizMode')}</h3>
+                      <p className="text-sm text-muted-foreground">{t('question')} {currentIndex + 1} / {questions.length}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
@@ -436,19 +403,17 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                 <Progress value={progress} className="h-2" />
               </div>
 
-              {/* Question */}
               <div className="p-6">
                 <div className="mb-6">
                   <p className="text-lg font-medium leading-relaxed">{currentQuestion?.question}</p>
                   {currentQuestion?.sourceRef && (
                     <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      Source: {currentQuestion.sourceRef}
+                      {common.source} : {currentQuestion.sourceRef}
                     </p>
                   )}
                 </div>
 
-                {/* Options */}
                 <div className="space-y-3">
                   {currentQuestion?.options.map((option, i) => {
                     const isSelected = selectedAnswer === option
@@ -461,7 +426,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                         onClick={() => handleAnswer(option)}
                         disabled={isAnswered}
                         className={cn(
-                          "w-full p-4 rounded-xl border-2 text-left transition-all",
+                          "min-h-12 w-full rounded-xl border-2 p-4 text-left transition-colors",
                           !showResult && !isSelected && "hover:border-primary/50 hover:bg-primary/5",
                           !showResult && isSelected && "border-primary bg-primary/10",
                           showResult && isCorrect && "border-emerald-500 bg-emerald-50 dark:bg-emerald-950",
@@ -489,7 +454,6 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                   })}
                 </div>
 
-                {/* Next button */}
                 {isAnswered && (
                   <Button 
                     onClick={nextQuestion}
@@ -497,12 +461,12 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
                   >
                     {currentIndex < questions.length - 1 ? (
                       <>
-                        Question suivante
+                        {t('next')}
                         <ChevronRight className="h-4 w-4" />
                       </>
                     ) : (
                       <>
-                        Voir les résultats
+                        {t('seeResults')}
                         <Trophy className="h-4 w-4" />
                       </>
                     )}
@@ -511,81 +475,42 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
               </div>
             </>
           ) : (
-            /* Results */
-            <div className="p-6 text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center mx-auto mb-6">
-                <Trophy className="h-10 w-10 text-white" />
+            <div className="space-y-6 p-6">
+              <div className="space-y-2 pr-8">
+                <Trophy className="h-7 w-7 text-[var(--cd-brand)]" />
+                <h2 className="text-2xl font-semibold">{t('quizComplete')}</h2>
+                <p className="text-muted-foreground">{score.correct} / {questions.length} · {t('correct')}</p>
               </div>
-              
-              <h2 className="text-2xl font-bold mb-2">Quiz terminé !</h2>
-              <p className="text-muted-foreground mb-6">
-                Tu as obtenu {score.correct} / {questions.length} bonnes réponses
-              </p>
-
-              {/* Score circle */}
-              <div className="relative w-32 h-32 mx-auto mb-6">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    className="text-muted"
-                  />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="url(#gradient)"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${(score.correct / questions.length) * 352} 352`}
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" />
-                      <stop offset="100%" stopColor="#06b6d4" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-3xl font-bold">
-                    {Math.round((score.correct / questions.length) * 100)}%
-                  </span>
-                </div>
+              <div className="rounded-xl border bg-[var(--cd-paper)] p-5">
+                <span className="text-4xl font-semibold text-[var(--cd-ink)]">{questions.length > 0 ? Math.round((score.correct / questions.length) * 100) : 0}%</span>
+                <Progress value={questions.length > 0 ? (score.correct / questions.length) * 100 : 0} className="mt-4 h-2" />
               </div>
-
-              {/* Study tips */}
-              <div className="bg-muted/50 rounded-xl p-4 mb-6 text-left">
-                <h4 className="font-semibold flex items-center gap-2 mb-3">
-                  <Lightbulb className="h-4 w-4 text-amber-500" />
-                  Conseils pour réviser
-                </h4>
-                <ul className="space-y-2">
-                  {getStudyTips().map((tip, i) => (
-                    <li key={i} className="text-sm text-muted-foreground">{tip}</li>
+              {wrongQuestions.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold">{flow.history}</h3>
+                  {questions.filter((question) => wrongQuestions.includes(question.id)).map((question) => (
+                    <div key={question.id} className="rounded-xl border p-4">
+                      <p className="font-medium">{question.question}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{t('answer')} : {question.correctAnswer}</p>
+                      {question.sourceRef && <p className="mt-1 text-xs text-muted-foreground">{common.source} : {question.sourceRef}</p>}
+                    </div>
                   ))}
-                </ul>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3">
+                </div>
+              )}
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button 
                   variant="outline" 
-                  className="flex-1 gap-2"
+                  className="min-h-11 flex-1"
                   onClick={() => setIsQuizActive(false)}
                 >
-                  Fermer
+                  {t('back')}
                 </Button>
                 <Button 
-                  className="flex-1 gap-2"
+                  className="min-h-11 flex-1 gap-2 bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]"
                   onClick={startQuiz}
                 >
                   <RotateCcw className="h-4 w-4" />
-                  Recommencer
+                  {t('restart')}
                 </Button>
               </div>
             </div>
@@ -593,33 +518,32 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
         </DialogContent>
       </Dialog>
 
-      {/* Stats Modal */}
       <Dialog open={showStats} onOpenChange={setShowStats}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent lang={language} dir={language === 'ar' ? 'rtl' : 'ltr'} className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Statistiques
+              {t('score')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-muted/50 text-center">
                 <p className="text-3xl font-bold text-primary">{sessions.length}</p>
-                <p className="text-sm text-muted-foreground">Sessions</p>
+                <p className="text-sm text-muted-foreground">{flow.sessions}</p>
               </div>
               <div className="p-4 rounded-xl bg-muted/50 text-center">
                 <p className="text-3xl font-bold text-primary">{getAverageScore()}%</p>
-                <p className="text-sm text-muted-foreground">Score moyen</p>
+                <p className="text-sm text-muted-foreground">{flow.average}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Dernières sessions</h4>
+              <h4 className="font-semibold text-sm">{flow.recent}</h4>
               {sessions.slice(0, 5).map((session) => (
                 <div key={session.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                   <span className="text-sm text-muted-foreground">
-                    {new Date(session.date).toLocaleDateString()}
+                    {new Date(session.date).toLocaleDateString(language)}
                   </span>
                   <span className={cn(
                     "font-medium",

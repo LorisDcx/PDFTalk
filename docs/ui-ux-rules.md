@@ -23,6 +23,7 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 5. Les outils gratuits doivent fonctionner sans compte, annoncer clairement ce qui reste local et proposer un export. Le passage vers le studio est volontaire et contextuel.
 6. Le contenu FR/EN doit être complet sur le parcours concerné : interfaces, erreurs, emails et formats de nombres/dates. Ne pas mélanger les deux langues dans un même état.
 7. Les pages d'accueil localisées et leurs outils liés conservent la même hiérarchie, le même en-tête et la même action principale que la version française. Traduire les textes sans remplacer un parcours utilisable par un simple bouton d'inscription. Le sélecteur de langue doit ouvrir la page équivalente quand elle existe.
+8. Pour la révision, le document sert à créer les cartes et à lancer le quiz ; la bibliothèque `/flashcards` sert à retrouver et réviser les cartes enregistrées. Il n'y a qu'un seul lecteur de cartes et qu'un seul moteur de quiz. Les liens entre les deux espaces doivent garder le document sélectionné. La génération IA affiche son coût en pages ; un quiz issu des cartes existantes est annoncé comme gratuit.
 
 ## Accessibilité et contrôle qualité
 
