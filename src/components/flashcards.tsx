@@ -11,6 +11,7 @@ import { useLanguage } from '@/lib/i18n'
 import { getPlanLimits } from '@/lib/plans'
 import { createClient } from '@/lib/supabase/client'
 import { studyFlowCopy } from '@/lib/study-flow-locales'
+import { adaptiveStudyCopy } from '@/lib/adaptive-study-locales'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 
 export type Flashcard = { id: string; question: string; answer: string; sourceRef?: string }
@@ -29,6 +30,7 @@ export function Flashcards({ documentId, onFlashcardsChange }: {
   const { profile } = useAuth()
   const { toast } = useToast()
   const c = studyFlowCopy[language as StudyPdfLocale] || studyFlowCopy.en
+  const adaptive = adaptiveStudyCopy[language as StudyPdfLocale] || adaptiveStudyCopy.en
   const maxCount = getPlanLimits(profile?.current_plan ?? null).maxFlashcardsPerGen
   const safeCount = Math.min(count, maxCount)
 
@@ -72,12 +74,13 @@ export function Flashcards({ documentId, onFlashcardsChange }: {
         if (response.status === 403 && ['insufficient_pages', 'daily_limit_reached', 'quota_exceeded'].includes(result.code)) {
           throw new Error(t('insufficientPages'))
         }
-        throw new Error(result.code === 'subscription_expired' ? t('accessExpired') :
+        throw new Error(result.code === 'generation_incomplete' ? adaptive.generationIncomplete : result.code === 'subscription_expired' ? t('accessExpired') :
           response.status === 503 || result.error === 'Document unavailable' ? t('notAvailable') : t('unexpectedError'))
       }
       setDialogOpen(false)
       setJustCreated(true)
       if (!await loadCards()) throw new Error(c.loadFailed)
+      window.dispatchEvent(new Event('cramdesk:flashcards-changed'))
     } catch (error) {
       toast({ title: t('error'), description: error instanceof Error ? error.message : t('unexpectedError'), variant: 'destructive' })
     } finally {

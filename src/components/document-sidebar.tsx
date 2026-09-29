@@ -79,9 +79,21 @@ export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebar
         .order('created_at', { ascending: false })
 
       if (docs) {
+        const cardCounts = new Map<string, number>()
+        if (docs.length) {
+          for (let offset = 0; ; offset += 500) {
+            const { data: cardPage, error: cardError } = await supabase.from('flashcards')
+              .select('id, document_id')
+              .in('document_id', docs.map(doc => doc.id))
+              .order('id', { ascending: true })
+              .range(offset, offset + 499)
+            if (cardError) { console.error('Could not load flashcard counts:', cardError); break }
+            for (const card of cardPage || []) cardCounts.set(card.document_id, (cardCounts.get(card.document_id) || 0) + 1)
+            if (!cardPage || cardPage.length < 500) break
+          }
+        }
         const enrichedDocs: DocumentItem[] = docs.map(doc => {
-          const flashcards = localStorage.getItem(`flashcards-${doc.id}`)
-          const flashcardsCount = flashcards ? JSON.parse(flashcards).length : 0
+          const flashcardsCount = cardCounts.get(doc.id) || 0
           const quizSessions = localStorage.getItem(`quiz-sessions-${doc.id}`)
           const quizSessionsCount = quizSessions ? JSON.parse(quizSessions).length : 0
           const slides = localStorage.getItem(`slides-${doc.id}`)
@@ -223,7 +235,9 @@ export function DocumentSidebar({ currentDocumentId, onSelect }: DocumentSidebar
     if (!userId) return
     let active = true
     queueMicrotask(() => { if (active) void loadData() })
-    return () => { active = false }
+    const refreshCards = () => { if (active) void loadData() }
+    window.addEventListener('cramdesk:flashcards-changed', refreshCards)
+    return () => { active = false; window.removeEventListener('cramdesk:flashcards-changed', refreshCards) }
   }, [loadData, userId])
 
   const filteredDocuments = documents.filter(doc => doc.file_name.toLowerCase().includes(searchQuery.toLowerCase()))

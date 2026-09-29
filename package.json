@@ -9,7 +9,8 @@
     "lint": "eslint src next.config.js",
     "db:check": "node scripts/check-database.mjs",
     "test:pdf-tools": "node scripts/test-pdf-tools.mjs",
-    "test:document-sources": "node --experimental-strip-types scripts/test-document-sources.mjs"
+    "test:document-sources": "node --experimental-strip-types scripts/test-document-sources.mjs",
+    "test:study-flow": "node --experimental-strip-types scripts/test-study-flow.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

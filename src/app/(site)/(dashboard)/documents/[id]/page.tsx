@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import {
@@ -51,6 +51,7 @@ export default function DocumentPage() {
   const [translatedReview, setTranslatedReview] = useState<string | null>(null)
   const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
+  const initialSourceOpened = useRef(false)
 
   const loadDocument = useCallback(async () => {
     if (!userId || !documentId) return
@@ -132,7 +133,7 @@ export default function DocumentPage() {
     return () => window.clearInterval(interval)
   }, [document?.status, documentId, loadDocument, supabase, userId])
 
-  const openPdf = async (page?: number) => {
+  const openPdf = useCallback(async (page?: number) => {
     if (!document) return
     setPdfLoading(true)
     try {
@@ -145,7 +146,15 @@ export default function DocumentPage() {
     } finally {
       setPdfLoading(false)
     }
-  }
+  }, [document, supabase, t, toast])
+
+  useEffect(() => {
+    if (!document || initialSourceOpened.current) return
+    const page = Number(new URLSearchParams(window.location.search).get('page'))
+    if (!Number.isInteger(page) || page < 1) return
+    initialSourceOpened.current = true
+    queueMicrotask(() => void openPdf(page))
+  }, [document, openPdf])
 
   const togglePdf = async () => {
     if (pdfVisible) { setPdfVisible(false); return }

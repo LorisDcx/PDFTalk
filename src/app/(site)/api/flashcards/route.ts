@@ -4,155 +4,90 @@ import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
 import { getPlanLimits } from '@/lib/plans'
-import { getDocumentContext } from '@/lib/document-context'
+import { getDocumentContextWithStatus } from '@/lib/document-context'
 import { sampleDocumentSections, verifySourceQuote } from '@/lib/document-retrieval'
+import { parseGeneratedCards, uniqueByQuestion, type GeneratedCard } from '@/lib/study-generation'
 
-export const maxDuration = 60 // Vercel max timeout (free plan)
+export const maxDuration = 60
+
+const languageNames: Record<string, string> = {
+  fr: 'French', en: 'English', es: 'Spanish', de: 'German', it: 'Italian',
+  pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic',
+}
+
+async function generateBatch(documentContent: string, count: number, language: string, existing: string[]): Promise<GeneratedCard[]> {
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: `Create exactly ${count} distinct, useful student flashcards in ${language} from the document excerpts. Questions must be specific and answers concise (one or two sentences). Cover different important concepts, not repeated facts. For each card, copy a short sourceQuote EXACTLY from the excerpts when possible. Never invent a source or page. Return valid JSON only: {"flashcards":[{"question":"...","answer":"...","sourceQuote":"..."}]}\n\nDOCUMENT:\n${documentContent}` },
+      { role: 'user', content: `Create ${count} flashcards. Avoid these existing questions: ${existing.slice(-100).join(' | ') || 'none'}.` },
+    ],
+    temperature: 0.55,
+    max_tokens: Math.min(8000, Math.max(2000, count * 180)),
+    response_format: { type: 'json_object' },
+  })
+  const content = response.choices[0]?.message?.content
+  if (!content) return []
+  try { return parseGeneratedCards(content) } catch { return [] }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient()
-
-    // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { documentId, count = 20, language = 'fr' } = await request.json()
-    const documentContent = await getDocumentContext(supabase, user.id, documentId)
+    const context = await getDocumentContextWithStatus(supabase, user.id, documentId)
+    if (!context.content) return NextResponse.json({ error: context.code, code: context.code }, { status: context.code === 'service_unavailable' ? 503 : 403 })
 
-    if (!documentContent) {
-      return NextResponse.json({ error: 'Document unavailable' }, { status: 403 })
-    }
-
-    const { data: profile } = await supabase.from('users')
-      .select('current_plan').eq('id', user.id).single()
-    if (!profile) return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    const requestedCount = Number.isFinite(Number(count)) ? Math.floor(Number(count)) : 20
-    const cardCount = Math.min(getPlanLimits(profile.current_plan).maxFlashcardsPerGen, Math.max(5, requestedCount))
-
-    // Calculate page cost (5 flashcards = 1 page)
+    const { data: profile, error: profileError } = await supabase.from('users').select('current_plan').eq('id', user.id).single()
+    if (profileError || !profile) return NextResponse.json({ error: 'Profile unavailable', code: 'service_unavailable' }, { status: 503 })
+    const requested = Number.isFinite(Number(count)) ? Math.floor(Number(count)) : 20
+    const cardCount = Math.min(getPlanLimits(profile.current_plan).maxFlashcardsPerGen, Math.max(5, requested))
     const pageCost = calculatePageCost('flashcards', cardCount)
+    const usage = await checkUserUsage(supabase, user.id, pageCost)
+    if (!usage.allowed) return usageFailureResponse(usage)
 
-    // Check if user has enough pages
-    const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
-    
-    if (!usageCheck.allowed) {
-      return usageFailureResponse(usageCheck)
-    }
-
-    // Language names for the prompt
-    const languageNames: Record<string, string> = {
-      fr: 'French', en: 'English', es: 'Spanish', de: 'German',
-      it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic'
-    }
-    const targetLanguage = languageNames[language] || 'English'
-
+    const documentContent = context.content
     const selectedContent = sampleDocumentSections(documentContent, 14000)
+    const targetLanguage = languageNames[language] || 'French'
+    const batchSizes = Array.from({ length: Math.ceil(cardCount / 30) }, (_, index) => Math.min(30, cardCount - index * 30))
+    let generated = uniqueByQuestion((await Promise.all(batchSizes.map(size => generateBatch(selectedContent, size, targetLanguage, [])))).flat())
+    if (generated.length < cardCount) {
+      const missing = cardCount - generated.length
+      generated = uniqueByQuestion([...generated, ...await generateBatch(selectedContent, missing, targetLanguage, generated.map(card => card.question))])
+    }
+    if (generated.length < cardCount) return NextResponse.json({ error: 'Could not create the full card set. Your existing cards and quota are unchanged.', code: 'generation_incomplete' }, { status: 503 })
 
-    const systemPrompt = `You are an expert in creating educational flashcards. Create exactly ${cardCount} flashcards from this document.
-
-DOCUMENT:
-${selectedContent}
-
-INSTRUCTIONS:
-- Create exactly ${cardCount} flashcards
-- ALL content MUST be in ${targetLanguage}
-- Questions: clear and specific
-- Answers: concise (1-2 sentences max)
-- Cover the most important concepts
-- For each card, include a short sourceQuote copied EXACTLY from the supplied excerpts. Never invent a section or page number.
-- Return ONLY valid JSON
-
-FORMAT:
-{"flashcards":[{"id":"1","question":"...","answer":"...","sourceQuote":"exact excerpt"}]}`
-
-    // Calculate max tokens based on card count (approx 100 tokens per card)
-    const maxTokens = Math.min(16000, Math.max(4000, cardCount * 80))
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate ${cardCount} flashcards in ${targetLanguage}.` },
-      ],
-      temperature: 0.7,
-      max_tokens: maxTokens,
-      response_format: { type: 'json_object' },
+    const cards = generated.slice(0, cardCount).map(card => {
+      const source = card.sourceQuote ? verifySourceQuote(documentContent, card.sourceQuote) : null
+      return { question: card.question, answer: card.answer,
+        sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
     })
 
-    const content = response.choices[0]?.message?.content
-    
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned empty response' }, { status: 500 })
-    }
-
-    let parsed
-    try {
-      parsed = JSON.parse(content)
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Content:', content?.substring(0, 500))
-      return NextResponse.json({ error: 'AI returned invalid format', details: content?.substring(0, 200) }, { status: 500 })
-    }
-    
-    type GeneratedCard = { question: string; answer: string; sourceQuote?: string }
-    const generated: unknown = parsed.flashcards
-    const flashcards = Array.isArray(generated)
-      ? generated.filter((card: unknown): card is GeneratedCard => {
-          if (!card || typeof card !== 'object') return false
-          const item = card as Record<string, unknown>
-          return typeof item.question === 'string' && !!item.question.trim() &&
-            typeof item.answer === 'string' && !!item.answer.trim()
-        })
-      : []
-    const sourcedCards = flashcards.map(card => {
-      const source = typeof card.sourceQuote === 'string' ? verifySourceQuote(documentContent, card.sourceQuote) : null
-      return { question: card.question.trim(), answer: card.answer.trim(), sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
-    })
-    const actualCardCount = sourcedCards.length
-    const actualPageCost = calculatePageCost('flashcards', actualCardCount)
-    if (actualPageCost === 0) throw new Error('AI returned no flashcards')
-
-    const { data: previousCards, error: previousError } = await supabase.from('flashcards')
-      .select('id').eq('document_id', documentId)
+    const { data: previousCards, error: previousError } = await supabase.from('flashcards').select('id').eq('document_id', documentId)
     if (previousError) throw previousError
-    const { data: insertedCards, error: insertError } = await supabase.from('flashcards')
-      .insert(sourcedCards.map((card, index) => ({
-        document_id: documentId,
-        question: card.question,
-        answer: card.answer,
-        source_ref: card.sourceRef || null,
-        order_index: index,
-      })))
-      .select('id')
-    if (insertError || !insertedCards?.length) throw insertError || new Error('Could not save flashcards')
+    const { data: insertedCards, error: insertError } = await supabase.from('flashcards').insert(cards.map((card, index) => ({
+      document_id: documentId, question: card.question, answer: card.answer, source_ref: card.sourceRef || null, order_index: index,
+    }))).select('id')
+    if (insertError || insertedCards?.length !== cardCount) throw insertError || new Error('Could not save the full card set')
 
-    const charge = await deductPages(supabase, user.id, actualPageCost)
+    const insertedIds = insertedCards.map(card => card.id)
+    const charge = await deductPages(supabase, user.id, pageCost)
     if (!charge.success) {
-      await supabase.from('flashcards').delete().in('id', insertedCards.map(card => card.id))
+      const { error: rollbackError } = await supabase.from('flashcards').delete().in('id', insertedIds)
+      if (rollbackError) console.error('Flashcard rollback failed:', rollbackError)
       return NextResponse.json({ error: charge.error, code: charge.code }, { status: charge.code === 'usage_charge_failed' ? 503 : 403 })
     }
     if (previousCards?.length) {
-      const { error: cleanupError } = await supabase.from('flashcards')
-        .delete().in('id', previousCards.map(card => card.id))
+      const { error: cleanupError } = await supabase.from('flashcards').delete().in('id', previousCards.map(card => card.id))
       if (cleanupError) console.error('Could not remove previous flashcards:', cleanupError)
     }
-    
-    return NextResponse.json({ 
-      flashcards: sourcedCards,
-      count: actualCardCount,
-      pagesUsed: actualPageCost
-    })
-
+    return NextResponse.json({ flashcards: cards, count: cardCount, pagesUsed: pageCost })
   } catch (error) {
     console.error('Flashcards error:', error instanceof Error ? error.message : error)
-    
-    if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
-      return NextResponse.json({ error: 'AI service busy. Try again.' }, { status: 429 })
-    }
-    
-    return NextResponse.json({ error: 'Generation failed. Try again.' }, { status: 500 })
+    if (error && typeof error === 'object' && 'status' in error && error.status === 429) return NextResponse.json({ error: 'AI service busy. Try again.', code: 'service_unavailable' }, { status: 429 })
+    return NextResponse.json({ error: 'Generation failed. Try again.', code: 'service_unavailable' }, { status: 503 })
   }
 }

@@ -32,6 +32,10 @@ import { useAuth } from '@/components/auth-provider'
 import { getPlanLimits } from '@/lib/plans'
 import { quizFlowCopy, studyFlowCopy } from '@/lib/study-flow-locales'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
+import { adaptiveStudyCopy } from '@/lib/adaptive-study-locales'
+import { buildAdaptiveQuiz } from '@/lib/study-quiz'
+import { scheduleReview } from '@/lib/study-scheduler'
+import { readStudyProgress, writeStudyProgress } from '@/lib/study-progress-storage'
 
 function shuffled<T>(items: T[]): T[] {
   const copy = [...items]
@@ -44,6 +48,7 @@ function shuffled<T>(items: T[]): T[] {
 
 interface QuizQuestion {
   id: string
+  cardId?: string
   question: string
   correctAnswer: string
   options: string[]
@@ -83,11 +88,13 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
   const [startTime, setStartTime] = useState<number>(0)
   const [showStats, setShowStats] = useState(false)
   const openedFromCards = useRef(false)
+  const nextButtonRef = useRef<HTMLButtonElement>(null)
   const { t, language } = useLanguage()
   const { toast } = useToast()
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const flow = quizFlowCopy[language as StudyPdfLocale] || quizFlowCopy.en
   const common = studyFlowCopy[language as StudyPdfLocale] || studyFlowCopy.en
+  const adaptive = adaptiveStudyCopy[language as StudyPdfLocale] || adaptiveStudyCopy.en
 
   const maxQuestions = getPlanLimits(profile?.current_plan ?? null).maxQuizQuestions
   const selectedQuestionCount = Math.min(Math.max(questionCount, 5), maxQuestions)
@@ -121,25 +128,8 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
 
   const generateQuizFromFlashcards = () => {
     if (!canQuizFromFlashcards) return
-
-    const selectedCards = shuffled(flashcards).slice(0, Math.min(selectedQuestionCount, flashcards.length))
-
-    const quizQuestions: QuizQuestion[] = selectedCards.map((card, index) => {
-      // Generate wrong answers from other flashcards
-      const otherAnswers = shuffled(distinctAnswers.filter(answer => answer.toLocaleLowerCase() !== card.answer.trim().toLocaleLowerCase())).slice(0, 3)
-
-      const allOptions = shuffled([card.answer.trim(), ...otherAnswers])
-
-      return {
-        id: `q-${index}`,
-        question: card.question,
-        correctAnswer: card.answer,
-        options: allOptions,
-        sourceRef: card.sourceRef
-      }
-    })
-
-    setQuestions(quizQuestions)
+    const progress = user ? readStudyProgress(user.id, flashcards.map(card => card.id)) : {}
+    setQuestions(buildAdaptiveQuiz(flashcards, progress, selectedQuestionCount))
     startQuiz()
   }
 
@@ -170,7 +160,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
           setIsDialogOpen(false)
           return
         }
-        throw new Error(data.code === 'subscription_expired' ? t('accessExpired') :
+        throw new Error(data.code === 'generation_incomplete' ? adaptive.generationIncomplete : data.code === 'subscription_expired' ? t('accessExpired') :
           response.status === 503 || data.error === 'Document unavailable' ? t('notAvailable') : t('unexpectedError'))
       }
 
@@ -216,6 +206,18 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
       setScore(prev => ({ ...prev, wrong: prev.wrong + 1 }))
       setWrongQuestions(prev => [...prev, currentQuestion.id])
     }
+    if (currentQuestion.cardId && user) {
+      const currentProgress = readStudyProgress(user.id, flashcards.map(card => card.id))
+      const nextProgress = { ...currentProgress, [currentQuestion.cardId]: scheduleReview(currentProgress[currentQuestion.cardId], isCorrect ? 'good' : 'again') }
+      if (!writeStudyProgress(user.id, nextProgress)) toast({ title: t('error'), description: adaptive.saveFailed, variant: 'destructive' })
+    }
+  }
+
+  const retryMistakes = () => {
+    const missed = questions.filter(question => wrongQuestions.includes(question.id))
+    if (!missed.length) return
+    setQuestions(shuffled(missed.map(question => ({ ...question, options: shuffled(question.options) }))))
+    startQuiz()
   }
 
   const nextQuestion = () => {
@@ -260,6 +262,12 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
   const currentQuestion = questions[currentIndex]
   const progress = questions.length > 0 ? ((currentIndex + (isAnswered ? 1 : 0)) / questions.length) * 100 : 0
 
+  useEffect(() => {
+    if (!isAnswered) return
+    const frame = requestAnimationFrame(() => nextButtonRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [isAnswered])
+
   return (
     <>
       <div className="flex flex-wrap gap-2">
@@ -288,7 +296,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">{t('quizMode')}</DialogTitle>
+                  <DialogTitle className="font-editorial text-2xl text-[var(--cd-ink)]">{t('quizMode')}</DialogTitle>
                   <DialogDescription>
                     {t('quizModeDesc')}
                   </DialogDescription>
@@ -342,9 +350,9 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                   title={!canQuizFromFlashcards ? t('quizNeedsDistinctCards') : undefined}
                 >
                   <Target className="h-4 w-4 mr-2" />
-                  {t('quizFromFlashcards')} ({flashcards.length})
+                  {adaptive.priorityQuiz} ({Math.min(selectedQuestionCount, flashcards.length)})
                 </Button>
-                <p className="text-xs text-muted-foreground">{flow.freeCards}</p>
+                <p className="text-sm text-[var(--cd-muted)]">{flow.freeCards} {adaptive.localProgress}</p>
                 </div>
               )}
               {flashcards.length > 0 && !canQuizFromFlashcards && <p className="text-sm text-muted-foreground">{t('quizNeedsDistinctCards')}</p>}
@@ -406,12 +414,11 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
               <div className="p-6">
                 <div className="mb-6">
                   <p className="text-lg font-medium leading-relaxed">{currentQuestion?.question}</p>
-                  {currentQuestion?.sourceRef && (
-                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {common.source} : {currentQuestion.sourceRef}
-                    </p>
-                  )}
+                  {currentQuestion?.sourceRef && (() => {
+                    const page = Number(currentQuestion.sourceRef.match(/^Page\s+(\d+)/i)?.[1])
+                    return page ? <a href={`/documents/${documentId}?page=${page}`} target="_blank" rel="noopener noreferrer" className="mt-2 flex min-h-11 items-center gap-1 text-left text-xs text-[var(--cd-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]"><AlertCircle className="h-3 w-3" />{common.source} : {currentQuestion.sourceRef}</a>
+                      : <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><AlertCircle className="h-3 w-3" />{common.source} : {currentQuestion.sourceRef}</p>
+                  })()}
                 </div>
 
                 <div className="space-y-3">
@@ -422,11 +429,13 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
 
                     return (
                       <button
+                        type="button"
                         key={i}
                         onClick={() => handleAnswer(option)}
                         disabled={isAnswered}
+                        aria-label={`${String.fromCharCode(65 + i)}. ${option}`}
                         className={cn(
-                          "min-h-12 w-full rounded-xl border-2 p-4 text-left transition-colors",
+                          "min-h-12 w-full rounded-xl border-2 p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]",
                           !showResult && !isSelected && "hover:border-primary/50 hover:bg-primary/5",
                           !showResult && isSelected && "border-primary bg-primary/10",
                           showResult && isCorrect && "border-emerald-500 bg-emerald-50 dark:bg-emerald-950",
@@ -444,7 +453,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                             )}>
                               {String.fromCharCode(65 + i)}
                             </span>
-                            <span className="text-sm">{option}</span>
+                            <span className="min-w-0 break-words text-base leading-6">{option}</span>
                           </span>
                           {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-emerald-500" />}
                           {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-500" />}
@@ -454,8 +463,11 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                   })}
                 </div>
 
+                <p aria-live="polite" className="mt-4 text-sm font-medium text-[var(--cd-ink)]">{isAnswered ? (selectedAnswer === currentQuestion?.correctAnswer ? t('correct') : `${t('answer')} : ${currentQuestion?.correctAnswer}`) : ''}</p>
+
                 {isAnswered && (
                   <Button 
+                    ref={nextButtonRef}
                     onClick={nextQuestion}
                     className="w-full mt-6 gap-2"
                   >
@@ -505,6 +517,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                 >
                   {t('back')}
                 </Button>
+                {wrongQuestions.length > 0 && <Button variant="outline" className="min-h-11 flex-1" onClick={retryMistakes}><RotateCcw className="mr-2 h-4 w-4" />{adaptive.retryMistakes}</Button>}
                 <Button 
                   className="min-h-11 flex-1 gap-2 bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]"
                   onClick={startQuiz}

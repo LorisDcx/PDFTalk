@@ -4,131 +4,72 @@ import { openai } from '@/lib/openai'
 import { checkUserUsage, deductPages, calculatePageCost } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
 import { getPlanLimits } from '@/lib/plans'
-import { getDocumentContext } from '@/lib/document-context'
+import { getDocumentContextWithStatus } from '@/lib/document-context'
 import { sampleDocumentSections, verifySourceQuote } from '@/lib/document-retrieval'
+import { parseGeneratedQuiz, uniqueByQuestion, type GeneratedQuizQuestion } from '@/lib/study-generation'
+
+export const maxDuration = 60
+
+const languageNames: Record<string, string> = {
+  fr: 'French', en: 'English', es: 'Spanish', de: 'German', it: 'Italian',
+  pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic',
+}
+
+async function generateBatch(content: string, count: number, language: string, existing: string[]): Promise<GeneratedQuizQuestion[]> {
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: `Create exactly ${count} distinct multiple-choice study questions in ${language}. Each has four plausible, distinct options and exactly one correct answer. Test important concepts at varied difficulty. Copy a short sourceQuote EXACTLY from the document when possible; never invent a page. Return valid JSON only: {"questions":[{"question":"...","correctAnswer":"...","options":["...","...","...","..."],"sourceQuote":"..."}]}\n\nDOCUMENT:\n${content}` },
+      { role: 'user', content: `Create ${count} questions. Avoid these existing questions: ${existing.slice(-100).join(' | ') || 'none'}.` },
+    ],
+    temperature: 0.55,
+    max_tokens: Math.min(8000, Math.max(2400, count * 240)),
+    response_format: { type: 'json_object' },
+  })
+  const output = response.choices[0]?.message?.content
+  if (!output) return []
+  try { return parseGeneratedQuiz(output) } catch { return [] }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient()
-
-    // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { documentId, count = 10, language = 'fr' } = await request.json()
-    const documentContent = await getDocumentContext(supabase, user.id, documentId)
-
-    if (!documentContent) {
-      return NextResponse.json({ error: 'Document unavailable' }, { status: 403 })
-    }
-
-    const { data: profile } = await supabase.from('users')
-      .select('current_plan').eq('id', user.id).single()
-    if (!profile) return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
-    const requestedCount = Number.isFinite(Number(count)) ? Math.floor(Number(count)) : 10
-    const questionCount = Math.min(getPlanLimits(profile.current_plan).maxQuizQuestions, Math.max(5, requestedCount))
-
-    // Calculate page cost (5 questions = 1 page)
+    const context = await getDocumentContextWithStatus(supabase, user.id, documentId)
+    if (!context.content) return NextResponse.json({ error: context.code, code: context.code }, { status: context.code === 'service_unavailable' ? 503 : 403 })
+    const { data: profile, error: profileError } = await supabase.from('users').select('current_plan').eq('id', user.id).single()
+    if (profileError || !profile) return NextResponse.json({ error: 'Profile unavailable', code: 'service_unavailable' }, { status: 503 })
+    const requested = Number.isFinite(Number(count)) ? Math.floor(Number(count)) : 10
+    const questionCount = Math.min(getPlanLimits(profile.current_plan).maxQuizQuestions, Math.max(5, requested))
     const pageCost = calculatePageCost('quiz', questionCount)
+    const usage = await checkUserUsage(supabase, user.id, pageCost)
+    if (!usage.allowed) return usageFailureResponse(usage)
 
-    // Check if user has enough pages
-    const usageCheck = await checkUserUsage(supabase, user.id, pageCost)
-    
-    if (!usageCheck.allowed) {
-      return usageFailureResponse(usageCheck)
-    }
-
-    // Language names for the prompt
-    const languageNames: Record<string, string> = {
-      fr: 'French', en: 'English', es: 'Spanish', de: 'German',
-      it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese', ar: 'Arabic'
-    }
+    const documentContent = context.content
+    const selectedContent = sampleDocumentSections(documentContent, 14000)
     const targetLanguage = languageNames[language] || 'French'
-
-    const systemPrompt = `You are an expert quiz creator for students. Analyze the provided document and create exactly ${questionCount} multiple choice questions to test knowledge.
-
-DOCUMENT CONTENT:
-${sampleDocumentSections(documentContent, 14000)}
-
-CRITICAL INSTRUCTIONS:
-- Create exactly ${questionCount} multiple choice questions
-- ALL questions and answers MUST be written in ${targetLanguage}
-- Each question must have exactly 4 options (A, B, C, D)
-- Only ONE option should be correct
-- Include a short sourceQuote copied EXACTLY from the supplied excerpts for each question; never invent a page number
-- Cover the most important concepts from the document
-- Vary difficulty levels
-- Respond ONLY with valid JSON
-
-RESPONSE FORMAT (strict JSON):
-{
-  "questions": [
-    {
-      "id": "1",
-      "question": "Clear question in ${targetLanguage}?",
-      "correctAnswer": "The correct answer text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "sourceQuote": "exact excerpt"
+    const batchSizes = Array.from({ length: Math.ceil(questionCount / 20) }, (_, index) => Math.min(20, questionCount - index * 20))
+    let generated = uniqueByQuestion((await Promise.all(batchSizes.map(size => generateBatch(selectedContent, size, targetLanguage, [])))).flat())
+    if (generated.length < questionCount) {
+      const missing = questionCount - generated.length
+      generated = uniqueByQuestion([...generated, ...await generateBatch(selectedContent, missing, targetLanguage, generated.map(question => question.question))])
     }
-  ]
-}`
+    if (generated.length < questionCount) return NextResponse.json({ error: 'Could not create the full quiz. No quota was used.', code: 'generation_incomplete' }, { status: 503 })
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate ${questionCount} quiz questions from this document. Write them in ${targetLanguage}.` },
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-      response_format: { type: 'json_object' },
-    })
-
-    const content = response.choices[0]?.message?.content
-    
-    if (!content) {
-      throw new Error('No response from AI')
-    }
-
-    const parsed = JSON.parse(content)
-    
-    type GeneratedQuestion = { id?: string; question: string; correctAnswer: string; options: string[]; sourceQuote?: string }
-    const generated: unknown = parsed.questions
-    const questions = (Array.isArray(generated) ? generated : []).filter((value: unknown): value is GeneratedQuestion => {
-      if (!value || typeof value !== 'object') return false
-      const q = value as Record<string, unknown>
-      return typeof q.question === 'string' && !!q.question.trim() &&
-        typeof q.correctAnswer === 'string' && !!q.correctAnswer.trim() &&
-        Array.isArray(q.options) && q.options.length === 4 && q.options.every(option => typeof option === 'string' && !!option.trim()) &&
-        new Set(q.options.map(option => option.trim().toLocaleLowerCase())).size === 4
-    }).map((q, index) => {
-      const options = q.options.map(option => option.trim())
-      const correct = q.correctAnswer.trim()
-      const existing = options.find(option => option.toLocaleLowerCase() === correct.toLocaleLowerCase())
-      if (!existing) options[0] = correct
-      const source = typeof q.sourceQuote === 'string' ? verifySourceQuote(documentContent, q.sourceQuote) : null
-      return { id: q.id || String(index + 1), question: q.question.trim(), correctAnswer: existing || correct, options,
+    const questions = generated.slice(0, questionCount).map((question, index) => {
+      const source = question.sourceQuote ? verifySourceQuote(documentContent, question.sourceQuote) : null
+      return { id: String(index + 1), question: question.question, correctAnswer: question.correctAnswer, options: question.options,
         sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
     })
-    
-    // Deduct pages from user's quota after successful generation
-    const actualQuestionCount = questions.length
-    const actualPageCost = calculatePageCost('quiz', actualQuestionCount)
-    if (actualPageCost === 0) throw new Error('AI returned no questions')
-    const charge = await deductPages(supabase, user.id, actualPageCost)
+    const charge = await deductPages(supabase, user.id, pageCost)
     if (!charge.success) return NextResponse.json({ error: charge.error, code: charge.code }, { status: charge.code === 'usage_charge_failed' ? 503 : 403 })
-    
-    return NextResponse.json({ 
-      questions,
-      count: actualQuestionCount,
-      pagesUsed: actualPageCost
-    })
-
+    return NextResponse.json({ questions, count: questionCount, pagesUsed: pageCost })
   } catch (error) {
     console.error('Quiz generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate quiz' }, { status: 500 })
+    if (error && typeof error === 'object' && 'status' in error && error.status === 429) return NextResponse.json({ error: 'AI service busy. Try again.', code: 'service_unavailable' }, { status: 429 })
+    return NextResponse.json({ error: 'Failed to generate quiz', code: 'service_unavailable' }, { status: 503 })
   }
 }
