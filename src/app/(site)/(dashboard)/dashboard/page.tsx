@@ -211,7 +211,14 @@ export default function DashboardPage() {
           const { error: cleanupError } = await supabase.storage.from('documents').remove([filePath])
           if (cleanupError) console.error('Could not clean up rejected upload:', cleanupError)
         }
-        throw new Error(result.error || 'Upload failed')
+        const pdfErrorKeys: Record<string, string> = {
+          pdf_password_protected: 'pdfPasswordProtected',
+          pdf_invalid: 'pdfInvalid',
+          pdf_too_complex: 'pdfTooComplex',
+          pdf_processing_unavailable: 'pdfProcessingUnavailable',
+          no_text_extracted: 'pdfNoText',
+        }
+        throw new Error(pdfErrorKeys[result.code] ? t(pdfErrorKeys[result.code]) : result.error || t('uploadFailedDesc'))
       }
 
       toast({

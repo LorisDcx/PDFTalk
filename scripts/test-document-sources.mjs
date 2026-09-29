@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
-import { extractTextFromPDF, prepareDocumentText } from '../src/lib/pdf.ts'
+import { extractTextFromPDF, prepareDocumentText, PDFExtractionError } from '../src/lib/pdf.ts'
 import { sampleDocumentSections, verifySourceQuote } from '../src/lib/document-retrieval.ts'
 
 const pdf = await PDFDocument.create()
@@ -17,6 +17,10 @@ const extracted = await extractTextFromPDF(Buffer.from(await pdf.save()))
 assert.equal(extracted.numPages, 2)
 assert.equal(extracted.pages[0].pageNumber, 1)
 assert.match(extracted.pages[1].text, /electrons move/)
+await assert.rejects(
+  extractTextFromPDF(Buffer.from('not a PDF')),
+  error => error instanceof PDFExtractionError && error.code === 'pdf_invalid',
+)
 
 const prepared = prepareDocumentText(extracted)
 assert.equal(prepared.sampled, false)

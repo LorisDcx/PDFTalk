@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { extractTextFromPDF, prepareDocumentText } from '@/lib/pdf'
+import { extractTextFromPDF, prepareDocumentText, PDFExtractionError } from '@/lib/pdf'
 import { generateDocumentDigest, generateEasyReading } from '@/lib/openai'
 import { getPlanLimits } from '@/lib/plans'
 import { isTrialExpired } from '@/lib/utils'
@@ -66,11 +66,13 @@ export async function POST(request: NextRequest) {
     let pdfData
     try {
       pdfData = await extractTextFromPDF(buffer)
-    } catch (pdfError: any) {
+    } catch (pdfError) {
       console.error('PDF extraction error:', pdfError)
+      const code = pdfError instanceof PDFExtractionError ? pdfError.code : 'pdf_processing_unavailable'
       return NextResponse.json({ 
-        error: pdfError.message || 'Failed to read PDF file'
-      }, { status: 400 })
+        error: pdfError instanceof Error ? pdfError.message : 'PDF processing is temporarily unavailable.',
+        code,
+      }, { status: code === 'pdf_processing_unavailable' ? 503 : 400 })
     }
 
     // Check if we got any usable text

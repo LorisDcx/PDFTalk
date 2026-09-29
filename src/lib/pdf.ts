@@ -7,6 +7,18 @@ export interface PDFExtractResult {
   warning?: string
 }
 
+export type PDFExtractionErrorCode = 'pdf_password_protected' | 'pdf_invalid' | 'pdf_too_complex' | 'pdf_processing_unavailable'
+
+export class PDFExtractionError extends Error {
+  readonly code: PDFExtractionErrorCode
+
+  constructor(code: PDFExtractionErrorCode, message: string) {
+    super(message)
+    this.name = 'PDFExtractionError'
+    this.code = code
+  }
+}
+
 function cleanPDFText(text: string) {
   return text
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
@@ -46,6 +58,9 @@ function textInReadingOrder(items: PositionedText[]) {
 export async function extractTextFromPDF(buffer: Buffer): Promise<PDFExtractResult> {
   try {
     // Use the same modern PDF.js engine as the browser page preview.
+    // PDF.js uses a fake worker on the server. Import it so Next bundles the
+    // handler; its default relative worker path points into .next/server/chunks.
+    await import('pdfjs-dist/legacy/build/pdf.worker.mjs')
     const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs')
     const loadingTask = getDocument({
       data: new Uint8Array(buffer),
@@ -95,11 +110,11 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<PDFExtractResu
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     if (message.includes('500-page')) throw error
-    if (/password|encrypted/i.test(message)) throw new Error('This PDF is password-protected. Please provide an unencrypted version.')
-    if (/invalid|corrupt|format|structure/i.test(message)) throw new Error('This PDF appears to be corrupted or invalid. Please try a different file.')
-    if (/memory|heap/i.test(message)) throw new Error('This PDF is too complex to process. Please try a simpler document.')
+    if (/password|encrypted/i.test(message)) throw new PDFExtractionError('pdf_password_protected', 'This PDF is password-protected. Please provide an unencrypted version.')
+    if (/invalid|corrupt|format|structure/i.test(message)) throw new PDFExtractionError('pdf_invalid', 'This PDF appears to be corrupted or invalid. Please try a different file.')
+    if (/memory|heap/i.test(message)) throw new PDFExtractionError('pdf_too_complex', 'This PDF is too complex to process. Please try a simpler document.')
     console.error('PDF extraction failed:', error)
-    throw new Error('Failed to read this PDF. Please ensure it is a valid, unencrypted PDF file.')
+    throw new PDFExtractionError('pdf_processing_unavailable', 'PDF processing is temporarily unavailable. Please try again later.')
   }
 }
 
