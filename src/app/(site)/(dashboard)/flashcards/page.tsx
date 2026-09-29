@@ -1,5 +1,5 @@
-import { FlashcardLibrary } from '@/components/flashcard-library'
+import { RevisionWorkspace } from '@/components/revision-workspace'
 
 export default function FlashcardsPage() {
-  return <FlashcardLibrary />
+  return <RevisionWorkspace />
 }
