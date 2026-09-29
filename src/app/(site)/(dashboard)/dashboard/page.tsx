@@ -193,6 +193,7 @@ export default function DashboardPage() {
           filePath,
           fileName: file.name,
           fileSize: file.size,
+          language,
         }),
       })
 

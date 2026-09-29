@@ -7,8 +7,12 @@ import {
   AlertCircle, ArrowLeft, BookOpenText, Check, CheckCircle2, Clock3, Copy,
   ChevronLeft, ChevronRight, ExternalLink, Eye, FileText, GripVertical,
   Layers3, ListChecks, Loader2, Menu, MessageCircle,
-  PanelLeftClose, PanelLeftOpen, X,
+  PanelLeftClose, PanelLeftOpen, RotateCcw, X,
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import { useAuth } from '@/components/auth-provider'
 import { DocumentSidebar } from '@/components/document-sidebar'
 import { Flashcards } from '@/components/flashcards'
@@ -22,6 +26,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils'
+import { cleanSummaryItem } from '@/lib/study-language'
 import type { Document, DocumentDigest, Summary } from '@/types/database'
 
 type WorkspaceView = 'summary' | 'review' | 'tools' | 'chat'
@@ -53,6 +58,9 @@ export default function DocumentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [activeView, setActiveView] = useState<WorkspaceView>('summary')
+  const [summaryMode, setSummaryMode] = useState<'overview' | 'guided'>('overview')
+  const [regenerating, setRegenerating] = useState(false)
+  const [regenerationError, setRegenerationError] = useState<'access' | 'service' | null>(null)
   const [openCardsQuiz, setOpenCardsQuiz] = useState(false)
   const [desktopLibraryOpen, setDesktopLibraryOpen] = useState(false)
   const [mobileLibraryOpen, setMobileLibraryOpen] = useState(false)
@@ -220,13 +228,53 @@ export default function DocumentPage() {
     }
   }
 
+  const regenerateNotes = async () => {
+    if (!document || regenerating) return
+    setRegenerating(true)
+    setRegenerationError(null)
+    try {
+      const response = await fetch(`/api/documents/${document.id}/regenerate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language }),
+      })
+      const result = await response.json().catch(() => ({}))
+      if (response.status === 403 && result.code === 'access_expired') {
+        setRegenerationError('access')
+        return
+      }
+      if (!response.ok || !result.digest || typeof result.easyReading !== 'string') throw new Error(result.error || t('unexpectedError'))
+      const updatedDigest = result.digest as DocumentDigest
+      setDigest(updatedDigest)
+      setSummary(previous => previous ? {
+        ...previous,
+        summary: updatedDigest.summary,
+        key_clauses: updatedDigest.keyClauses,
+        risks: updatedDigest.risks,
+        questions: updatedDigest.questions,
+        actions: updatedDigest.actions,
+        easy_reading: result.easyReading,
+      } : previous)
+      setDocument(previous => previous ? { ...previous, document_type: updatedDigest.documentType } : previous)
+      setTranslatedSummary(null)
+      setTranslatedEasyReading(null)
+      setTranslatedReview(null)
+      toast({ title: t('studyNotesUpdated') })
+    } catch (error) {
+      console.error('Study notes regeneration failed:', error)
+      setRegenerationError('service')
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
   const retryAnalysis = async () => {
     if (!document || retrying) return
     setRetrying(true)
     try {
       const response = await fetch('/api/process-document', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: document.id, filePath: document.file_path, fileName: document.file_name }),
+        body: JSON.stringify({ documentId: document.id, filePath: document.file_path, fileName: document.file_name, language }),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || t('unexpectedError'))
@@ -355,6 +403,17 @@ export default function DocumentPage() {
                 {activeView === 'summary' && <div className="space-y-5">
                   {summary?.source_text?.includes('[PARTIAL EXCERPTS') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Ce document est long : la synthèse utilise des extraits de chaque page. Vérifie les passages importants dans le PDF et pose des questions ciblées.' : 'This document is long: the summary uses excerpts from every page. Check important passages in the PDF and ask focused questions.'}</p>}
                   {summary?.source_text?.includes('[[SOURCE_GAPS]]') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Certaines pages semblent contenir des images ou des scans : leur texte peut manquer dans cette analyse.' : 'Some pages appear to contain images or scans, so their text may be missing from this analysis.'}</p>}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="inline-flex max-w-full rounded-xl border border-[var(--cd-line)] bg-white p-1" role="group" aria-label={t('summaryDisplay')}>
+                      <button type="button" aria-pressed={summaryMode === 'overview'} onClick={() => setSummaryMode('overview')} className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${summaryMode === 'overview' ? 'bg-[#b84432] text-white' : 'text-[var(--cd-muted)] hover:text-[var(--cd-ink)]'}`}>{t('summary')}</button>
+                      <button type="button" aria-pressed={summaryMode === 'guided'} onClick={() => setSummaryMode('guided')} className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${summaryMode === 'guided' ? 'bg-[#b84432] text-white' : 'text-[var(--cd-muted)] hover:text-[var(--cd-ink)]'}`}>{t('easyReading')}</button>
+                    </div>
+                    <Button type="button" variant="outline" className="min-h-11 gap-2 border-[var(--cd-line)] bg-white" onClick={() => void regenerateNotes()} disabled={regenerating}>
+                      {regenerating ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}{regenerating ? t('regeneratingStudyNotes') : t('regenerateStudyNotes')}
+                    </Button>
+                  </div>
+                  {regenerationError && <p role="alert" className="rounded-xl border border-[#e8c9bd] bg-[#fff6f1] p-4 text-base leading-6 text-[#863c2c]">{regenerationError === 'access' ? t('accessExpired') : t('regenerateStudyNotesError')}</p>}
+                  {summaryMode === 'overview' && <>
                   <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
                     <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-[#eee6e0] pb-5">
                       <div>
@@ -367,15 +426,15 @@ export default function DocumentPage() {
                       </div>
                     </div>
                     {(translatedSummary || digest.summary).length > 0 && <div className="max-w-3xl">
-                      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a44331]">{language === 'fr' ? 'En bref' : 'At a glance'}</p>
-                      <p className="mt-3 font-editorial text-[clamp(1.4rem,3vw,2rem)] leading-snug text-[#35282d]">{(translatedSummary || digest.summary)[0]}</p>
+                      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a44331]">{t('atGlance')}</p>
+                      <p className="mt-3 font-editorial text-[clamp(1.4rem,3vw,2rem)] leading-snug text-[#35282d]">{cleanSummaryItem((translatedSummary || digest.summary)[0])}</p>
                     </div>}
                     {(translatedSummary || digest.summary).length > 1 && <div className="mt-8 border-t border-[#eee6e0] pt-7">
-                      <h3 className="text-base font-bold text-[#3d3033]">{language === 'fr' ? 'Les idées à retenir' : 'Key ideas'}</h3>
+                      <h3 className="text-base font-bold text-[#3d3033]">{t('keyIdeas')}</h3>
                       <ol className="mt-3 divide-y divide-[#f0eae5]">
                         {(translatedSummary || digest.summary).slice(1).map((point, index) => <li key={index} className="flex gap-4 py-4 first:pt-2 last:pb-0">
                           <span className="w-6 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-[#b84432]">{String(index + 1).padStart(2, '0')}</span>
-                          <p className="text-base leading-7 text-[#483a47]">{point}</p>
+                          <p className="text-base leading-7 text-[#483a47]">{cleanSummaryItem(point)}</p>
                         </li>)}
                       </ol>
                     </div>}
@@ -395,13 +454,14 @@ export default function DocumentPage() {
                     </div>
                     <button type="button" onClick={() => void openPdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
                   </section>}
+                  </>}
 
-                  {summary?.easy_reading && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#f2eaf0] p-6 sm:p-9">
+                  {summaryMode === 'guided' && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-white p-5 sm:p-8">
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                      <div><p className="mb-1 text-xs font-bold uppercase tracking-[.18em] text-[#80516d]">{t('easyReading')}</p><h2 className="font-editorial text-2xl sm:text-3xl">{t('easyReadingDesc')}</h2></div>
-                      <TranslateButton content={summary.easy_reading} onTranslate={setTranslatedEasyReading} />
+                      <div><p className="mb-1 text-xs font-bold uppercase tracking-[.18em] text-[#a44331]">{t('easyReading')}</p><h2 className="font-editorial text-2xl sm:text-3xl">{t('easyReadingDesc')}</h2></div>
+                      {summary?.easy_reading && <TranslateButton content={summary.easy_reading} onTranslate={setTranslatedEasyReading} />}
                     </div>
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-[#4f4050]">{translatedEasyReading || summary.easy_reading}</p>
+                    {summary?.easy_reading ? <div className="study-chat-answer max-w-3xl text-base leading-8 text-[#4f4050]"><ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { trust: false, strict: 'ignore', throwOnError: false }]]}>{translatedEasyReading || summary.easy_reading}</ReactMarkdown></div> : <p className="text-base leading-7 text-[var(--cd-muted)]">{t('easyReadingEmpty')}</p>}
                   </section>}
                 </div>}
 

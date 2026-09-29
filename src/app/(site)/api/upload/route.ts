@@ -6,6 +6,7 @@ import { getPlanLimits } from '@/lib/plans'
 import { isTrialExpired } from '@/lib/utils'
 import { checkUserUsage, deductPages } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
+import { resolveStudyLanguage } from '@/lib/study-language'
 
 export const maxDuration = 60
 
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
     // Get uploaded file
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const language = resolveStudyLanguage(formData.get('language'))
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -170,8 +172,8 @@ export async function POST(request: NextRequest) {
       
       // Generate digest and easy reading in parallel
       const [digestResult, easyReadingResult] = await Promise.all([
-        generateDocumentDigest(sourceText),
-        generateEasyReading(sourceText),
+        generateDocumentDigest(sourceText, language),
+        generateEasyReading(sourceText, language),
       ])
       const { digest } = digestResult
       const { easyReading } = easyReadingResult

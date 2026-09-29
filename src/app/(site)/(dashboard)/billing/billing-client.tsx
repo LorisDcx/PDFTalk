@@ -18,7 +18,7 @@ export default function BillingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   // Handle success/canceled from Stripe redirect
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function BillingPage() {
                 {hasActiveSubscription ? (
                   <>{t('youAreOnPlan')} {getPlanName(profile.current_plan)}</>
                 ) : isInTrial ? (
-                  <>{trialDays} {t('daysLeftInTrial')}</>
+                  <>{t(trialDays === 1 ? 'trialDayRemainingLabel' : 'trialDaysRemainingLabel').replace('{count}', new Intl.NumberFormat(language).format(trialDays))}</>
                 ) : (
                   t('trialHasExpired')
                 )}
@@ -206,14 +206,14 @@ export default function BillingPage() {
                   {isCurrentPlan && <Crown className={`h-5 w-5 ${isPopular ? 'text-white' : 'text-[#b84432]'}`} />}
                 </CardTitle>
                 <CardDescription className={isPopular ? 'text-[#f0d5ca]' : 'text-[#776d78]'}>
-                  <span className={`font-editorial text-4xl ${isPopular ? 'text-white' : 'text-[#33252b]'}`}>{plan.price}€</span>
+                  <span className={`font-editorial text-4xl ${isPopular ? 'text-white' : 'text-[#33252b]'}`}>{new Intl.NumberFormat(language, { style: 'currency', currency: 'EUR' }).format(plan.price)}</span>
                   <span className="ml-1">{t('perMonth')}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1">
                 {/* Pages highlight */}
                 {(() => {
-                  const displayLimit = new Intl.NumberFormat('fr-FR').format(plan.pagesPerMonth)
+                  const displayLimit = new Intl.NumberFormat(language).format(plan.pagesPerMonth)
                   return (
                     <div className={`mb-3 rounded-xl border p-3 text-center ${isPopular ? 'border-white/20 bg-white/10' : 'border-[#efdcd0] bg-[#fff2e9]'}`}>
                       <span className={`font-editorial text-3xl ${isPopular ? 'text-white' : 'text-[#b84432]'}`}>{displayLimit}</span>
@@ -225,7 +225,7 @@ export default function BillingPage() {
                 {/* Humanizer credits */}
                 <div className={`mb-5 rounded-xl border p-3 text-center ${isPopular ? 'border-white/20 bg-white/10' : 'border-[#efdcd0] bg-[#fbf8fa]'}`}>
                   <span className={`text-sm font-semibold ${isPopular ? 'text-white' : 'text-[#33252b]'}`}>
-                    {plan.humanizerCredits} {t('humanizer')} · {t('perMonth')}
+                    {t('humanizerCreditsPerMonth').replace('{count}', new Intl.NumberFormat(language).format(plan.humanizerCredits))}
                   </span>
                 </div>
                 

@@ -6,6 +6,7 @@ import { getPlanLimits } from '@/lib/plans'
 import { isTrialExpired } from '@/lib/utils'
 import { checkUserUsage, deductPages } from '@/lib/usage'
 import { usageFailureResponse } from '@/lib/usage-response'
+import { resolveStudyLanguage } from '@/lib/study-language'
 
 export const maxDuration = 60
 
@@ -20,7 +21,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Body
-    const { filePath, fileName, documentId: retryDocumentId } = await request.json()
+    const { filePath, fileName, language: requestedLanguage, documentId: retryDocumentId } = await request.json()
+    const language = resolveStudyLanguage(requestedLanguage)
     if (typeof filePath !== 'string' || !filePath || filePath.length > 300 ||
       typeof fileName !== 'string' || !fileName.trim() || fileName.length > 255 ||
       (retryDocumentId !== undefined && (typeof retryDocumentId !== 'string' || !/^[0-9a-f-]{36}$/i.test(retryDocumentId)))) {
@@ -147,8 +149,8 @@ export async function POST(request: NextRequest) {
       const sourceText = prepared.text
 
       const [digestResult, easyReadingResult] = await Promise.all([
-        generateDocumentDigest(sourceText),
-        generateEasyReading(sourceText),
+        generateDocumentDigest(sourceText, language),
+        generateEasyReading(sourceText, language),
       ])
       const { digest } = digestResult
       const { easyReading } = easyReadingResult
