@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import {
   AlertCircle, ArrowLeft, BookOpenText, Check, CheckCircle2, Clock3, Copy,
-  Eye, FileText, Layers3, ListChecks, Loader2, Menu, MessageCircle,
+  ChevronLeft, ChevronRight, ExternalLink, Eye, FileText, GripVertical,
+  Layers3, ListChecks, Loader2, Menu, MessageCircle,
   PanelLeftClose, PanelLeftOpen, X,
 } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
@@ -25,6 +26,18 @@ import type { Document, DocumentDigest, Summary } from '@/types/database'
 
 type WorkspaceView = 'summary' | 'review' | 'tools' | 'chat'
 type FlashcardItem = { id: string; question: string; answer: string; sourceRef?: string }
+
+const pdfLabels = {
+  fr: { study: 'Espace de travail', pdf: 'Document PDF', close: 'Fermer le PDF', previous: 'Page précédente', next: 'Page suivante', page: 'Page', of: 'sur', open: 'Ouvrir dans un onglet', resize: 'Redimensionner le panneau PDF', unavailable: 'Impossible de charger ce PDF. Réessaie sans perdre ton travail.', retry: 'Réessayer', views: 'Choisir une vue' },
+  en: { study: 'Workspace', pdf: 'PDF document', close: 'Close PDF', previous: 'Previous page', next: 'Next page', page: 'Page', of: 'of', open: 'Open in a new tab', resize: 'Resize PDF panel', unavailable: 'Could not load this PDF. Try again without losing your work.', retry: 'Try again', views: 'Choose a view' },
+  es: { study: 'Espacio de trabajo', pdf: 'Documento PDF', close: 'Cerrar PDF', previous: 'Página anterior', next: 'Página siguiente', page: 'Página', of: 'de', open: 'Abrir en otra pestaña', resize: 'Cambiar tamaño del panel PDF', unavailable: 'No se pudo cargar el PDF. Vuelve a intentarlo sin perder tu trabajo.', retry: 'Reintentar', views: 'Elegir una vista' },
+  de: { study: 'Arbeitsbereich', pdf: 'PDF-Dokument', close: 'PDF schließen', previous: 'Vorherige Seite', next: 'Nächste Seite', page: 'Seite', of: 'von', open: 'In neuem Tab öffnen', resize: 'PDF-Bereich vergrößern', unavailable: 'Das PDF konnte nicht geladen werden. Versuche es erneut, ohne deine Arbeit zu verlieren.', retry: 'Erneut versuchen', views: 'Ansicht auswählen' },
+  it: { study: 'Area di lavoro', pdf: 'Documento PDF', close: 'Chiudi PDF', previous: 'Pagina precedente', next: 'Pagina successiva', page: 'Pagina', of: 'di', open: 'Apri in una nuova scheda', resize: 'Ridimensiona il pannello PDF', unavailable: 'Impossibile caricare il PDF. Riprova senza perdere il tuo lavoro.', retry: 'Riprova', views: 'Scegli una vista' },
+  pt: { study: 'Área de trabalho', pdf: 'Documento PDF', close: 'Fechar PDF', previous: 'Página anterior', next: 'Próxima página', page: 'Página', of: 'de', open: 'Abrir em outra aba', resize: 'Redimensionar painel PDF', unavailable: 'Não foi possível carregar o PDF. Tente novamente sem perder seu trabalho.', retry: 'Tentar novamente', views: 'Escolher visualização' },
+  zh: { study: '学习空间', pdf: 'PDF 文档', close: '关闭 PDF', previous: '上一页', next: '下一页', page: '第', of: '页，共', open: '在新标签页打开', resize: '调整 PDF 面板大小', unavailable: '无法加载此 PDF。请重试，你的工作不会丢失。', retry: '重试', views: '选择视图' },
+  ja: { study: '学習スペース', pdf: 'PDF 文書', close: 'PDF を閉じる', previous: '前のページ', next: '次のページ', page: 'ページ', of: '/', open: '新しいタブで開く', resize: 'PDF パネルの幅を変更', unavailable: 'PDF を読み込めませんでした。作業内容はそのままに再試行できます。', retry: '再試行', views: '表示を選択' },
+  ar: { study: 'مساحة العمل', pdf: 'مستند PDF', close: 'إغلاق PDF', previous: 'الصفحة السابقة', next: 'الصفحة التالية', page: 'الصفحة', of: 'من', open: 'فتح في تبويب جديد', resize: 'تغيير حجم لوحة PDF', unavailable: 'تعذر تحميل ملف PDF. أعد المحاولة دون فقدان عملك.', retry: 'إعادة المحاولة', views: 'اختيار طريقة العرض' },
+} as const
 
 export default function DocumentPage() {
   const { id: documentId } = useParams<{ id: string }>()
@@ -46,12 +59,40 @@ export default function DocumentPage() {
   const [pdfVisible, setPdfVisible] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState(false)
+  const [pdfPage, setPdfPage] = useState(1)
+  const [pdfPaneWidth, setPdfPaneWidth] = useState(600)
+  const [workspaceWidth, setWorkspaceWidth] = useState(960)
+  const [mobilePane, setMobilePane] = useState<'study' | 'pdf'>('study')
+  const [resizingPdf, setResizingPdf] = useState(false)
+  const workspaceRef = useRef<HTMLDivElement>(null)
+  const pdfSignedAt = useRef(0)
+  const pdfSignedFor = useRef<string | null>(null)
   const [retrying, setRetrying] = useState(false)
   const [translatedSummary, setTranslatedSummary] = useState<string[] | null>(null)
   const [translatedReview, setTranslatedReview] = useState<string | null>(null)
   const [translatedEasyReading, setTranslatedEasyReading] = useState<string | null>(null)
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([])
   const initialSourceOpened = useRef(false)
+
+  useEffect(() => {
+    const stored = Number(window.localStorage.getItem('cramdesk-pdf-panel-width'))
+    if (Number.isFinite(stored) && stored >= 320 && stored <= 1200) queueMicrotask(() => setPdfPaneWidth(stored))
+  }, [])
+
+  useEffect(() => {
+    if (!pdfVisible || !workspaceRef.current) return
+    const observer = new ResizeObserver(entries => setWorkspaceWidth(entries[0].contentRect.width))
+    observer.observe(workspaceRef.current)
+    return () => observer.disconnect()
+  }, [pdfVisible])
+
+  const updatePdfWidth = (width: number) => {
+    const available = workspaceRef.current?.getBoundingClientRect().width || window.innerWidth
+    const next = Math.round(Math.min(Math.max(width, 320), Math.max(320, available - 360)))
+    setPdfPaneWidth(next)
+    window.localStorage.setItem('cramdesk-pdf-panel-width', String(next))
+  }
 
   const loadDocument = useCallback(async () => {
     if (!userId || !documentId) return
@@ -135,18 +176,27 @@ export default function DocumentPage() {
 
   const openPdf = useCallback(async (page?: number) => {
     if (!document) return
+    setPdfVisible(true)
+    setMobilePane('pdf')
+    setPdfError(false)
+    if (page && Number.isInteger(page) && page > 0) setPdfPage(Math.min(page, Math.max(document.pages_count || page, 1)))
+    else if (pdfSignedFor.current !== document.id) setPdfPage(1)
+    if (pdfUrl && pdfSignedFor.current === document.id && Date.now() - pdfSignedAt.current < 50 * 60 * 1000) return
     setPdfLoading(true)
+    setPdfUrl(null)
+    pdfSignedFor.current = null
     try {
       const { data, error } = await supabase.storage.from('documents').createSignedUrl(document.file_path, 3600)
       if (error || !data?.signedUrl) throw error || new Error('PDF unavailable')
-      setPdfUrl(`${data.signedUrl}#page=${page || 1}&toolbar=1&navpanes=0`)
-      setPdfVisible(true)
+      setPdfUrl(data.signedUrl)
+      pdfSignedAt.current = Date.now()
+      pdfSignedFor.current = document.id
     } catch {
-      toast({ title: t('error'), description: t('notAvailable'), variant: 'destructive' })
+      setPdfError(true)
     } finally {
       setPdfLoading(false)
     }
-  }, [document, supabase, t, toast])
+  }, [document, pdfUrl, supabase])
 
   useEffect(() => {
     if (!document || initialSourceOpened.current) return
@@ -209,6 +259,8 @@ export default function DocumentPage() {
     { id: 'chat', label: t('chatTitle'), icon: MessageCircle },
   ]
   const documentContent = summary?.source_text || summary?.easy_reading || digest?.summary.join('\n') || ''
+  const pdfCopy = pdfLabels[language]
+  const pdfSourceUrl = pdfUrl ? `${pdfUrl}#page=${pdfPage}&toolbar=1&navpanes=0` : null
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#faf8f5] text-[#291c2b] lg:flex">
@@ -225,7 +277,7 @@ export default function DocumentPage() {
 
       <div className="min-w-0 flex-1">
         <header className="border-b border-[#e8dedb] bg-white px-4 py-5 sm:px-8 sm:py-6">
-          <div className="mx-auto max-w-[1060px]">
+          <div className={`mx-auto ${pdfVisible ? 'max-w-[1600px]' : 'max-w-[1060px]'}`}>
             <div className="mb-4 flex items-center gap-2 text-sm text-[#786d72]">
               <button type="button" className="rounded-lg p-2 text-[#5d4256] hover:bg-[#f0e8e9] lg:hidden" onClick={() => setMobileLibraryOpen(true)} aria-label={t('myDocuments')}>
                 <Menu className="size-5" />
@@ -247,7 +299,7 @@ export default function DocumentPage() {
               </div>
               <Button type="button" variant="outline" className="gap-2 border-[#e3d9d2] bg-white text-[#51414a] hover:bg-[#fff3eb]" onClick={togglePdf} disabled={pdfLoading}>
                 {pdfLoading ? <Loader2 className="size-4 animate-spin" /> : pdfVisible ? <X className="size-4" /> : <Eye className="size-4" />}
-                {pdfVisible ? t('back') : t('viewPdf')}
+                {pdfVisible ? pdfCopy.close : t('viewPdf')}
               </Button>
             </div>
           </div>
@@ -275,7 +327,15 @@ export default function DocumentPage() {
             <Button variant="outline" className="mt-6" onClick={() => void loadDocument()}>{t('back')}</Button>
           </div>
         ) : (
-          <div className="mx-auto max-w-[1060px] px-4 pb-14 sm:px-8">
+          <>
+          <div className={pdfVisible ? 'border-b border-[var(--cd-line)] px-4 py-2 md:hidden' : 'hidden'}>
+            <div className="flex rounded-xl bg-[#eee9e4] p-1" role="group" aria-label={pdfCopy.views}>
+              <button type="button" onClick={() => setMobilePane('study')} aria-pressed={mobilePane === 'study'} className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-semibold ${mobilePane === 'study' ? 'bg-white text-[var(--cd-ink)] shadow-sm' : 'text-[var(--cd-muted)]'}`}>{pdfCopy.study}</button>
+              <button type="button" onClick={() => setMobilePane('pdf')} aria-pressed={mobilePane === 'pdf'} className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-semibold ${mobilePane === 'pdf' ? 'bg-white text-[var(--cd-ink)] shadow-sm' : 'text-[var(--cd-muted)]'}`}>{pdfCopy.pdf}</button>
+            </div>
+          </div>
+          <div ref={workspaceRef} className={pdfVisible ? 'mx-auto flex min-w-0 max-w-[1600px] items-start' : 'mx-auto max-w-[1060px]'} style={{ '--document-pdf-width': `${pdfPaneWidth}px` } as React.CSSProperties}>
+            <div className={`${pdfVisible ? (mobilePane === 'pdf' ? 'hidden md:block' : 'block') : 'block'} min-w-0 flex-1 px-4 pb-14 sm:px-8`}>
             <nav aria-label={t('documentAnalysis')} className="flex gap-1 overflow-x-auto border-b border-[#e8dedb]">
               {views.map(view => <button
                 key={view.id}
@@ -290,7 +350,7 @@ export default function DocumentPage() {
               </button>)}
             </nav>
 
-            <div className={pdfVisible ? 'grid gap-6 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]' : 'pt-6'}>
+            <div className="pt-6">
               <div className="min-w-0">
                 {activeView === 'summary' && <div className="space-y-5">
                   {summary?.source_text?.includes('[PARTIAL EXCERPTS') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Ce document est long : la synthèse utilise des extraits de chaque page. Vérifie les passages importants dans le PDF et pose des questions ciblées.' : 'This document is long: the summary uses excerpts from every page. Check important passages in the PDF and ask focused questions.'}</p>}
@@ -333,7 +393,7 @@ export default function DocumentPage() {
                         {concept.sourceQuote && <button type="button" onClick={() => void openPdf(concept.sourcePage)} className="mt-4 block min-h-11 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-left text-sm leading-6 text-[#72666a] hover:text-[#a44331] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}{concept.sourcePage ? ` · page ${concept.sourcePage}` : ''}</span>“{concept.sourceQuote}”</button>}
                       </article>)}
                     </div>
-                    <button type="button" onClick={() => void togglePdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
+                    <button type="button" onClick={() => void openPdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
                   </section>}
 
                   {summary?.easy_reading && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#f2eaf0] p-6 sm:p-9">
@@ -351,7 +411,7 @@ export default function DocumentPage() {
                       <div><p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-[#8e5973]">{t('documentAnalysis')}</p><h2 className="font-editorial text-3xl sm:text-4xl">{t('risksIdentified')}</h2></div>
                       <TranslateButton content={[...digest.risks.map(item => `${item.title}: ${item.description}`), ...digest.questions].join('\n\n')} onTranslate={setTranslatedReview} />
                     </div>
-                    {translatedReview ? <div className="space-y-4"><Button size="sm" variant="outline" onClick={() => setTranslatedReview(null)}>{t('showOriginal')}</Button><p className="whitespace-pre-wrap leading-7 text-[#4f4050]">{translatedReview}</p></div> : digest.risks.length ? <div className="grid gap-3 sm:grid-cols-2">
+                    {translatedReview ? <div className="space-y-4"><Button size="sm" variant="outline" onClick={() => setTranslatedReview(null)}>{t('showOriginal')}</Button><p className="whitespace-pre-wrap leading-7 text-[#4f4050]">{translatedReview}</p></div> : digest.risks.length ? <div className={`grid gap-3 ${pdfVisible ? '' : 'sm:grid-cols-2'}`}>
                       {digest.risks.map((point, index) => <article key={index} className="rounded-xl border border-[#eee7e3] bg-[#fbf9f6] p-5">
                         <div className="mb-2 flex items-center gap-2"><CheckCircle2 className="size-4 text-[#87516f]" /><h3 className="font-semibold">{point.title}</h3></div>
                         <p className="text-sm leading-6 text-[#746873]">{point.description}</p>
@@ -373,7 +433,7 @@ export default function DocumentPage() {
                 {activeView === 'tools' && <section className="py-2">
                   <h2 className="font-editorial text-2xl sm:text-3xl">{t('studyTools')}</h2>
                   <p className="mt-1 text-sm text-[#776b73]">{t('studyToolsDesc')}</p>
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <div className={`mt-6 grid gap-4 ${pdfVisible ? '' : 'md:grid-cols-2'}`}>
                     <Flashcards documentId={document.id} onFlashcardsChange={setFlashcards} />
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-quiz-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><ListChecks className="size-5" /></span><div><h3 id="document-quiz-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('quizMode')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('quizModeDesc')}</p></div></div><div className="mt-5"><Quiz documentId={document.id} flashcards={flashcards} openFromCards={openCardsQuiz} onAutoOpen={() => setOpenCardsQuiz(false)} /></div></section>
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-slides-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><Layers3 className="size-5" /></span><div><h3 id="document-slides-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('slides')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('slidesDesc')}</p></div></div><div className="mt-5"><Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} /></div></section>
@@ -386,15 +446,45 @@ export default function DocumentPage() {
                 </section>}
               </div>
 
-              {pdfVisible && pdfUrl && <aside aria-label={t('viewPdf')} className="fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col border-l border-[#e8dedb] bg-[#f2efeb] shadow-2xl lg:sticky lg:top-24 lg:z-auto lg:h-[calc(100vh-7rem)] lg:rounded-[1.4rem] lg:border lg:shadow-[0_20px_50px_-35px_rgba(48,27,43,.3)]">
-                <div className="flex items-center justify-between border-b border-[#e2d8d4] px-4 py-3">
-                  <span className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold"><FileText className="size-4 shrink-0 text-[#87516f]" />{document.file_name}</span>
-                  <Button type="button" size="icon" variant="ghost" onClick={() => setPdfVisible(false)} aria-label={t('back')}><X className="size-4" /></Button>
-                </div>
-                <iframe src={pdfUrl} title={t('viewPdf')} className="min-h-0 w-full flex-1 border-0 bg-white" />
-              </aside>}
             </div>
+            </div>
+            {pdfVisible && <aside aria-label={pdfCopy.pdf} className={`${mobilePane === 'study' ? 'hidden md:flex' : 'flex'} document-pdf-pane relative min-w-0 flex-col border-l border-[var(--cd-line)] bg-white md:sticky md:top-16 md:h-[calc(100dvh-4rem)]`}>
+              <div
+                role="separator"
+                aria-label={pdfCopy.resize}
+                aria-orientation="vertical"
+                aria-valuemin={320}
+                aria-valuemax={Math.max(320, Math.round(workspaceWidth - 360))}
+                aria-valuenow={Math.min(pdfPaneWidth, Math.max(320, Math.round(workspaceWidth - 360)))}
+                tabIndex={0}
+                className="absolute -left-[22px] top-0 z-10 hidden h-full w-11 cursor-col-resize touch-none items-center justify-center focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)] md:flex"
+                onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); setResizingPdf(true) }}
+                onPointerMove={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) updatePdfWidth((workspaceRef.current?.getBoundingClientRect().right || window.innerWidth) - event.clientX) }}
+                onPointerUp={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); setResizingPdf(false) }}
+                onPointerCancel={() => setResizingPdf(false)}
+                onKeyDown={event => {
+                  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); updatePdfWidth(pdfPaneWidth + (event.key === 'ArrowLeft' ? 32 : -32)) }
+                  if (event.key === 'Home') { event.preventDefault(); updatePdfWidth(320) }
+                  if (event.key === 'End') { event.preventDefault(); updatePdfWidth(1200) }
+                }}
+              ><span className="rounded-full border border-[var(--cd-line)] bg-white p-0.5 text-[var(--cd-muted)] shadow-sm"><GripVertical className="size-4" /></span></div>
+              <div className="flex min-h-14 items-center gap-2 border-b border-[var(--cd-line)] px-3 sm:px-4">
+                <FileText className="size-4 shrink-0 text-[var(--cd-brand)]" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--cd-ink)]" title={document.file_name}>{document.file_name}</span>
+                {pdfSourceUrl && <a href={pdfSourceUrl} target="_blank" rel="noopener noreferrer" aria-label={pdfCopy.open} title={pdfCopy.open} className="flex size-11 shrink-0 items-center justify-center rounded-lg text-[var(--cd-muted)] hover:bg-[var(--cd-paper)] focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)]"><ExternalLink className="size-4" /></a>}
+                <button type="button" onClick={() => setPdfVisible(false)} aria-label={pdfCopy.close} title={pdfCopy.close} className="flex size-11 shrink-0 items-center justify-center rounded-lg text-[var(--cd-muted)] hover:bg-[var(--cd-paper)] focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)]"><X className="size-4" /></button>
+              </div>
+              <div className="flex min-h-14 items-center justify-center gap-2 border-b border-[var(--cd-line)] px-3" role="group" aria-label={pdfCopy.page}>
+                <button type="button" onClick={() => setPdfPage(value => Math.max(1, value - 1))} disabled={pdfPage <= 1 || !pdfUrl} aria-label={pdfCopy.previous} className="flex size-11 items-center justify-center rounded-lg hover:bg-[var(--cd-paper)] focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)] disabled:opacity-40"><ChevronLeft className="size-4" /></button>
+                <label className="flex items-center gap-2 text-sm text-[var(--cd-muted)]">{pdfCopy.page}<input key={pdfPage} type="number" min={1} max={Math.max(document.pages_count || 1, 1)} defaultValue={pdfPage} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur() }} onBlur={event => { const value = Number(event.currentTarget.value); if (Number.isInteger(value) && value >= 1 && value <= Math.max(document.pages_count || 1, 1)) setPdfPage(value); else event.currentTarget.value = String(pdfPage) }} className="h-9 w-14 rounded-lg border border-[var(--cd-line)] bg-white text-center font-semibold tabular-nums text-[var(--cd-ink)] focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)]" />{pdfCopy.of} {document.pages_count || 1}</label>
+                <button type="button" onClick={() => setPdfPage(value => Math.min(Math.max(document.pages_count || 1, 1), value + 1))} disabled={pdfPage >= Math.max(document.pages_count || 1, 1) || !pdfUrl} aria-label={pdfCopy.next} className="flex size-11 items-center justify-center rounded-lg hover:bg-[var(--cd-paper)] focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)] disabled:opacity-40"><ChevronRight className="size-4" /></button>
+              </div>
+              {pdfLoading ? <div role="status" className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-[var(--cd-muted)]"><Loader2 className="size-6 animate-spin text-[var(--cd-brand)]" /><span>{t('processing')}</span></div>
+                : pdfError ? <div role="alert" className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center"><AlertCircle className="size-7 text-[var(--cd-brand)]" /><p className="max-w-sm text-base leading-6 text-[var(--cd-ink)]">{pdfCopy.unavailable}</p><Button variant="outline" onClick={() => { pdfSignedAt.current = 0; void openPdf(pdfPage) }}>{pdfCopy.retry}</Button></div>
+                  : pdfSourceUrl ? <iframe src={pdfSourceUrl} title={pdfCopy.pdf} className={`min-h-0 w-full flex-1 border-0 bg-white ${resizingPdf ? 'pointer-events-none' : ''}`} /> : null}
+            </aside>}
           </div>
+          </>
         )}
       </div>
     </div>

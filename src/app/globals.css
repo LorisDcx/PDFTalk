@@ -504,3 +504,18 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .study-card-motion, .study-card-motion.study-card-reveal, .glow-orb { animation: none; }
 }
+/* The document remains in the layout when its PDF is open. The width is
+   persisted by the accessible splitter in the document workspace. */
+.document-pdf-pane {
+  width: 100%;
+  height: calc(100dvh - 12rem);
+  min-height: 24rem;
+}
+
+@media (min-width: 768px) {
+  .document-pdf-pane {
+    width: min(var(--document-pdf-width, 600px), calc(100% - 360px));
+    height: calc(100dvh - 4rem);
+    flex: none;
+  }
+}
