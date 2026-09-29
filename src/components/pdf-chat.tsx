@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUp, FileText, Loader2, RotateCcw } from 'lucide-react'
+import { ArrowUp, Copy, FileText, Loader2, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import { useLanguage } from '@/lib/i18n'
+import { useToast } from '@/components/ui/use-toast'
 
 type Message = { id: string; role: 'user' | 'assistant'; content: string; source?: { quote: string; page: number | null } | null }
 
@@ -29,6 +30,16 @@ export function PDFChat({ documentId, documentContent, documentName, onOpenSourc
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const { t, language } = useLanguage()
+  const { toast } = useToast()
+
+  const copyAnswer = async (answer: string) => {
+    try {
+      await navigator.clipboard.writeText(answer)
+      toast({ title: language === 'fr' ? 'Réponse copiée avec ses formules' : 'Answer copied with formulas' })
+    } catch {
+      toast({ title: language === 'fr' ? 'Copie impossible' : 'Could not copy answer', variant: 'destructive' })
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -122,6 +133,9 @@ export function PDFChat({ documentId, documentContent, documentName, onOpenSourc
           {message.role === 'assistant' && message.source && <button type="button" onClick={() => onOpenSource?.(message.source?.page || undefined)} className="mt-3 block min-h-11 w-full rounded-[var(--cd-radius-control)] border border-[var(--cd-line)] bg-[var(--cd-surface)] px-3 py-2 text-left text-base leading-6 text-[var(--cd-ink)] hover:border-[var(--cd-brand)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]">
             <span className="block font-bold">{language === 'fr' ? 'Extrait vérifié' : 'Verified excerpt'}{message.source.page ? ` · ${language === 'fr' ? 'page' : 'page'} ${message.source.page}` : ''}</span>
             <span className="mt-1 block line-clamp-2">« {message.source.quote} »</span>
+          </button>}
+          {message.role === 'assistant' && <button type="button" onClick={() => void copyAnswer(message.content)} className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-[var(--cd-radius-control)] px-2 text-sm font-medium text-[var(--cd-muted)] hover:text-[var(--cd-brand)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]" aria-label={language === 'fr' ? 'Copier la réponse et ses formules' : 'Copy answer and formulas'}>
+            <Copy className="size-4" aria-hidden="true" />{language === 'fr' ? 'Copier la réponse' : 'Copy answer'}
           </button>}
         </div>
       </div>)}

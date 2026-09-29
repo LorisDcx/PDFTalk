@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import { buildTutorPrompt, selectTutorProfile } from '../src/lib/chat-tutor.ts'
+import { formatChatAnswer, isRenderableChatAnswer } from '../src/lib/chat-answer-format.ts'
 
 const thermodynamics = selectTutorProfile(
   'Tu me fais cet exercice ? Compression adiabatique et isotherme : calculer le travail, Q et ΔU.',
@@ -34,10 +35,25 @@ assert.equal(overview.model, 'gpt-5-mini')
 const rendered = renderToStaticMarkup(React.createElement(ReactMarkdown, {
   remarkPlugins: [remarkGfm, remarkMath],
   rehypePlugins: [[rehypeKatex, { trust: false, strict: 'ignore', throwOnError: false }]],
-  children: 'La pression vaut $P_2=1{,}60\\,\\mathrm{atm}$.\n\n$$W=\\int_{V_2}^{V_1}P\\,dV$$\n\n| Cas | Travail |\n|---|---:|\n| Isotherme | $3{,}76$ |',
-}))
+}, 'La pression vaut $P_2=1{,}60\\,\\mathrm{atm}$.\n\n$$W=\\int_{V_2}^{V_1}P\\,dV$$\n\n| Cas | Travail |\n|---|---:|\n| Isotherme | $3{,}76$ |'))
 assert.match(rendered, /class="katex"/)
 assert.match(rendered, /<table>/)
 assert.doesNotMatch(rendered, /\$P_2/)
+
+const cramped = 'Nombre de moles : $$n=\\frac{PV}{RT}$$ Puis : $$\\gamma=\\frac{C_p}{C_v}$$ ### Résultats'
+const formatted = formatChatAnswer(cramped)
+assert.match(formatted, /\n\n\$\$\nn=/)
+assert.match(formatted, /\n\n### Résultats/)
+const formattedHtml = renderToStaticMarkup(React.createElement(ReactMarkdown, {
+  remarkPlugins: [remarkGfm, remarkMath],
+  rehypePlugins: [[rehypeKatex, { trust: false, strict: 'ignore', throwOnError: false }]],
+}, formatted))
+assert.match(formattedHtml, /<h3>Résultats<\/h3>/)
+assert.equal((formattedHtml.match(/katex-display/g) || []).length >= 2, true)
+assert.equal(formatChatAnswer('Nombre de moles : $$n=\\frac{PV}{RT}$$ Puis $$\\gamma=1.4'), null)
+assert.equal(formatChatAnswer('La formule est $P_2=1.6'), null)
+assert.equal(formatChatAnswer('| Cas | Travail | |---|---:|'), null)
+assert.equal(isRenderableChatAnswer(formatted), true)
+assert.equal(isRenderableChatAnswer('$$\n\\unknownmacro{a}\n$$'), false)
 
 console.log('Tutor routing, worked-exercise contract and math rendering passed')

@@ -4,6 +4,7 @@ import { openai } from '@/lib/openai'
 import { getDocumentContextWithStatus } from '@/lib/document-context'
 import { selectDocumentContext, verifySourceQuote } from '@/lib/document-retrieval'
 import { buildTutorPrompt, selectTutorProfile } from '@/lib/chat-tutor'
+import { formatChatAnswer, isRenderableChatAnswer } from '@/lib/chat-answer-format'
 
 export async function POST(request: NextRequest) {
   try {
@@ -77,9 +78,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let answer = formatChatAnswer(result.answer)
+    if (!answer || !isRenderableChatAnswer(answer)) {
+      try {
+        const repair = await openai.chat.completions.create({
+          model: 'gpt-5-mini',
+          reasoning_effort: 'low',
+          max_completion_tokens: 7000,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'Repair the Markdown and LaTeX formatting of this study answer. Return JSON with one string field named answer. Preserve all reasoning, numbers, units, assumptions and conclusions. Do not add new claims. Use $...$ for inline math. Every display equation must have its opening and closing $$ on separate lines with blank lines around the equation. Close every math delimiter. Put headings, list items and table rows on separate lines.' },
+            { role: 'user', content: result.answer },
+          ],
+        })
+        const repaired = JSON.parse(repair.choices[0]?.message?.content || '{}') as { answer?: unknown }
+        answer = typeof repaired.answer === 'string' ? formatChatAnswer(repaired.answer) : null
+      } catch (repairError) {
+        console.error('Chat answer formatting repair failed:', repairError)
+      }
+    }
+    if (!answer || !isRenderableChatAnswer(answer)) {
+      return NextResponse.json({ error: 'AI answer formatting unavailable', code: 'ai_unavailable' }, { status: 502 })
+    }
+
     const source = typeof result.sourceQuote === 'string'
       ? verifySourceQuote(documentContent, result.sourceQuote) : null
-    return NextResponse.json({ answer: result.answer, source })
+    return NextResponse.json({ answer, source })
 
   } catch (error) {
     console.error('Chat error:', error)
