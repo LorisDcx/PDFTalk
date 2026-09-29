@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowRight, BookOpenText, CheckCircle2, FileQuestion, FileText, Globe2, Layers3, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpenText, CheckCircle2, FileQuestion, FileText, Layers3, Sparkles } from 'lucide-react'
 import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd } from '@/components/json-ld'
-import { Navbar } from '@/components/navbar'
+import { DemoUpload } from '@/components/demo-upload'
+import { PublicSiteHeader } from '@/components/public-site-header'
 import { localizedLandings, SEO_LOCALES, languageAlternates, type SeoLocale } from '@/lib/seo-locales'
 import { studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
 
@@ -48,12 +48,6 @@ const featureTones = [
   { card: 'bg-[#ecf0e7]', icon: 'bg-white/80 text-[#637e5d]' },
 ] as const
 
-const studioLabels: Record<SeoLocale, string> = {
-  en: 'See the studio', es: 'Ver el espacio', de: 'Studio ansehen',
-  it: 'Scopri lo studio', pt: 'Ver o espaço', zh: '查看学习空间',
-  ja: '学習スペースを見る', ar: 'استكشف مساحة الدراسة',
-}
-
 export default async function LocalizedHome({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   if (!isSeoLocale(locale)) notFound()
@@ -62,43 +56,27 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
   const displayClass = rtl ? 'font-semibold' : 'font-editorial'
 
   return (
-    <main lang={locale} dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
+    <>
       <LocalePreference locale={locale} />
       <FAQJsonLd faqs={content.faqs} />
-      {locale === 'en' ? <Navbar publicLocale="en" /> : <header className="border-b border-[#f0dfd5] bg-[#fffaf5]/95 px-5 sm:px-8">
-        <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-3">
-          <Link href="/" className="inline-flex shrink-0 items-center gap-2.5" aria-label="CramDesk">
-            <Image src="/logo.png" width={36} height={36} alt="" className="size-9 rounded-xl shadow-sm" />
-            <span dir="ltr" className="font-editorial text-[1.65rem] leading-none tracking-[-.045em] text-[#33252b]">CramDesk<span className="text-[#d05a39]">.</span></span>
-          </Link>
-          <nav className="flex items-center gap-2 text-xs font-bold sm:gap-4 sm:text-sm" aria-label="Language and account">
-            <details className="group relative">
-              <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-[#e7dce4] bg-white px-3 py-2 text-[#5f4d5b] marker:hidden sm:px-4"><Globe2 className="size-4" />{content.name}<span aria-hidden="true">⌄</span></summary>
-              <div className="absolute end-0 z-30 mt-2 max-h-72 min-w-40 overflow-auto rounded-2xl border border-[#e7dce4] bg-white p-2 shadow-xl">
-                <Link href="/" className="block rounded-xl px-3 py-2 hover:bg-[#fff0e6]">Français</Link>
-                {SEO_LOCALES.map(item => <Link key={item} href={`/${item}`} lang={item} className="block rounded-xl px-3 py-2 hover:bg-[#fff0e6]">{localizedLandings[item].name}</Link>)}
-              </div>
-            </details>
-            <Link href="/login" className="hidden text-[#635563] hover:text-[#b84432] sm:inline">{content.login}</Link>
-            <Link href="/signup" className="hidden rounded-full bg-[#b84432] px-5 py-2.5 text-white hover:bg-[#963326] md:inline-flex">{content.start}</Link>
-          </nav>
-        </div>
-      </header>}
+      <PublicSiteHeader locale={locale} />
+      <main lang={locale} dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
 
-      <section className="relative px-5 pb-24 pt-[4.25rem] text-center sm:px-8 sm:pt-24 lg:pb-32">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[580px] w-[800px] -translate-x-1/2 rounded-full bg-[#f8eef4] opacity-80 blur-[110px]" />
-        <div className="relative mx-auto max-w-4xl">
-          <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#ead8e6] bg-[#ffebe1] px-4 py-2 text-xs font-bold text-[#ae4731]"><Sparkles className="size-3.5" />{content.eyebrow}</p>
-          <h1 className={`${displayClass} mx-auto max-w-4xl text-[clamp(3.2rem,7vw,7rem)] leading-[1.04] tracking-[-.05em]`}>{content.heading}</h1>
-          <p className="mx-auto mt-7 max-w-2xl text-base leading-8 text-[#6e6470] sm:text-xl">{content.intro}</p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/signup" className="inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-full bg-[#b84432] px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-15px_rgba(72,31,59,.7)] transition hover:-translate-y-0.5 hover:bg-[#963326] sm:w-auto">{content.start}<ArrowRight className="size-4" /></Link>
-            <Link href="#studio" className="inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-full border border-[#e7d3c8] bg-white px-7 py-3.5 text-sm font-bold text-[#483648] hover:border-[#ae8fa4] hover:bg-[#fff4ed] sm:w-auto">{studioLabels[locale]} <ArrowRight className="size-4" /></Link>
+      <section className="border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 text-center sm:px-8 sm:pb-20 sm:pt-16">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{content.eyebrow}</p>
+          <h1 className={`${displayClass} mx-auto max-w-4xl text-[clamp(2.65rem,6.7vw,6rem)] leading-[1.03] tracking-[-.05em]`}>{content.heading}</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#655a62] sm:text-lg">{content.intro}</p>
+          <div className="mx-auto mt-6 max-w-2xl rounded-[1.5rem] border border-[#efdcd0] bg-white p-4 text-start sm:mt-8 sm:p-6">
+            <p className="mb-3 px-1 text-base font-bold text-[#3b2e34]">{studyPdfCopy[locale].choose}</p>
+            <DemoUpload locale={locale} />
           </div>
-          <p className="mx-auto mt-5 max-w-xl text-xs leading-6 text-[#8d828d]">{content.pricingText}</p>
-          <Link href={studyPdfPath(locale)} className="mt-5 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#a84431] underline underline-offset-4">{studyPdfCopy[locale].eyebrow}<ArrowRight className="size-4" /></Link>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#756b70]">
+            <p>{content.pricingText}</p>
+            <Link href={studyPdfPath(locale)} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[#8d3e31] underline underline-offset-4">{studyPdfCopy[locale].eyebrow}<ArrowRight className="size-4" /></Link>
+          </div>
         </div>
-        <div id="studio" className="relative mx-auto mt-20 max-w-5xl scroll-mt-24 rounded-[1.7rem] border border-[#edd9ce] bg-white text-start shadow-[0_36px_90px_-45px_rgba(59,34,56,.38)] sm:mt-24">
+        <div id="studio" className="mx-auto mt-20 max-w-5xl scroll-mt-24 rounded-[1.7rem] border border-[#edd9ce] bg-white text-start shadow-[0_18px_50px_-40px_rgba(59,34,56,.36)] sm:mt-24">
           <div className="flex items-center gap-3 border-b border-[#eee8ed] px-5 py-4 sm:px-7">
             <span className="flex size-10 items-center justify-center rounded-2xl bg-[#ffe0d1] text-[#b84432]"><FileText className="size-5" /></span>
             <div><p className="text-sm font-bold">Document.pdf</p><p className="text-xs text-[#837a84]">{content.steps[0]}</p></div>
@@ -161,6 +139,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
       <footer className="border-t border-[#f0dfd5] bg-white px-5 py-9 text-sm text-[#807581] sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5"><span dir="ltr" className="font-editorial text-2xl text-[#3d2b3b]">CramDesk<span className="text-[#d05a39]">.</span></span><p>© {new Date().getFullYear()} CramDesk</p><div className="flex gap-5"><Link href="/privacy" className="hover:text-[#b84432]">Privacy</Link><Link href="/terms" className="hover:text-[#b84432]">Terms</Link><Link href="/contact" className="hover:text-[#b84432]">Contact</Link></div></div>
       </footer>
-    </main>
+      </main>
+    </>
   )
 }

@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowUpRight, Check, Download, FileSearch, Loader2, Search, UploadCloud } from 'lucide-react'
-import { STUDY_PDF_LOCALES, studyPdfCopy, studyPdfCopyFailure, studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
+import { LocalePreference } from '@/components/locale-preference'
+import { PublicSiteHeader } from '@/components/public-site-header'
+import { studyPdfCopy, studyPdfCopyFailure, type StudyPdfLocale } from '@/lib/study-pdf-locales'
 
 type PageText = { number: number; text: string }
 type Status = 'empty' | 'loading' | 'ready' | 'error'
@@ -123,11 +124,10 @@ export function StudyPdfInspector({ locale }: { locale: StudyPdfLocale }) {
     return `${start ? '…' : ''}${source.slice(start, start + 260)}${source.length > start + 260 ? '…' : ''}`
   }
 
-  return <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
-    <header className="border-b border-[var(--cd-line)] bg-[var(--cd-surface)] px-5 sm:px-8"><div className="mx-auto flex min-h-18 max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
-      <Link href={locale === 'fr' ? '/' : `/${locale}`} className="inline-flex items-center gap-2"><Image src="/logo.png" alt="" width={34} height={34} className="size-9 rounded-xl" /><span dir="ltr" className="font-editorial text-2xl">CramDesk<span className="text-[var(--cd-brand)]">.</span></span></Link>
-      <nav className="flex items-center gap-2 text-sm font-semibold"><Link href={locale === 'fr' ? '/' : `/${locale}`} className="inline-flex min-h-11 items-center rounded-xl px-3 hover:bg-[var(--cd-paper)]">{c.home}</Link><details className="group relative"><summary className="flex min-h-11 cursor-pointer list-none items-center rounded-xl border border-[var(--cd-line)] px-3 marker:hidden">{c.name} ⌄</summary><div className="absolute end-0 z-20 mt-2 max-h-72 min-w-40 overflow-auto rounded-xl border border-[var(--cd-line)] bg-white p-2 shadow-lg">{STUDY_PDF_LOCALES.map(item => <Link key={item} href={studyPdfPath(item)} lang={item} className="block min-h-11 rounded-lg px-3 py-2 hover:bg-[var(--cd-paper)]">{studyPdfCopy[item].name}</Link>)}</div></details></nav>
-    </div></header>
+  return <>
+    <LocalePreference locale={locale} />
+    <PublicSiteHeader locale={locale} />
+    <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
 
     <section className="px-5 pb-8 pt-12 sm:px-8 sm:pt-16"><div className="mx-auto max-w-5xl"><p className="text-sm font-bold uppercase tracking-[.14em] text-[var(--cd-brand)]">{c.eyebrow}</p><h1 className="font-editorial mt-4 max-w-4xl text-[clamp(2.6rem,6vw,5.2rem)] leading-[1.06] tracking-[-.045em]">{c.heading}</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--cd-muted)]">{c.intro}</p></div></section>
 
@@ -155,5 +155,6 @@ export function StudyPdfInspector({ locale }: { locale: StudyPdfLocale }) {
 
     <section className="border-y border-[var(--cd-line)] bg-white px-5 py-14 sm:px-8"><div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2"><div><h2 className="font-editorial text-3xl">{c.chapterTitle}</h2><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{c.chapterText}</p></div><div><h2 className="font-editorial text-3xl">{c.nextTitle}</h2><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{c.nextText}</p><Link href={locale === 'fr' ? '/#produit' : `/${locale}#studio`} className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--cd-brand)] underline underline-offset-4">{c.nextAction}<ArrowUpRight className="size-4" /></Link></div></div></section>
     <section className="px-5 py-14 sm:px-8"><div className="mx-auto max-w-5xl"><h2 className="font-editorial text-3xl">{c.faqTitle}</h2><div className="mt-6 grid gap-3 md:grid-cols-2">{[[c.faqOne, c.faqAnswerOne], [c.faqTwo, c.faqAnswerTwo]].map(([question, answer]) => <article key={question} className="rounded-xl border border-[var(--cd-line)] bg-white p-5"><h3 className="text-base font-bold">{question}</h3><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{answer}</p></article>)}</div></div></section>
-  </main>
+    </main>
+  </>
 }

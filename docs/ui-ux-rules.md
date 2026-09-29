@@ -22,6 +22,7 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 4. Lors d'un import : vérifier accès et service avant transfert, afficher format/taille/limite, indiquer la progression, puis confirmer ce qui a été créé. Ne pas laisser un fichier orphelin après un échec évitable.
 5. Les outils gratuits doivent fonctionner sans compte, annoncer clairement ce qui reste local et proposer un export. Le passage vers le studio est volontaire et contextuel.
 6. Le contenu FR/EN doit être complet sur le parcours concerné : interfaces, erreurs, emails et formats de nombres/dates. Ne pas mélanger les deux langues dans un même état.
+7. Les pages d'accueil localisées et leurs outils liés conservent la même hiérarchie, le même en-tête et la même action principale que la version française. Traduire les textes sans remplacer un parcours utilisable par un simple bouton d'inscription. Le sélecteur de langue doit ouvrir la page équivalente quand elle existe.
 
 ## Accessibilité et contrôle qualité
 
