@@ -11,6 +11,7 @@ import { studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
 import { pdfHubCopy, pdfHubPath, translatedTools } from '@/lib/pdf-tool-locales'
 import { PLANS } from '@/lib/plans'
 import { landingPricingCopy } from '@/lib/landing-pricing-locales'
+import { landingPreviewCopy } from '@/lib/landing-preview-locales'
 
 const baseUrl = 'https://cramdesk.com'
 
@@ -61,6 +62,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
     ? { eyebrow: '8 free PDF tools', heading: 'Prepare your PDF before you study.', intro: 'Merge, extract or reorder pages directly in your browser. No account, upload or usage quota.', action: 'Open the free PDF tools', privacy: 'Your files stay on your device.', tasks: ['Merge PDFs', 'Extract pages', 'Organize pages'] }
     : { ...pdfHubCopy[locale], action: pdfHubCopy[locale].choose, tasks: translatedTools[locale].slice(0, 3).map(([, name]) => name) }
   const pricing = landingPricingCopy[locale]
+  const preview = landingPreviewCopy[locale]
 
   return (
     <>
@@ -96,7 +98,8 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
                 <span className={`flex size-10 items-center justify-center rounded-xl ${tone.icon}`}><Icon className="size-5" /></span>
                 <p className="mt-5 text-[10px] font-bold uppercase tracking-[.18em] text-[#968493]">0{index + 1}</p>
                 <h2 className="mt-2 text-lg font-bold text-[#3d303d]">{feature.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#6e6370]">{feature.description}</p>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-[.14em] text-[#8d6c65]">{preview.example}</p>
+                <p className="mt-2 text-sm leading-6 text-[#514750]">{preview.snippets[index]}</p>
               </article>
             })}
           </div>
