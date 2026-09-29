@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, BookOpenText, CheckCircle2, FileQuestion, FileText, Layers3, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpenText, CheckCircle2, FileQuestion, FileText, Layers3 } from 'lucide-react'
 import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd } from '@/components/json-ld'
 import { DemoUpload } from '@/components/demo-upload'
@@ -9,6 +9,8 @@ import { PublicSiteHeader } from '@/components/public-site-header'
 import { localizedLandings, SEO_LOCALES, languageAlternates, type SeoLocale } from '@/lib/seo-locales'
 import { studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
 import { pdfHubCopy, pdfHubPath, translatedTools } from '@/lib/pdf-tool-locales'
+import { PLANS } from '@/lib/plans'
+import { landingPricingCopy } from '@/lib/landing-pricing-locales'
 
 const baseUrl = 'https://cramdesk.com'
 
@@ -58,6 +60,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
   const freeTools = locale === 'en'
     ? { eyebrow: '8 free PDF tools', heading: 'Prepare your PDF before you study.', intro: 'Merge, extract or reorder pages directly in your browser. No account, upload or usage quota.', action: 'Open the free PDF tools', privacy: 'Your files stay on your device.', tasks: ['Merge PDFs', 'Extract pages', 'Organize pages'] }
     : { ...pdfHubCopy[locale], action: pdfHubCopy[locale].choose, tasks: translatedTools[locale].slice(0, 3).map(([, name]) => name) }
+  const pricing = landingPricingCopy[locale]
 
   return (
     <>
@@ -134,18 +137,29 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
       </section>
 
       <section id="how-it-works" className="scroll-mt-24 px-5 py-24 sm:px-8 lg:py-32">
-        <div className="mx-auto grid max-w-6xl gap-9 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          <div>
-            <p className="mb-5 text-[11px] font-bold uppercase tracking-[.23em] text-[#b45438]">01 → 03</p>
-            <h2 className={`${displayClass} text-4xl leading-[1.08] tracking-[-.04em] sm:text-6xl`}>{content.stepsTitle}</h2>
-            <ol className="mt-8 space-y-3">{content.steps.map((step, index) => <li key={step} className="flex gap-4 rounded-[1.2rem] border border-[#ebe2e9] bg-white p-5 text-sm leading-7 text-[#6a5e6b]"><span className="font-bold text-[#c25334]">0{index + 1}</span><span>{step}</span></li>)}</ol>
-          </div>
-          <div id="pricing" className="flex scroll-mt-24 flex-col justify-center rounded-[1.7rem] bg-[#b84432] p-8 text-white sm:p-10">
-            <Sparkles className="size-7 text-[#eacfe1]" />
-            <h2 className={`${displayClass} mt-7 text-3xl leading-tight sm:text-4xl`}>{content.pricingTitle}</h2>
-            <p className="mt-5 max-w-md text-sm leading-7 text-[#f0d5ca]">{content.pricingText}</p>
-            <Link href="/signup" className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-[#b84432] hover:bg-[#ffebe1]">{content.start}<ArrowRight className="size-4" /></Link>
-          </div>
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-5 text-[11px] font-bold uppercase tracking-[.23em] text-[#b45438]">01 → 03</p>
+          <h2 className={`${displayClass} text-4xl leading-[1.08] tracking-[-.04em] sm:text-6xl`}>{content.stepsTitle}</h2>
+          <ol className="mt-8 grid gap-4 md:grid-cols-3">{content.steps.map((step, index) => <li key={step} className="rounded-[1.2rem] border border-[#ebe2e9] bg-white p-6 text-sm leading-7 text-[#6a5e6b]"><span className="font-editorial text-3xl text-[#c25334]">0{index + 1}</span><p className="mt-4">{step}</p></li>)}</ol>
+        </div>
+      </section>
+
+      <section id="pricing" className="scroll-mt-24 border-y border-[#f0dfd5] bg-[#fff9f5] px-5 py-24 sm:px-8 lg:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 max-w-3xl"><p className="mb-5 text-[11px] font-bold uppercase tracking-[.23em] text-[#b45438]">CramDesk</p><h2 className={`${displayClass} text-4xl leading-[1.08] tracking-[-.04em] sm:text-6xl`}>{content.pricingTitle}</h2><p className="mt-5 text-lg leading-8 text-[#706671]">{content.pricingText}</p></div>
+          <div className="grid gap-4 lg:grid-cols-3">{Object.values(PLANS).map((plan, index) => {
+            const featured = plan.id === 'student'
+            return <article key={plan.id} className={`relative flex flex-col rounded-[1.5rem] border p-7 sm:p-8 ${featured ? 'border-[#d18068] bg-[#b84432] text-white shadow-[0_22px_45px_-28px_rgba(76,33,64,.7)]' : 'border-[#efdcd0] bg-white text-[#33252b]'}`}>
+              {featured && <span className="absolute end-6 top-6 rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[.12em]">{pricing.featured}</span>}
+              <h3 className="text-lg font-bold">{plan.name}</h3><p className={`mt-2 min-h-11 text-sm leading-6 ${featured ? 'text-[#ffe3d7]' : 'text-[#7c717c]'}`}>{pricing.details[index]}</p>
+              <p className="font-editorial mt-6 text-5xl leading-none">{new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(plan.price)}<span className={`ms-1 text-sm font-sans font-medium ${featured ? 'text-[#e2cddd]' : 'text-[#8b818b]'}`}>/ {pricing.monthly}</span></p>
+              <p className={`mt-3 text-sm font-bold ${featured ? 'text-[#ffe1d5]' : 'text-[#c25334]'}`}>{new Intl.NumberFormat(locale).format(plan.pagesPerMonth)} {pricing.pagesMonthly}</p>
+              <div className={`my-7 h-px ${featured ? 'bg-white/20' : 'bg-[#f0dfd5]'}`} />
+              <ul className="flex-1 space-y-3">{[[plan.maxPagesPerDocument, pricing.pagesDocument], [plan.maxFlashcardsPerGen, pricing.flashcards], [plan.maxQuizQuestions, pricing.quizQuestions]].map(([limit, label]) => <li key={label} className={`flex gap-2.5 text-sm ${featured ? 'text-[#fff0e8]' : 'text-[#635864]'}`}><CheckCircle2 className="size-4 shrink-0 text-current" />{limit} {label}</li>)}</ul>
+              <Link href="/signup" className={`mt-9 inline-flex min-h-12 items-center justify-center gap-2 rounded-full text-sm font-bold ${featured ? 'bg-white text-[#b84432] hover:bg-[#ffebe1]' : 'border border-[#e7cec0] text-[#b84432] hover:bg-[#ffebe1]'}`}>{pricing.start}<ArrowRight className="size-4" /></Link>
+            </article>
+          })}</div>
+          <p className="mt-7 max-w-4xl text-sm leading-6 text-[#817681]">{content.disclaimer}</p>
         </div>
       </section>
 
