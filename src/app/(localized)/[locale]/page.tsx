@@ -8,6 +8,7 @@ import { DemoUpload } from '@/components/demo-upload'
 import { PublicSiteHeader } from '@/components/public-site-header'
 import { localizedLandings, SEO_LOCALES, languageAlternates, type SeoLocale } from '@/lib/seo-locales'
 import { studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
+import { pdfHubCopy, pdfHubPath, translatedTools } from '@/lib/pdf-tool-locales'
 
 const baseUrl = 'https://cramdesk.com'
 
@@ -54,6 +55,9 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
   const content = localizedLandings[locale]
   const rtl = locale === 'ar'
   const displayClass = rtl ? 'font-semibold' : 'font-editorial'
+  const freeTools = locale === 'en'
+    ? { eyebrow: '8 free PDF tools', heading: 'Prepare your PDF before you study.', intro: 'Merge, extract or reorder pages directly in your browser. No account, upload or usage quota.', action: 'Open the free PDF tools', privacy: 'Your files stay on your device.', tasks: ['Merge PDFs', 'Extract pages', 'Organize pages'] }
+    : { ...pdfHubCopy[locale], action: pdfHubCopy[locale].choose, tasks: translatedTools[locale].slice(0, 3).map(([, name]) => name) }
 
   return (
     <>
@@ -109,6 +113,22 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
                 <p className="mt-3 text-sm leading-7 text-[#6e6370]">{feature.description}</p>
               </article>
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--cd-line)] bg-[#fff1e7] px-5 py-20 sm:px-8 lg:py-28" aria-labelledby="free-tools-title">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1fr_.9fr] lg:gap-20">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{freeTools.eyebrow}</p>
+            <h2 id="free-tools-title" className={`${displayClass} mt-5 text-4xl leading-[1.1] tracking-[-.04em] sm:text-5xl`}>{freeTools.heading}</h2>
+            <p className="mt-5 max-w-xl text-base leading-8 text-[var(--cd-muted)]">{freeTools.intro}</p>
+            <Link href={pdfHubPath(locale)} className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--cd-brand)] px-6 text-sm font-bold text-white hover:opacity-90">{freeTools.action}<ArrowRight className="size-4" /></Link>
+            <p className="mt-4 text-sm text-[var(--cd-muted)]">{freeTools.privacy}</p>
+          </div>
+          <div className="rounded-[1.6rem] border border-[#efd8ca] bg-white p-5 shadow-[0_24px_65px_-45px_rgba(132,58,35,.3)] sm:p-7">
+            <div className="flex items-center gap-3 border-b border-[var(--cd-line)] pb-5"><span className="flex size-10 items-center justify-center rounded-xl bg-[#ffe5d5] text-[var(--cd-brand)]"><FileText className="size-5" /></span><span className="text-sm font-bold">Document.pdf</span></div>
+            <div className="mt-4 grid gap-3">{freeTools.tasks.map((task, index) => <div key={task} className="flex items-center gap-4 rounded-xl bg-[#fff9f5] px-4 py-4"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ffe5d5] text-xs font-bold text-[var(--cd-brand)]">0{index + 1}</span><span className="text-sm font-semibold">{task}</span><CheckCircle2 className="ms-auto size-4 text-[#637e5d]" /></div>)}</div>
           </div>
         </div>
       </section>

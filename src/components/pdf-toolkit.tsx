@@ -1,13 +1,37 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, Download, Loader2, RotateCcw, UploadCloud } from 'lucide-react'
 import type { PdfTool } from '@/lib/pdf-tools'
 import { PdfPageGrid } from '@/components/pdf-page-grid'
 import { PdfFileQueue } from '@/components/pdf-file-queue'
+import { extraPdfErrors, extraToolkitCopy, type PdfToolLocale } from '@/lib/pdf-tool-locales'
 
-function localizeError(message: string, locale: 'fr' | 'en') {
+function localizeError(message: string, locale: PdfToolLocale) {
   if (locale === 'fr') return message
+  if (locale !== 'en') {
+    const c = extraPdfErrors[locale]
+    const direct: Record<string, string> = {
+      'Indique au moins une page.': c.pages,
+      'Utilise des pages comme 1-3, 5, 8.': c.format,
+      'Ajoute un fichier pour commencer.': c.noFile,
+      'Ce fichier dépasse 40 Mo. Essaie un PDF plus petit pour le traiter dans ton navigateur.': c.tooLarge,
+      'Ce fichier ne semble pas être un PDF valide.': c.invalid,
+      'Ce PDF ne peut pas être ouvert. Il est peut-être protégé par un mot de passe ou endommagé.': c.protected,
+      'Chaque image doit faire moins de 20 Mo.': c.imageTooLarge,
+      'Utilise uniquement des images JPG ou PNG.': c.imagesOnly,
+      'Ajoute au moins deux PDF à fusionner.': c.mergeTwo,
+      'Choisis une rotation de 90°, 180° ou 270°.': c.angle,
+      'Saisis un texte de 1 à 60 caractères.': c.watermarkLength,
+      'Ce texte contient des caractères non pris en charge. Essaie un texte latin simple.': c.watermarkCharset,
+    }
+    if (direct[message]) return direct[message]
+    const range = message.match(/^Choisis des pages entre 1 et (\d+)\.$/)
+    if (range) return `${c.pageRange} ${range[1]}.`
+    const duplicate = message.match(/^La page (\d+) apparaît deux fois\.$/)
+    if (duplicate) return `${c.duplicate} ${duplicate[1]}.`
+    return extraToolkitCopy[locale].failure
+  }
   const direct: Record<string, string> = {
     'Indique au moins une page.': 'Enter at least one page.',
     'Utilise des pages comme 1-3, 5, 8.': 'Enter pages like 1-3, 5, 8.',
@@ -55,8 +79,9 @@ const copy = {
   },
 }
 
-export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = false }: { locale?: 'fr' | 'en'; initialTool?: PdfTool; focused?: boolean }) {
-  const c = copy[locale]
+export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = false }: { locale?: PdfToolLocale; initialTool?: PdfTool; focused?: boolean }) {
+  const c = locale === 'fr' || locale === 'en' ? copy[locale] : extraToolkitCopy[locale]
+  const extra = locale === 'fr' || locale === 'en' ? null : extraToolkitCopy[locale]
   const [tool, setTool] = useState<PdfTool>(initialTool)
   const [files, setFiles] = useState<File[]>([])
   const [pageCount, setPageCount] = useState<number | null>(null)
@@ -73,6 +98,16 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
   const validationId = useRef(0)
   const multi = tool === 'merge' || tool === 'images'
   const label = c.tools.find(item => item[0] === tool)?.[1]
+
+  useEffect(() => {
+    if (focused) return
+    const requested = new URLSearchParams(window.location.search).get('tool')
+    if (requested && c.tools.some(([id]) => id === requested)) {
+      queueMicrotask(() => setTool(requested as PdfTool))
+    }
+    // The URL is read once when the public toolkit mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function selectTool(next: PdfTool) {
     if (busy) return
@@ -97,7 +132,7 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
     const currentValidation = ++validationId.current
     const accepted = Array.from(incoming)
     const valid = accepted.every(file => tool === 'images' ? ['image/jpeg', 'image/png'].includes(file.type) : file.name.toLowerCase().endsWith('.pdf'))
-    if (!valid) { setError(tool === 'images' ? (locale === 'fr' ? 'JPG et PNG uniquement.' : 'JPG and PNG only.') : (locale === 'fr' ? 'PDF uniquement.' : 'PDF files only.')); return }
+    if (!valid) { setError(tool === 'images' ? (extra?.imagesOnly ?? (locale === 'fr' ? 'JPG et PNG uniquement.' : 'JPG and PNG only.')) : (extra?.pdfOnly ?? (locale === 'fr' ? 'PDF uniquement.' : 'PDF files only.'))); return }
     setValidating(true)
     try {
       if (tool !== 'images') {
@@ -161,7 +196,7 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
     setBusy(true)
     try {
       const editPages = tool === 'extract' || tool === 'organize' || tool === 'rotate'
-      if (editPages && selectedPages.length === 0) throw new Error(locale === 'fr' ? 'Sélectionne au moins une page dans l’aperçu.' : 'Select at least one page in the preview.')
+      if (editPages && selectedPages.length === 0) throw new Error(extra?.selectPage ?? (locale === 'fr' ? 'Sélectionne au moins une page dans l’aperçu.' : 'Select at least one page in the preview.'))
       const orderedSelection = tool === 'organize'
         ? pageOrder.filter(page => selectedPages.includes(page))
         : [...selectedPages].sort((a, b) => a - b)
@@ -181,7 +216,7 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
       setSuccess(true)
     } catch (cause) {
-      setError(cause instanceof Error ? localizeError(cause.message, locale) : c.failure)
+      setError(cause instanceof Error ? cause.message === extra?.selectPage ? cause.message : localizeError(cause.message, locale) : c.failure)
     } finally {
       setBusy(false)
     }
@@ -189,7 +224,7 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
 
   return <section id="outil" className="scroll-mt-24 border-y border-[#eadbd2] bg-[#fff9f5] px-5 py-16 sm:px-8 lg:py-24" aria-labelledby="toolkit-heading">
     <div className={focused ? 'mx-auto max-w-4xl' : 'mx-auto max-w-6xl'}>
-      <div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#b84432]">{focused ? (locale === 'fr' ? 'Prêt à utiliser' : 'Ready to use') : `8 ${c.available}`}</p><h2 id="toolkit-heading" className="font-editorial mt-3 text-4xl text-[#33252b] sm:text-5xl">{focused ? label : c.title}</h2><p className="mt-4 text-base leading-7 text-[#726667]">{focused ? c.tools.find(item => item[0] === tool)?.[2] : c.intro}</p></div>
+      <div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#b84432]">{focused ? (extra?.focusLabel ?? (locale === 'fr' ? 'Prêt à utiliser' : 'Ready to use')) : `8 ${c.available}`}</p><h2 id="toolkit-heading" className="font-editorial mt-3 text-4xl text-[#33252b] sm:text-5xl">{focused ? label : c.title}</h2><p className="mt-4 text-base leading-7 text-[#726667]">{focused ? c.tools.find(item => item[0] === tool)?.[2] : c.intro}</p></div>
       <div className={focused ? 'mt-8' : 'mt-10 grid gap-6 lg:grid-cols-[310px_minmax(0,1fr)] lg:items-start'}>
         {!focused && <div role="group" aria-label={c.title} className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-1">
           {c.tools.map(([id, name, description]) => <button key={id} type="button" onClick={() => selectTool(id)} disabled={busy} aria-pressed={tool === id} className={`min-h-16 rounded-xl border p-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432] disabled:opacity-50 sm:p-4 ${tool === id ? 'border-[#b84432] bg-[#fff0e7] text-[#823427]' : 'border-[#e8dcd4] bg-white text-[#403539] hover:border-[#d29a83]'}`}><span className="block text-sm font-bold sm:text-base">{name}</span><span className="mt-1 hidden text-sm leading-5 opacity-75 lg:block">{description}</span></button>)}
@@ -198,7 +233,7 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
           {!focused && <div className="border-b border-[#ede2db] pb-6"><h3 className="font-editorial text-3xl text-[#33252b]">{label}</h3><p className="mt-2 text-base leading-7 text-[#73686a]">{c.tools.find(item => item[0] === tool)?.[2]}</p></div>}
           <div className="mt-6">
             <input ref={input} type="file" accept={tool === 'images' ? 'image/jpeg,image/png' : 'application/pdf,.pdf'} multiple={multi} onChange={event => void addFiles(event.target.files)} className="sr-only" aria-label={c.add} />
-            <button type="button" onClick={() => input.current?.click()} onDragOver={event => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={event => { event.preventDefault(); setDragging(false); if (!busy && !validating) void addFiles(event.dataTransfer.files) }} disabled={busy || validating} className={`flex min-h-36 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-6 text-center text-[#a44331] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432] disabled:opacity-50 ${dragging ? 'border-[#b84432] bg-[#fff0e7]' : 'border-[#d8b8a8] bg-[#fffaf6] hover:bg-[#fff2ea]'}`}>{validating ? <Loader2 className="size-7 animate-spin" aria-hidden="true" /> : <UploadCloud className="size-7" aria-hidden="true" />}<span className="mt-3 font-bold">{validating ? c.checking : dragging ? (locale === 'fr' ? 'Dépose tes fichiers ici' : 'Drop your files here') : files.length ? c.add : c.drop}</span><span className="mt-1 text-sm text-[#796d6b]">{tool === 'images' ? 'JPG · PNG' : 'PDF'} · {locale === 'fr' ? 'glisser-déposer possible' : 'drag and drop supported'}</span></button>
+            <button type="button" onClick={() => input.current?.click()} onDragOver={event => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={event => { event.preventDefault(); setDragging(false); if (!busy && !validating) void addFiles(event.dataTransfer.files) }} disabled={busy || validating} className={`flex min-h-36 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-5 py-6 text-center text-[#a44331] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432] disabled:opacity-50 ${dragging ? 'border-[#b84432] bg-[#fff0e7]' : 'border-[#d8b8a8] bg-[#fffaf6] hover:bg-[#fff2ea]'}`}>{validating ? <Loader2 className="size-7 animate-spin" aria-hidden="true" /> : <UploadCloud className="size-7" aria-hidden="true" />}<span className="mt-3 font-bold">{validating ? c.checking : dragging ? (extra?.dropHere ?? (locale === 'fr' ? 'Dépose tes fichiers ici' : 'Drop your files here')) : files.length ? c.add : c.drop}</span><span className="mt-1 text-sm text-[#796d6b]">{tool === 'images' ? 'JPG · PNG' : 'PDF'} · {extra?.dragSupported ?? (locale === 'fr' ? 'glisser-déposer possible' : 'drag and drop supported')}</span></button>
           </div>
           {files.length > 0 && <PdfFileQueue files={files} pageCount={pageCount} multi={multi} locale={locale} onMove={moveFile} onRemove={index => { setFiles(current => current.filter((_, item) => item !== index)); setPageCount(null); setSelectedPages([]); setPageOrder([]); setSuccess(false) }} />}
           {tool === 'rotate' && <div className="mt-5"><label htmlFor="pdf-angle" className="block text-sm font-bold">{c.angle}</label><select id="pdf-angle" value={angle} onChange={event => { setAngle(Number(event.target.value)); setSuccess(false) }} className="mt-2 min-h-12 w-full rounded-xl border border-[#d8ccc7] bg-white px-4 text-base">{[90, 180, 270].map(value => <option key={value} value={value}>{value}°</option>)}</select></div>}

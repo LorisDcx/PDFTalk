@@ -11,6 +11,7 @@ import { Globe } from 'lucide-react'
 import { useLanguage, LANGUAGES } from '@/lib/i18n'
 import { usePathname, useRouter } from 'next/navigation'
 import { STUDY_PDF_LOCALES, studyPdfPath } from '@/lib/study-pdf-locales'
+import { pdfHubPath } from '@/lib/pdf-tool-locales'
 
 export function LanguageSelector() {
   const { language, setLanguage } = useLanguage()
@@ -29,6 +30,8 @@ export function LanguageSelector() {
       router.push(code === 'fr' ? '/' : `/${code}`)
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === studyPdfPath(locale))) {
       router.push(studyPdfPath(code))
+    } else if (STUDY_PDF_LOCALES.some(locale => pathname === pdfHubPath(locale))) {
+      router.push(pdfHubPath(code))
     }
   }
 

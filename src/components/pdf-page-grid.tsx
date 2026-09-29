@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ArrowLeft, ArrowRight, GripVertical, Loader2, RotateCw } from 'lucide-react'
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist'
 import type { PdfTool } from '@/lib/pdf-tools'
+import { extraGridCopy, type PdfToolLocale } from '@/lib/pdf-tool-locales'
 
 const PAGE_BATCH = 18
 
@@ -42,14 +43,14 @@ export function PdfPageGrid({
   selected: number[]
   tool: PdfTool
   angle: number
-  locale: 'fr' | 'en'
+  locale: PdfToolLocale
   onToggle: (page: number) => void
   onMove: (from: number, to: number) => void
   onSelectAll: () => void
   onSelectNone: () => void
   onApplyPages: (pages: number[]) => void
 }) {
-  const c = labels[locale]
+  const c = locale === 'fr' || locale === 'en' ? labels[locale] : extraGridCopy[locale]
   const [previewDocument, setPreviewDocument] = useState<PDFDocumentProxy | null>(null)
   const [thumbnails, setThumbnails] = useState<Record<number, string>>({})
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -141,7 +142,7 @@ export function PdfPageGrid({
     <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
       {visiblePages.map((pageIndex, position) => {
         const included = selectedSet.has(pageIndex)
-        const pageLabel = `${c.page} ${pageIndex + 1}`
+        const pageLabel = locale === 'zh' ? `第 ${pageIndex + 1} 页` : locale === 'ja' ? `${pageIndex + 1}ページ` : `${c.page} ${pageIndex + 1}`
         const stateLabel = tool === 'rotate' ? (included ? c.rotated : c.unchanged) : (included ? c.included : c.excluded)
         const orderedPosition = batch * PAGE_BATCH + position
         return <div key={pageIndex} draggable={tool === 'organize'} onDragStart={() => { dragIndex.current = orderedPosition }} onDragOver={event => { if (tool === 'organize') event.preventDefault() }} onDrop={event => { event.preventDefault(); if (dragIndex.current !== null) onMove(dragIndex.current, orderedPosition); dragIndex.current = null }} onDragEnd={() => { dragIndex.current = null }} className={`min-w-0 rounded-xl border p-2 ${included ? 'border-[#d7cbc4] bg-white' : 'border-[#dcc7bd] bg-[#f6efeb]'}`}>
