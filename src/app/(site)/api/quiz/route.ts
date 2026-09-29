@@ -102,12 +102,15 @@ RESPONSE FORMAT (strict JSON):
       const q = value as Record<string, unknown>
       return typeof q.question === 'string' && !!q.question.trim() &&
         typeof q.correctAnswer === 'string' && !!q.correctAnswer.trim() &&
-        Array.isArray(q.options) && q.options.length === 4 && q.options.every(option => typeof option === 'string' && !!option.trim())
+        Array.isArray(q.options) && q.options.length === 4 && q.options.every(option => typeof option === 'string' && !!option.trim()) &&
+        new Set(q.options.map(option => option.trim().toLocaleLowerCase())).size === 4
     }).map((q, index) => {
-      const options = [...q.options]
-      if (!options.includes(q.correctAnswer)) options[0] = q.correctAnswer
+      const options = q.options.map(option => option.trim())
+      const correct = q.correctAnswer.trim()
+      const existing = options.find(option => option.toLocaleLowerCase() === correct.toLocaleLowerCase())
+      if (!existing) options[0] = correct
       const source = typeof q.sourceQuote === 'string' ? verifySourceQuote(documentContent, q.sourceQuote) : null
-      return { id: q.id || String(index + 1), question: q.question.trim(), correctAnswer: q.correctAnswer.trim(), options,
+      return { id: q.id || String(index + 1), question: q.question.trim(), correctAnswer: existing || correct, options,
         sourceRef: source ? `${source.page ? `Page ${source.page} · ` : ''}« ${source.quote} »` : undefined }
     })
     
@@ -116,7 +119,7 @@ RESPONSE FORMAT (strict JSON):
     const actualPageCost = calculatePageCost('quiz', actualQuestionCount)
     if (actualPageCost === 0) throw new Error('AI returned no questions')
     const charge = await deductPages(supabase, user.id, actualPageCost)
-    if (!charge.success) return NextResponse.json({ error: charge.error }, { status: 403 })
+    if (!charge.success) return NextResponse.json({ error: charge.error, code: charge.code }, { status: charge.code === 'usage_charge_failed' ? 503 : 403 })
     
     return NextResponse.json({ 
       questions,

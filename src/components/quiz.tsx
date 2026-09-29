@@ -29,6 +29,17 @@ import {
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/components/auth-provider'
+import { getPlanLimits } from '@/lib/plans'
+
+function shuffled<T>(items: T[]): T[] {
+  const copy = [...items]
+  for (let index = copy.length - 1; index > 0; index--) {
+    const swap = Math.floor(Math.random() * (index + 1))
+    ;[copy[index], copy[swap]] = [copy[swap], copy[index]]
+  }
+  return copy
+}
 
 interface QuizQuestion {
   id: string
@@ -73,11 +84,13 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
   const [showStats, setShowStats] = useState(false)
   const { t, language } = useLanguage()
   const { toast } = useToast()
+  const { profile } = useAuth()
 
-  // Max questions available (when using flashcards as source)
-  const maxQuestions = flashcards.length > 0 ? Math.min(100, flashcards.length) : 100
+  const maxQuestions = getPlanLimits(profile?.current_plan ?? null).maxQuizQuestions
+  const distinctAnswers = Array.from(new Map(flashcards.map(card => card.answer.trim()).filter(Boolean).map(answer => [answer.toLocaleLowerCase(), answer])).values())
+  const canQuizFromFlashcards = flashcards.length >= 4 && distinctAnswers.length >= 4
 
-  // Keep questionCount in a valid range when flashcards are present
+  // The AI question limit depends on the user's plan, not on existing flashcards.
   useEffect(() => {
     setQuestionCount((current) => {
       const safe = Math.min(Math.max(current, 5), maxQuestions)
@@ -122,26 +135,21 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
   }, [sessions, documentId])
 
   const generateQuizFromFlashcards = () => {
-    if (flashcards.length === 0) return
+    if (!canQuizFromFlashcards) return
 
-    const shuffledCards = [...flashcards].sort(() => Math.random() - 0.5)
-    const selectedCards = shuffledCards.slice(0, Math.min(questionCount, flashcards.length))
+    const selectedCards = shuffled(flashcards).slice(0, Math.min(questionCount, flashcards.length))
 
     const quizQuestions: QuizQuestion[] = selectedCards.map((card, index) => {
       // Generate wrong answers from other flashcards
-      const otherAnswers = flashcards
-        .filter(f => f.id !== card.id)
-        .map(f => f.answer)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3)
+      const otherAnswers = shuffled(distinctAnswers.filter(answer => answer.toLocaleLowerCase() !== card.answer.trim().toLocaleLowerCase())).slice(0, 3)
 
-      const allOptions = [card.answer, ...otherAnswers].sort(() => Math.random() - 0.5)
+      const allOptions = shuffled([card.answer.trim(), ...otherAnswers])
 
       return {
         id: `q-${index}`,
         question: card.question,
         correctAnswer: card.answer,
-        options: allOptions.length >= 4 ? allOptions : [card.answer, 'Option A', 'Option B', 'Option C'],
+        options: allOptions,
         sourceRef: card.sourceRef
       }
     })
@@ -168,16 +176,17 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
 
       if (!response.ok) {
         // Handle quota errors
-        if (response.status === 403) {
+        if (response.status === 403 && ['insufficient_pages', 'daily_limit_reached', 'quota_exceeded'].includes(data.code)) {
           toast({
             title: t('insufficientPages'),
-            description: data.error,
+            description: t('insufficientPages'),
             variant: 'destructive',
           })
           setIsDialogOpen(false)
           return
         }
-        throw new Error(data.error || 'Failed to generate quiz')
+        throw new Error(data.code === 'subscription_expired' ? t('accessExpired') :
+          response.status === 503 || data.error === 'Document unavailable' ? t('notAvailable') : t('unexpectedError'))
       }
 
       setQuestions(data.questions)
@@ -187,7 +196,7 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
       console.error('Quiz generation error:', error)
       toast({
         title: t('error'),
-        description: t('unexpectedError'),
+        description: error instanceof Error ? error.message : t('unexpectedError'),
         variant: 'destructive',
       })
     } finally {
@@ -361,16 +370,19 @@ export function Quiz({ documentId, documentContent, documentName, flashcards = [
               </div>
             </div>
             <DialogFooter className="flex-col gap-2">
-              {flashcards.length > 0 && (
+      {flashcards.length > 0 && (
                 <Button 
                   onClick={generateQuizFromFlashcards}
+                  disabled={!canQuizFromFlashcards}
                   className="w-full"
                   variant="outline"
+                  title={!canQuizFromFlashcards ? t('quizNeedsDistinctCards') : undefined}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   {t('quizFromFlashcards')} ({flashcards.length})
                 </Button>
               )}
+              {flashcards.length > 0 && !canQuizFromFlashcards && <p className="text-sm text-muted-foreground">{t('quizNeedsDistinctCards')}</p>}
               <Button 
                 onClick={generateQuizFromAI} 
                 disabled={isGenerating}

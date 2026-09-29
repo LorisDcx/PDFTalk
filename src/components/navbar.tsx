@@ -12,6 +12,7 @@ import { LanguageSelector } from './language-selector'
 import { TrialCountdown } from './trial-countdown'
 import { useLanguage } from '@/lib/i18n'
 import { pdfToolPages, pdfToolPath } from '@/lib/pdf-tool-pages'
+import { studyPdfPath } from '@/lib/study-pdf-locales'
 
 export function Navbar({ publicLocale }: { publicLocale?: 'fr' | 'en' } = {}) {
   const { user, profile, signOut, isLoading } = useAuth()
@@ -22,10 +23,12 @@ export function Navbar({ publicLocale }: { publicLocale?: 'fr' | 'en' } = {}) {
   const toolLocale = english ? 'en' : 'fr'
   const toolsHref = english ? '/en/pdf-tools' : '/outils-pdf'
   const studyLinks = english ? [
+    { href: studyPdfPath('en'), label: 'Check a course PDF', description: 'Find text and concepts by page' },
     { href: '/en#studio', label: 'The studio', description: 'See the study workspace' },
     { href: '/en/free-flashcards', label: 'Free flashcards', description: 'Practice active recall' },
     { href: '/en#how-it-works', label: 'How it works', description: 'From PDF to practice' },
   ] : [
+    { href: studyPdfPath('fr'), label: 'Explorer un cours PDF', description: 'Chercher une notion, vérifier les pages' },
     { href: '/#produit', label: 'Le studio', description: 'Découvrir l’espace de travail' },
     { href: '/flashcards-gratuites', label: 'Flashcards gratuites', description: 'Réviser par rappel actif' },
     { href: '/planificateur-revisions', label: 'Planifier ses révisions', description: 'Organiser son travail' },

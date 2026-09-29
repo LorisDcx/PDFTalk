@@ -120,16 +120,17 @@ export function Flashcards({ documentId, documentName, onFlashcardsChange }: Fla
       const data = await response.json()
 
       if (!response.ok) {
-        if (response.status === 403) {
+        if (response.status === 403 && ['insufficient_pages', 'daily_limit_reached', 'quota_exceeded'].includes(data.code)) {
           toast({
             title: t('insufficientPages'),
-            description: data.error,
+            description: t('insufficientPages'),
             variant: 'destructive',
           })
           setIsDialogOpen(false)
           return
         }
-        throw new Error(data.error || 'Failed to generate flashcards')
+        throw new Error(data.code === 'subscription_expired' ? t('accessExpired') :
+          response.status === 503 || data.error === 'Document unavailable' ? t('notAvailable') : t('unexpectedError'))
       }
 
       setFlashcards(data.flashcards)

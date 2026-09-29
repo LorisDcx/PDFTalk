@@ -132,7 +132,7 @@ FORMAT:
     const charge = await deductPages(supabase, user.id, actualPageCost)
     if (!charge.success) {
       await supabase.from('flashcards').delete().in('id', insertedCards.map(card => card.id))
-      return NextResponse.json({ error: charge.error }, { status: 403 })
+      return NextResponse.json({ error: charge.error, code: charge.code }, { status: charge.code === 'usage_charge_failed' ? 503 : 403 })
     }
     if (previousCards?.length) {
       const { error: cleanupError } = await supabase.from('flashcards')

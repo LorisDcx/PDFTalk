@@ -7,6 +7,7 @@ import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd } from '@/components/json-ld'
 import { Navbar } from '@/components/navbar'
 import { localizedLandings, SEO_LOCALES, languageAlternates, type SeoLocale } from '@/lib/seo-locales'
+import { studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
 
 const baseUrl = 'https://cramdesk.com'
 
@@ -95,6 +96,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
             <Link href="#studio" className="inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-full border border-[#e7d3c8] bg-white px-7 py-3.5 text-sm font-bold text-[#483648] hover:border-[#ae8fa4] hover:bg-[#fff4ed] sm:w-auto">{studioLabels[locale]} <ArrowRight className="size-4" /></Link>
           </div>
           <p className="mx-auto mt-5 max-w-xl text-xs leading-6 text-[#8d828d]">{content.pricingText}</p>
+          <Link href={studyPdfPath(locale)} className="mt-5 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[#a84431] underline underline-offset-4">{studyPdfCopy[locale].eyebrow}<ArrowRight className="size-4" /></Link>
         </div>
         <div id="studio" className="relative mx-auto mt-20 max-w-5xl scroll-mt-24 rounded-[1.7rem] border border-[#edd9ce] bg-white text-start shadow-[0_36px_90px_-45px_rgba(59,34,56,.38)] sm:mt-24">
           <div className="flex items-center gap-3 border-b border-[#eee8ed] px-5 py-4 sm:px-7">

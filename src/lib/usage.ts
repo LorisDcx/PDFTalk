@@ -91,16 +91,18 @@ export async function deductPages(
   userId: string,
   pages: number,
   document = false
-): Promise<{ success: boolean; newUsage: number; error?: string }> {
+): Promise<{ success: boolean; newUsage: number; error?: string; code?: 'usage_charge_failed' | 'quota_exceeded' }> {
   const admin = createAdminClient()
   const { data, error } = await admin.rpc('consume_pages', {
     p_user_id: userId,
     p_pages: pages,
     p_document: document,
   })
-  if (error || data !== true) {
-    return { success: false, newUsage: 0, error: error?.message || 'Quota exceeded' }
+  if (error) {
+    console.error('Page consumption failed:', error)
+    return { success: false, newUsage: 0, error: 'Usage service unavailable', code: 'usage_charge_failed' }
   }
+  if (data !== true) return { success: false, newUsage: 0, error: 'Quota exceeded', code: 'quota_exceeded' }
 
   const { data: profile } = await admin.from('users')
     .select('pages_processed_this_month').eq('id', userId).single()
