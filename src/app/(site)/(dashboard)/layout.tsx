@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/navbar'
 import type { Metadata } from 'next'
+import 'katex/dist/katex.min.css'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

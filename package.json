@@ -10,7 +10,8 @@
     "db:check": "node scripts/check-database.mjs",
     "test:pdf-tools": "node scripts/test-pdf-tools.mjs",
     "test:document-sources": "node --experimental-strip-types scripts/test-document-sources.mjs",
-    "test:study-flow": "node --experimental-strip-types scripts/test-study-flow.mjs"
+    "test:study-flow": "node --experimental-strip-types scripts/test-study-flow.mjs",
+    "test:chat-tutor": "node --experimental-strip-types scripts/test-chat-tutor.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -30,6 +31,7 @@
     "@supabase/supabase-js": "^2.38.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "katex": "^0.18.9",
     "lucide-react": "^1.48.0",
     "next": "^16.3.6",
     "openai": "^7.23.0",
@@ -39,6 +41,10 @@
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.48.2",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "stripe": "^14.7.0",
     "tailwind-merge": "^2.1.0",
     "tailwindcss-animate": "^1.0.7",

@@ -79,7 +79,7 @@ export function selectDocumentContext(content: string, question: string, maxChar
     }
   }
 
-  return `Selected excerpts from a longer PDF. If the answer is not in these excerpts, say you could not locate it in the available passages rather than inventing it.\n\n${chosen
+  return `Selected excerpts from a longer PDF; do not claim these cover the entire document. They provide source facts and may be incomplete.\n\n${chosen
     .sort((a, b) => a.start - b.start)
     .map(chunk => {
       const marker = markers.findLast(item => item.start <= chunk.start)
