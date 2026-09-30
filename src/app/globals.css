@@ -502,9 +502,14 @@ html {
 .study-card-motion.study-card-reveal { animation: study-card-reveal 220ms ease-out both; }
 .curated-hero-card { animation: curated-card-in 500ms ease-out both; }
 @keyframes curated-card-in { from { opacity: 0; } to { opacity: 1; } }
+.cd-lift { transition: transform 220ms cubic-bezier(.2,.7,.2,1), box-shadow 220ms ease; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cd-lift:hover, .cd-lift:focus-within { transform: translateY(-4px); box-shadow: 0 22px 38px -28px rgba(83, 41, 30, .35); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .study-card-motion, .study-card-motion.study-card-reveal, .curated-hero-card, .glow-orb { animation: none; }
+  .cd-lift { transition: none; }
 }
 /* The document remains in the layout when its PDF is open. The width is
    persisted by the accessible splitter in the document workspace. */
