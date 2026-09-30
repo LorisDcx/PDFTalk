@@ -58,7 +58,6 @@ export default function DocumentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [activeView, setActiveView] = useState<WorkspaceView>('summary')
-  const [summaryMode, setSummaryMode] = useState<'overview' | 'guided'>('overview')
   const [regenerating, setRegenerating] = useState(false)
   const [regenerationError, setRegenerationError] = useState<'access' | 'service' | null>(null)
   const [openCardsQuiz, setOpenCardsQuiz] = useState(false)
@@ -400,24 +399,14 @@ export default function DocumentPage() {
 
             <div className="pt-6">
               <div className="min-w-0">
-                {activeView === 'summary' && <div className="space-y-5">
+                {activeView === 'summary' && <div className="space-y-6">
                   {summary?.source_text?.includes('[PARTIAL EXCERPTS') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Ce document est long : la synthèse utilise des extraits de chaque page. Vérifie les passages importants dans le PDF et pose des questions ciblées.' : 'This document is long: the summary uses excerpts from every page. Check important passages in the PDF and ask focused questions.'}</p>}
                   {summary?.source_text?.includes('[[SOURCE_GAPS]]') && <p role="status" className="rounded-xl border border-[#e6c9b5] bg-[#fff3e9] p-4 text-base leading-6 text-[#643f32]">{language === 'fr' ? 'Certaines pages semblent contenir des images ou des scans : leur texte peut manquer dans cette analyse.' : 'Some pages appear to contain images or scans, so their text may be missing from this analysis.'}</p>}
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="inline-flex max-w-full rounded-xl border border-[var(--cd-line)] bg-white p-1" role="group" aria-label={t('summaryDisplay')}>
-                      <button type="button" aria-pressed={summaryMode === 'overview'} onClick={() => setSummaryMode('overview')} className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${summaryMode === 'overview' ? 'bg-[#b84432] text-white' : 'text-[var(--cd-muted)] hover:text-[var(--cd-ink)]'}`}>{t('summary')}</button>
-                      <button type="button" aria-pressed={summaryMode === 'guided'} onClick={() => setSummaryMode('guided')} className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${summaryMode === 'guided' ? 'bg-[#b84432] text-white' : 'text-[var(--cd-muted)] hover:text-[var(--cd-ink)]'}`}>{t('easyReading')}</button>
-                    </div>
-                    <Button type="button" variant="outline" className="min-h-11 gap-2 border-[var(--cd-line)] bg-white" onClick={() => void regenerateNotes()} disabled={regenerating}>
-                      {regenerating ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}{regenerating ? t('regeneratingStudyNotes') : t('regenerateStudyNotes')}
-                    </Button>
-                  </div>
                   {regenerationError && <p role="alert" className="rounded-xl border border-[#e8c9bd] bg-[#fff6f1] p-4 text-base leading-6 text-[#863c2c]">{regenerationError === 'access' ? t('accessExpired') : t('regenerateStudyNotesError')}</p>}
-                  {summaryMode === 'overview' && <>
                   <section className="rounded-2xl border border-[#e9dfda] bg-white p-5 sm:p-8">
                     <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-[#eee6e0] pb-5">
                       <div>
-                        <h2 className="font-editorial text-2xl text-[#2c1d2b] sm:text-3xl">{t('summary')}</h2>
+                        <h2 className="font-editorial text-2xl text-[#2c1d2b] sm:text-3xl">{t('atGlance')}</h2>
                         <p className="mt-1 max-w-2xl text-sm leading-6 text-[#776b73]">{t('summaryDesc')}</p>
                       </div>
                       <div className="flex items-center gap-1">
@@ -426,8 +415,7 @@ export default function DocumentPage() {
                       </div>
                     </div>
                     {(translatedSummary || digest.summary).length > 0 && <div className="max-w-3xl">
-                      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a44331]">{t('atGlance')}</p>
-                      <p className="mt-3 font-editorial text-[clamp(1.4rem,3vw,2rem)] leading-snug text-[#35282d]">{cleanSummaryItem((translatedSummary || digest.summary)[0])}</p>
+                      <p className="font-editorial text-[clamp(1.4rem,3vw,2rem)] leading-snug text-[#35282d]">{cleanSummaryItem((translatedSummary || digest.summary)[0])}</p>
                     </div>}
                     {(translatedSummary || digest.summary).length > 1 && <div className="mt-8 border-t border-[#eee6e0] pt-7">
                       <h3 className="text-base font-bold text-[#3d3033]">{t('keyIdeas')}</h3>
@@ -438,31 +426,35 @@ export default function DocumentPage() {
                         </li>)}
                       </ol>
                     </div>}
+                    <div className="mt-7 border-t border-[#eee6e0] pt-4">
+                      <Button type="button" variant="ghost" className="min-h-11 gap-2 px-2 text-sm text-[var(--cd-muted)] hover:text-[var(--cd-brand)]" onClick={() => void regenerateNotes()} disabled={regenerating}>
+                        {regenerating ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}{regenerating ? t('regeneratingStudyNotes') : t('regenerateStudyNotes')}
+                      </Button>
+                    </div>
                   </section>
 
-                  {digest.keyClauses?.length > 0 && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-[#fffefd] p-6 sm:p-9">
-                    <div className="mb-6 flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-xl bg-[#eee5ea] text-[#663b57]"><BookOpenText className="size-4" /></div>
-                      <h2 className="font-editorial text-2xl sm:text-3xl">{t('keyClauses')}</h2>
-                    </div>
-                    <div className="divide-y divide-[#eee7e3]">
-                      {digest.keyClauses.map((concept, index) => <article key={index} className="py-5 first:pt-0 last:pb-0">
-                        <h3 className="text-base font-bold text-[#40293a]">{concept.title}</h3>
-                        <p className="mt-2 max-w-3xl text-base leading-7 text-[#635961]">{concept.description}</p>
-                        {concept.sourceQuote && <button type="button" onClick={() => void openPdf(concept.sourcePage)} className="mt-4 block min-h-11 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-left text-sm leading-6 text-[#72666a] hover:text-[#a44331] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}{concept.sourcePage ? ` · page ${concept.sourcePage}` : ''}</span>“{concept.sourceQuote}”</button>}
-                      </article>)}
-                    </div>
-                    <button type="button" onClick={() => void openPdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
-                  </section>}
-                  </>}
-
-                  {summaryMode === 'guided' && <section className="rounded-[1.4rem] border border-[#e9dfda] bg-white p-5 sm:p-8">
+                  <section className="rounded-[1.4rem] border border-[#e9dfda] bg-white p-5 sm:p-8">
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                      <div><p className="mb-1 text-xs font-bold uppercase tracking-[.18em] text-[#a44331]">{t('easyReading')}</p><h2 className="font-editorial text-2xl sm:text-3xl">{t('easyReadingDesc')}</h2></div>
+                      <div><h2 className="font-editorial text-2xl sm:text-3xl">{t('easyReading')}</h2><p className="mt-1 text-sm text-[var(--cd-muted)]">{t('easyReadingDesc')}</p></div>
                       {summary?.easy_reading && <TranslateButton content={summary.easy_reading} onTranslate={setTranslatedEasyReading} />}
                     </div>
                     {summary?.easy_reading ? <div className="study-chat-answer max-w-3xl text-base leading-8 text-[#4f4050]"><ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { trust: false, strict: 'ignore', throwOnError: false }]]}>{translatedEasyReading || summary.easy_reading}</ReactMarkdown></div> : <p className="text-base leading-7 text-[var(--cd-muted)]">{t('easyReadingEmpty')}</p>}
-                  </section>}
+                  </section>
+                  {digest.keyClauses?.length > 0 && <details className="group rounded-2xl border border-[var(--cd-line)] bg-white">
+                    <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-base font-semibold text-[var(--cd-ink)] sm:px-8">
+                      <span className="inline-flex items-center gap-3"><BookOpenText className="size-5 text-[var(--cd-brand)]" />{t('keyClauses')}</span><ChevronRight className="size-5 shrink-0 text-[var(--cd-muted)] transition-transform group-open:rotate-90" />
+                    </summary>
+                    <div className="border-t border-[var(--cd-line)] px-5 pb-6 sm:px-8">
+                      <div className="divide-y divide-[#eee7e3]">
+                        {digest.keyClauses.map((concept, index) => <article key={index} className="py-5 first:pt-5 last:pb-0">
+                          <h3 className="text-base font-bold text-[#40293a]">{concept.title}</h3>
+                          <p className="mt-2 max-w-3xl text-base leading-7 text-[#635961]">{concept.description}</p>
+                          {concept.sourceQuote && <button type="button" onClick={() => void openPdf(concept.sourcePage)} className="mt-4 block min-h-11 max-w-3xl border-l-2 border-[#d7ac99] pl-4 text-left text-sm leading-6 text-[#72666a] hover:text-[#a44331] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432]"><span className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#a44331]">{language === 'fr' ? 'Extrait du document' : 'From the document'}{concept.sourcePage ? ` · page ${concept.sourcePage}` : ''}</span>“{concept.sourceQuote}”</button>}
+                        </article>)}
+                      </div>
+                      <button type="button" onClick={() => void openPdf()} className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#a44331] hover:underline"><Eye className="size-4" />{language === 'fr' ? 'Vérifier dans le PDF' : 'Check the PDF'}</button>
+                    </div>
+                  </details>}
                 </div>}
 
                 {activeView === 'review' && <div className="space-y-6">
