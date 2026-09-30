@@ -12,6 +12,7 @@ import { useLanguage, LANGUAGES } from '@/lib/i18n'
 import { usePathname, useRouter } from 'next/navigation'
 import { STUDY_PDF_LOCALES, studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
 import { pdfHubPath } from '@/lib/pdf-tool-locales'
+import { CURATED_DECK_IDS, curatedDeckPath, freeFlashcardsPath } from '@/lib/curated-decks'
 
 export function LanguageSelector({ currentLocale, label }: { currentLocale?: StudyPdfLocale; label?: string } = {}) {
   const { language, setLanguage } = useLanguage()
@@ -27,8 +28,15 @@ export function LanguageSelector({ currentLocale, label }: { currentLocale?: Stu
 
   const changeLanguage = (code: typeof language) => {
     setLanguage(code)
+    const deck = CURATED_DECK_IDS.find(id => STUDY_PDF_LOCALES.some(locale => pathname === curatedDeckPath(locale, id)))
+    if (deck) {
+      router.push(curatedDeckPath(code, deck))
+      return
+    }
     if (marketingPaths.has(pathname) || STUDY_PDF_LOCALES.some(locale => pathname === (locale === 'fr' ? '/' : `/${locale}`))) {
       router.push(code === 'fr' ? '/' : `/${code}`)
+    } else if (STUDY_PDF_LOCALES.some(locale => pathname === freeFlashcardsPath(locale))) {
+      router.push(freeFlashcardsPath(code))
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === studyPdfPath(locale))) {
       router.push(studyPdfPath(code))
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === pdfHubPath(locale))) {

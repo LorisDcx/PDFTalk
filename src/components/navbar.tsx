@@ -13,6 +13,7 @@ import { TrialCountdown } from './trial-countdown'
 import { useLanguage } from '@/lib/i18n'
 import { pdfHubPath } from '@/lib/pdf-tool-locales'
 import { studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
+import { freeFlashcardsPath } from '@/lib/curated-decks'
 
 const navigationCopy: Record<StudyPdfLocale, {
   free: string; pdf: string; explore: string; cards: string; freeCards: string; planner: string
@@ -42,12 +43,12 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   const freeLinks = [
     { href: toolsHref, label: c.pdf },
     { href: studyPdfPath(locale), label: c.explore },
-    ...(locale === 'fr' || locale === 'en' ? [{ href: locale === 'fr' ? '/flashcards-gratuites' : '/en/free-flashcards', label: c.freeCards }] : []),
+    { href: freeFlashcardsPath(locale), label: c.freeCards },
     ...(locale === 'fr' ? [{ href: '/planificateur-revisions', label: c.planner }] : []),
   ]
   const studioHref = `${home}${locale === 'fr' ? '#produit' : '#studio'}`
   const pricingHref = `${home}#pricing`
-  const publicCardsHref = locale === 'fr' ? '/flashcards-gratuites' : locale === 'en' ? '/en/free-flashcards' : `${home}#features-title`
+  const publicCardsHref = freeFlashcardsPath(locale)
   const mobileFreeLinks = user ? freeLinks : freeLinks.filter(link => link.href !== studyPdfPath(locale) && link.href !== publicCardsHref)
   const publicLinks = [
     { href: studioHref, label: c.study, active: pathname === home },

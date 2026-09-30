@@ -500,9 +500,11 @@ html {
 
 .study-card-motion { animation: study-card-enter 220ms cubic-bezier(.2, .7, .2, 1) both; }
 .study-card-motion.study-card-reveal { animation: study-card-reveal 220ms ease-out both; }
+.curated-hero-card { animation: curated-card-in 500ms ease-out both; }
+@keyframes curated-card-in { from { opacity: 0; } to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .study-card-motion, .study-card-motion.study-card-reveal, .glow-orb { animation: none; }
+  .study-card-motion, .study-card-motion.study-card-reveal, .curated-hero-card, .glow-orb { animation: none; }
 }
 /* The document remains in the layout when its PDF is open. The width is
    persisted by the accessible splitter in the document workspace. */
