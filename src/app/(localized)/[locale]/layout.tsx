@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cramdesk.com'),
-  icons: { icon: '/logo.png', apple: '/logo.png' },
+  icons: { icon: '/flame-logo.png', apple: '/flame-logo.png' },
   manifest: '/site.webmanifest',
 }
 

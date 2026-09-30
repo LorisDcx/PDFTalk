@@ -21,7 +21,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
       <div className="relative mx-auto flex min-h-screen max-w-[1440px] flex-col px-5 sm:px-8 lg:px-12">
         <header className="flex items-center justify-between gap-4 border-b border-[#eadfe4] py-5 sm:py-6">
           <Link href="/" className="group inline-flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b84432] focus-visible:ring-offset-4" aria-label="CramDesk — accueil">
-            <Image src="/logo.png" width={44} height={44} alt="" className="size-11 rounded-[15px] shadow-[0_8px_20px_-9px_rgba(160,62,37,.45)] transition-transform group-hover:-rotate-6" />
+            <Image src="/flame-logo.png" width={48} height={48} alt="" className="size-12 rounded-[15px] transition-transform group-hover:-rotate-6" />
             <span className="font-editorial text-[1.75rem] leading-none tracking-[-.035em]">CramDesk<span className="text-[#d05a39]">.</span></span>
           </Link>
           <Link href="/" aria-label={backLabel} className="inline-flex items-center gap-1.5 rounded-full border border-[#efdacf] bg-white/70 px-4 py-2 text-xs font-semibold text-[#754f42] transition hover:border-[#d9aa93] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b84432] sm:text-sm">

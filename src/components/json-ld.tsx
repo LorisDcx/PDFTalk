@@ -6,7 +6,7 @@ export function OrganizationJsonLd() {
     '@type': 'Organization',
     name: 'CramDesk',
     url: 'https://cramdesk.com',
-    logo: 'https://cramdesk.com/logo.png',
+    logo: 'https://cramdesk.com/flame-logo.png',
     description: 'Transforme tes cours PDF en fiches de révision, flashcards et quiz.',
     sameAs: [],
     contactPoint: {

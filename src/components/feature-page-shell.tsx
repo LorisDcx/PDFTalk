@@ -11,7 +11,7 @@ export function FeaturePageShell({ children, locale = 'fr', syncLocale = true }:
   const english = locale === 'en'
   return <>
     {syncLocale ? <LocalePreference locale={locale} /> : <HtmlLanguage locale={locale} />}
-    <Navbar />
+    <Navbar publicLocale={locale} />
     <main lang={locale} className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">{children}</main>
     <footer className="border-t border-[#f0dfd5] bg-white px-5 py-9 text-sm text-[#807581] sm:px-8">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5">

@@ -24,12 +24,12 @@ export const siteMetadata: Metadata = {
     images: ['/og-image.png'],
   },
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/flame-logo.png',
+    shortcut: '/flame-logo.png',
+    apple: '/flame-logo.png',
     other: [
-      { rel: 'icon', url: '/logo.png', sizes: '256x256' },
-      { rel: 'icon', url: '/logo.png', sizes: '512x512' },
+      { rel: 'icon', url: '/flame-logo.png', sizes: '256x256' },
+      { rel: 'icon', url: '/flame-logo.png', sizes: '512x512' },
     ],
   },
   manifest: '/site.webmanifest',
