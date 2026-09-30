@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: 'Medical study: AI flashcards and quizzes from PDFs | Cramdesk',
     description:
       'Create summaries, flashcards, and MCQ quizzes from your medicine PDFs. Built for med students.',
-    url: 'https://cramdesk.com/use-cases/medical-students',
+    url: 'https://www.cramdesk.com/use-cases/medical-students',
   },
 }
 
@@ -63,12 +63,12 @@ export default function MedecineUseCasePage() {
       <WebPageJsonLd
         title="Medical study: AI flashcards and quizzes from PDFs"
         description="Generate medical notes and MCQ quizzes from your PDFs."
-        url="https://cramdesk.com/use-cases/medical-students"
+        url="https://www.cramdesk.com/use-cases/medical-students"
       />
       <HowToJsonLd
         name="Create medical flashcards from a PDF"
         description="Turn a medical lecture PDF into structured notes and MCQ quizzes with Cramdesk."
-        url="https://cramdesk.com/use-cases/medical-students#how-to"
+        url="https://www.cramdesk.com/use-cases/medical-students#how-to"
         steps={[
           { name: 'Upload your PDF', text: 'Drop your medical lecture PDF or click to upload it.' },
           { name: 'Generate', text: 'Cramdesk AI extracts key concepts and builds notes plus MCQs.' },

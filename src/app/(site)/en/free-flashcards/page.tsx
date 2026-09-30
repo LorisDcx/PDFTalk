@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Create free flashcards, practice active recall, and export your deck. No account needed. Your cards stay in your browser.',
   keywords: ['free flashcards', 'flashcard maker', 'flashcards without signup', 'online flashcards', 'active recall'],
   alternates: { canonical: '/en/free-flashcards', languages: { fr: '/flashcards-gratuites', en: '/en/free-flashcards' } },
-  openGraph: { title: 'Free Flashcards Online, No Sign-Up | CramDesk', description: 'Create, study, and export flashcards in your browser.', url: 'https://cramdesk.com/en/free-flashcards', locale: 'en_US' },
+  openGraph: { title: 'Free Flashcards Online, No Sign-Up | CramDesk', description: 'Create, study, and export flashcards in your browser.', url: 'https://www.cramdesk.com/en/free-flashcards', locale: 'en_US' },
 }
 
 const faqs = [
@@ -21,7 +21,7 @@ const faqs = [
 
 export default function EnglishFreeFlashcardsPage() {
   return <>
-    <WebPageJsonLd title="Free flashcards online, no sign-up" description="Create and study free flashcards in your browser." url="https://cramdesk.com/en/free-flashcards" />
+    <WebPageJsonLd title="Free flashcards online, no sign-up" description="Create and study free flashcards in your browser." url="https://www.cramdesk.com/en/free-flashcards" />
     <FAQJsonLd faqs={faqs} />
     <FeaturePageShell locale="en">
       <section className="relative overflow-hidden px-5 pb-16 pt-16 text-center sm:px-8 sm:pb-20 sm:pt-24"><div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[550px] w-[850px] -translate-x-1/2 rounded-full bg-[#ffe9da] opacity-75 blur-[110px]" /><div className="relative mx-auto max-w-4xl"><p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#f1cfbd] bg-[#fff0e6] px-4 py-2 text-xs font-bold text-[#b84432]"><Layers3 className="size-4" aria-hidden="true" />Free tool · No sign-up</p><h1 className="font-editorial text-[clamp(3.25rem,7vw,7rem)] leading-[1.02] tracking-[-.055em] text-[#33252b]">Make a card. <span className="italic text-[#c25334]">Recall the answer.</span></h1><p className="mx-auto mt-7 max-w-2xl text-base leading-8 text-[#74696a] sm:text-xl">Write your own questions and answers, then test yourself without peeking. Cards you miss return later in the session.</p><Link href="#outil" className="mt-9 inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full bg-[#b84432] px-7 text-sm font-bold text-white shadow-[0_12px_28px_-15px_rgba(161,52,38,.7)] transition hover:bg-[#973326]">Create free flashcards <ArrowRight className="size-4" aria-hidden="true" /></Link><p className="mt-5 text-xs text-[#8f7e7c]">Free, no account, and no card data sent to a server.</p></div></section>

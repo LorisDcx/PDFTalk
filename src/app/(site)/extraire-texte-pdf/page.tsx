@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     canonical: studyPdfPath('fr'),
     languages: Object.fromEntries(STUDY_PDF_LOCALES.map(locale => [locale, studyPdfPath(locale)])),
   },
-  openGraph: { title: copy.title, description: copy.description, url: `https://cramdesk.com${studyPdfPath('fr')}` },
+  openGraph: { title: copy.title, description: copy.description, url: `https://www.cramdesk.com${studyPdfPath('fr')}` },
 }
 
 export default function Page() { return <StudyPdfInspector locale="fr" /> }

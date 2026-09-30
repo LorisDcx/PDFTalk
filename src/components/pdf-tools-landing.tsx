@@ -57,7 +57,7 @@ const content = {
 
 export function PdfToolsLanding({ locale }: { locale: 'fr' | 'en' }) {
   const c = content[locale]
-  const url = `https://cramdesk.com/${locale === 'fr' ? 'outils-pdf' : 'en/pdf-tools'}`
+  const url = `https://www.cramdesk.com/${locale === 'fr' ? 'outils-pdf' : 'en/pdf-tools'}`
   return <FeaturePageShell locale={locale}>
     <WebPageJsonLd title={locale === 'fr' ? 'Outils PDF gratuits en ligne' : 'Free online PDF tools'} description={c.lead} url={url} />
     <FAQJsonLd faqs={c.faqs} />

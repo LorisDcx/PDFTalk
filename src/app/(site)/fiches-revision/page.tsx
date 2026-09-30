@@ -33,7 +33,7 @@ const faqs = [
 export default function FichesRevisionPage() {
   return (
     <>
-      <WebPageJsonLd title="Générateur de fiches de révision IA" description="Crée une synthèse structurée à partir d’un cours PDF lisible." url="https://cramdesk.com/fiches-revision" />
+      <WebPageJsonLd title="Générateur de fiches de révision IA" description="Crée une synthèse structurée à partir d’un cours PDF lisible." url="https://www.cramdesk.com/fiches-revision" />
       <FAQJsonLd faqs={faqs} />
       <FeaturePageShell>
         <FeatureHero

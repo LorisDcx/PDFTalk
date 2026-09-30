@@ -33,7 +33,7 @@ const faqs = [
 export default function QuizPdfPage() {
   return (
     <>
-      <WebPageJsonLd title="Quiz PDF en ligne" description="Génère des questions de révision à partir du texte de ton cours PDF." url="https://cramdesk.com/quiz-pdf" />
+      <WebPageJsonLd title="Quiz PDF en ligne" description="Génère des questions de révision à partir du texte de ton cours PDF." url="https://www.cramdesk.com/quiz-pdf" />
       <FAQJsonLd faqs={faqs} />
       <FeaturePageShell>
         <FeatureHero

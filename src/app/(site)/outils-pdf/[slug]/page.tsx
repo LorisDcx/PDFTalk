@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = findPdfToolPage((await params).slug, 'fr')
   if (!page) return {}
   const { title, description } = page.fr
-  return { title: `${title} | CramDesk`, description, alternates: { canonical: pdfToolPath(page, 'fr'), languages: { fr: pdfToolPath(page, 'fr'), en: pdfToolPath(page, 'en') } }, openGraph: { title, description, url: `https://cramdesk.com${pdfToolPath(page, 'fr')}` } }
+  return { title: `${title} | CramDesk`, description, alternates: { canonical: pdfToolPath(page, 'fr'), languages: { fr: pdfToolPath(page, 'fr'), en: pdfToolPath(page, 'en') } }, openGraph: { title, description, url: `https://www.cramdesk.com${pdfToolPath(page, 'fr')}` } }
 }
 export default async function Page({ params }: Props) {
   const page = findPdfToolPage((await params).slug, 'fr')

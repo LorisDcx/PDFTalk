@@ -9,7 +9,7 @@ import { SEO_LOCALES, type SeoLocale } from '@/lib/seo-locales'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://cramdesk.com'),
+  metadataBase: new URL('https://www.cramdesk.com'),
   icons: { icon: '/flame-logo.png', apple: '/flame-logo.png' },
   manifest: '/site.webmanifest',
 }

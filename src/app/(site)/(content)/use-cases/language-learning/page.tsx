@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: 'Language learning: AI flashcards & vocab quizzes from PDFs | Cramdesk',
     description:
       'Create vocab flashcards and quizzes automatically from your language course PDFs.',
-    url: 'https://cramdesk.com/use-cases/language-learning',
+    url: 'https://www.cramdesk.com/use-cases/language-learning',
   },
 }
 
@@ -63,12 +63,12 @@ export default function LanguesUseCasePage() {
       <WebPageJsonLd
         title="Language learning: AI flashcards & vocab quizzes"
         description="Generate vocab flashcards and quizzes from your PDFs."
-        url="https://cramdesk.com/use-cases/language-learning"
+        url="https://www.cramdesk.com/use-cases/language-learning"
       />
       <HowToJsonLd
         name="Create language flashcards from a PDF"
         description="Generate vocab flashcards and quizzes from any language-learning PDF."
-        url="https://cramdesk.com/use-cases/language-learning#how-to"
+        url="https://www.cramdesk.com/use-cases/language-learning#how-to"
         steps={[
           { name: 'Upload your PDF', text: 'Drop your language course PDF or click to upload it.' },
           { name: 'Generate', text: 'Cramdesk AI extracts vocab, idioms, and verbs to build cards and quizzes.' },

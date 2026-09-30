@@ -11,8 +11,10 @@ export default function ContentLayout({ children }: { children: React.ReactNode 
           <Link href="/" className="font-editorial text-xl text-[#33252b]">CramDesk<span className="text-[#d05a39]">.</span></Link>
           <nav className="flex flex-wrap gap-5" aria-label="Liens du pied de page">
             <Link href="/flashcards-gratuites" className="hover:text-[#b84432]">Flashcards gratuites</Link>
+            <Link href="/blog" className="hover:text-[#b84432]">Guides de révision</Link>
             <Link href="/privacy" className="hover:text-[#b84432]">Confidentialité</Link>
             <Link href="/contact" className="hover:text-[#b84432]">Contact</Link>
+            <a href="https://www.3h36agency.fr/realisations/cramdesk" className="hover:text-[#b84432]">3h36 Agency</a>
           </nav>
         </div>
       </footer>

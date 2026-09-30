@@ -8,6 +8,7 @@ import { PdfToolkit } from '@/components/pdf-toolkit'
 import { FAQJsonLd, WebPageJsonLd } from '@/components/json-ld'
 import { PDF_EXTRA_LOCALES, pdfHubCopy, pdfHubPath, pdfHubWorkflow, translatedTools, type ExtraPdfLocale } from '@/lib/pdf-tool-locales'
 import { STUDY_PDF_LOCALES, studyPdfCopy, studyPdfPath } from '@/lib/study-pdf-locales'
+import { blogCopy, blogIndexPath } from '@/lib/blog-content'
 
 function validLocale(value: string): value is ExtraPdfLocale {
   return PDF_EXTRA_LOCALES.includes(value as ExtraPdfLocale)
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical: pdfHubPath(locale),
       languages: Object.fromEntries(STUDY_PDF_LOCALES.map(item => [item, pdfHubPath(item)])),
     },
-    openGraph: { title: c.title, description: c.description, url: `https://cramdesk.com${pdfHubPath(locale)}` },
+    openGraph: { title: c.title, description: c.description, url: `https://www.cramdesk.com${pdfHubPath(locale)}` },
   }
 }
 
@@ -39,7 +40,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   const workflow = pdfHubWorkflow[locale]
   return <>
     <LocalePreference locale={locale} />
-    <WebPageJsonLd title={c.title} description={c.description} url={`https://cramdesk.com${pdfHubPath(locale)}`} />
+    <WebPageJsonLd title={c.title} description={c.description} url={`https://www.cramdesk.com${pdfHubPath(locale)}`} />
     <FAQJsonLd faqs={[{ question: c.faqOne, answer: c.faqAnswerOne }, { question: c.faqTwo, answer: c.faqAnswerTwo }]} />
     <PublicSiteHeader locale={locale} />
     <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
@@ -58,6 +59,6 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
       <section className="bg-[#fff0e6] px-5 py-16 sm:px-8 lg:py-24"><div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 md:flex-row md:items-center"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">CramDesk</p><h2 className={`${locale === 'ar' ? 'font-semibold' : 'font-editorial'} mt-3 max-w-xl text-4xl sm:text-5xl`}>{c.studyTitle}</h2><p className="mt-4 max-w-2xl text-base leading-7 text-[var(--cd-muted)]">{c.studyText}</p></div><Link href={`/${locale}#studio`} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-[#d8a996] bg-white px-6 text-sm font-bold text-[var(--cd-brand)]">{c.studyAction}<ArrowRight className="size-4" /></Link></div></section>
       <section className="px-5 py-16 sm:px-8 lg:py-24"><div className="mx-auto max-w-4xl"><h2 className={`${locale === 'ar' ? 'font-semibold' : 'font-editorial'} text-4xl`}>{c.faqTitle}</h2><div className="mt-8 divide-y divide-[var(--cd-line)] border-y border-[var(--cd-line)]">{[[c.faqOne, c.faqAnswerOne], [c.faqTwo, c.faqAnswerTwo]].map(([question, answer]) => <details key={question} className="group py-5"><summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-base font-bold">{question}<span className="text-2xl font-normal text-[var(--cd-brand)] group-open:rotate-45">+</span></summary><p className="max-w-2xl pb-2 pt-2 text-base leading-7 text-[var(--cd-muted)]">{answer}</p></details>)}</div><Link href={studyPdfPath(locale)} className="mt-7 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--cd-brand)] underline underline-offset-4">{studyPdfCopy[locale].eyebrow}<ArrowRight className="size-4" /></Link></div></section>
     </main>
-    <footer lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="border-t border-[var(--cd-line)] bg-white px-5 py-9 text-sm text-[var(--cd-muted)] sm:px-8"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5"><Link href={`/${locale}`} className="font-editorial text-2xl text-[var(--cd-ink)]">CramDesk<span className="text-[var(--cd-brand)]">.</span></Link><Link href={studyPdfPath(locale)} className="hover:text-[var(--cd-brand)]">{c.studyAction}</Link><p>© {new Date().getFullYear()} CramDesk</p></div></footer>
+    <footer lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="border-t border-[var(--cd-line)] bg-white px-5 py-9 text-sm text-[var(--cd-muted)] sm:px-8"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5"><Link href={`/${locale}`} className="font-editorial text-2xl text-[var(--cd-ink)]">CramDesk<span className="text-[var(--cd-brand)]">.</span></Link><Link href={studyPdfPath(locale)} className="hover:text-[var(--cd-brand)]">{c.studyAction}</Link><Link href={blogIndexPath(locale)} className="hover:text-[var(--cd-brand)]">{blogCopy[locale].eyebrow}</Link><p>© {new Date().getFullYear()} CramDesk</p></div></footer>
   </>
 }

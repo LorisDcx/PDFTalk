@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Planificateur de révisions gratuit | CramDesk',
     description: 'Un planning de révision personnalisé, exportable et sans inscription.',
-    url: 'https://cramdesk.com/planificateur-revisions',
+    url: 'https://www.cramdesk.com/planificateur-revisions',
   },
 }
 
@@ -26,7 +26,7 @@ const faqs = [
 
 export default function StudyPlannerPage() {
   return <>
-    <WebPageJsonLd title="Planificateur de révisions gratuit" description="Crée un planning de révision personnalisé et exportable sans inscription." url="https://cramdesk.com/planificateur-revisions" />
+    <WebPageJsonLd title="Planificateur de révisions gratuit" description="Crée un planning de révision personnalisé et exportable sans inscription." url="https://www.cramdesk.com/planificateur-revisions" />
     <FAQJsonLd faqs={faqs} />
     <FeaturePageShell>
       <section className="relative overflow-hidden px-5 pb-16 pt-16 text-center sm:px-8 sm:pb-20 sm:pt-24">

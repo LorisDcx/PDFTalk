@@ -10,10 +10,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'How to turn a PDF into flashcards in minutes',
     description: 'Learn how to turn a readable PDF into flashcards and quizzes, then verify each card against your course.',
-    url: 'https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards',
+    url: 'https://www.cramdesk.com/blog/how-to-turn-pdf-into-flashcards',
   },
   alternates: {
-    canonical: 'https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards',
+    canonical: 'https://www.cramdesk.com/blog/how-to-turn-pdf-into-flashcards',
   },
 }
 
@@ -59,14 +59,14 @@ export default function HowToPdfFlashcardsPage() {
       <WebPageJsonLd
         title="How to turn a PDF into flashcards in minutes"
         description="Step-by-step guide to create flashcards and quizzes from a PDF with selectable text."
-        url="https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
+        url="https://www.cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
       />
       <ArticleJsonLd
         headline="How to turn a PDF into flashcards in minutes"
         description="Step-by-step guide to create flashcards and quizzes from a PDF with selectable text."
         authorName="Cramdesk Team"
-        url="https://cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
-        image="https://cramdesk.com/og.png"
+        url="https://www.cramdesk.com/blog/how-to-turn-pdf-into-flashcards"
+        image="https://www.cramdesk.com/og.png"
         keywords={['pdf to flashcards', 'ai flashcards', 'quiz from pdf']}
       />
       <FAQJsonLd faqs={faqs} />

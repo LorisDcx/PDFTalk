@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'AI Text Summarizer – Notes, PDFs & Articles | CramDesk',
     description: 'Summarize readable course PDFs with AI.',
-    url: 'https://cramdesk.com/resume',
+    url: 'https://www.cramdesk.com/resume',
   },
 }
 
@@ -38,7 +38,7 @@ const faqItems = [
 export default function ResumePage() {
   return (
     <>
-      <WebPageJsonLd title="AI Text Summarizer – Notes, PDFs & Articles" description="Summarize readable course PDFs with AI." url="https://cramdesk.com/resume" />
+      <WebPageJsonLd title="AI Text Summarizer – Notes, PDFs & Articles" description="Summarize readable course PDFs with AI." url="https://www.cramdesk.com/resume" />
       <FAQJsonLd faqs={faqItems} />
       <FeaturePageShell locale="en">
         <FeatureHero

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Crée tes flashcards en ligne gratuitement, révise en rappel actif et exporte ton jeu. Sans inscription : tes cartes restent sur ton appareil.',
   keywords: ['flashcards gratuites', 'créer des flashcards', 'cartes mémoire en ligne', 'flashcards sans inscription', 'rappel actif'],
   alternates: { canonical: '/flashcards-gratuites', languages: { fr: '/flashcards-gratuites', en: '/en/free-flashcards' } },
-  openGraph: { title: 'Flashcards gratuites sans inscription | CramDesk', description: 'Crée, révise et exporte tes cartes mémoire dans ton navigateur.', url: 'https://cramdesk.com/flashcards-gratuites' },
+  openGraph: { title: 'Flashcards gratuites sans inscription | CramDesk', description: 'Crée, révise et exporte tes cartes mémoire dans ton navigateur.', url: 'https://www.cramdesk.com/flashcards-gratuites' },
 }
 
 const faqs = [
@@ -21,7 +21,7 @@ const faqs = [
 
 export default function FreeFlashcardsPage() {
   return <>
-    <WebPageJsonLd title="Flashcards gratuites sans inscription" description="Crée et révise des cartes mémoire gratuites dans ton navigateur." url="https://cramdesk.com/flashcards-gratuites" />
+    <WebPageJsonLd title="Flashcards gratuites sans inscription" description="Crée et révise des cartes mémoire gratuites dans ton navigateur." url="https://www.cramdesk.com/flashcards-gratuites" />
     <FAQJsonLd faqs={faqs} />
     <FeaturePageShell>
       <section className="relative overflow-hidden px-5 pb-16 pt-16 text-center sm:px-8 sm:pb-20 sm:pt-24"><div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[550px] w-[850px] -translate-x-1/2 rounded-full bg-[#ffe9da] opacity-75 blur-[110px]" /><div className="relative mx-auto max-w-4xl"><p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#f1cfbd] bg-[#fff0e6] px-4 py-2 text-xs font-bold text-[#b84432]"><Layers3 className="size-4" aria-hidden="true" />Outil gratuit · Sans inscription</p><h1 className="font-editorial text-[clamp(3.25rem,7vw,7rem)] leading-[1.02] tracking-[-.055em] text-[#33252b]">Crée tes cartes. <span className="italic text-[#c25334]">Retrouve la réponse.</span></h1><p className="mx-auto mt-7 max-w-2xl text-base leading-8 text-[#74696a] sm:text-xl">Écris une question et sa réponse, puis teste-toi sans regarder. Les cartes que tu ne connais pas reviennent pendant la session.</p><Link href="#outil" className="mt-9 inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full bg-[#b84432] px-7 text-sm font-bold text-white shadow-[0_12px_28px_-15px_rgba(161,52,38,.7)] transition hover:bg-[#973326]">Créer mes flashcards <ArrowRight className="size-4" aria-hidden="true" /></Link><p className="mt-5 text-xs text-[#8f7e7c]">Gratuit, sans compte et sans envoi de tes cartes au serveur.</p></div></section>

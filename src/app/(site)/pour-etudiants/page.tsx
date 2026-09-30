@@ -39,7 +39,7 @@ const tools = [
 export default function PourEtudiantsPage() {
   return (
     <>
-      <WebPageJsonLd title="CramDesk pour étudiants" description="Un espace de révision pour travailler des cours PDF avec des fiches, des flashcards et des quiz." url="https://cramdesk.com/pour-etudiants" />
+      <WebPageJsonLd title="CramDesk pour étudiants" description="Un espace de révision pour travailler des cours PDF avec des fiches, des flashcards et des quiz." url="https://www.cramdesk.com/pour-etudiants" />
       <FAQJsonLd faqs={faqs} />
       <FeaturePageShell>
         <FeatureHero

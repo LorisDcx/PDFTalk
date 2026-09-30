@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: 'Quizlet Alternative with AI Flashcards & Quizzes | Cramdesk',
     description:
       'Generate flashcards, study notes, and quizzes automatically from PDFs. A Quizlet alternative with AI, built for students.',
-    url: 'https://cramdesk.com/compare/quizlet-alternative',
+    url: 'https://www.cramdesk.com/compare/quizlet-alternative',
   },
 }
 
@@ -74,12 +74,12 @@ export default function QuizletAlternativePage() {
       <WebPageJsonLd
         title="Quizlet alternative with AI flashcards & quizzes"
         description="Generate flashcards, notes, and quizzes automatically from your PDFs."
-        url="https://cramdesk.com/compare/quizlet-alternative"
+        url="https://www.cramdesk.com/compare/quizlet-alternative"
       />
       <HowToJsonLd
         name="Create AI flashcards from a PDF"
         description="Three simple steps to turn any PDF into flashcards and quizzes with Cramdesk."
-        url="https://cramdesk.com/compare/quizlet-alternative#how-to"
+        url="https://www.cramdesk.com/compare/quizlet-alternative#how-to"
         steps={[
           { name: 'Upload your PDF', text: 'Drop your course PDF or click to upload it.' },
           { name: 'Generate', text: 'Cramdesk AI extracts key points and creates notes, flashcards, and MCQs.' },

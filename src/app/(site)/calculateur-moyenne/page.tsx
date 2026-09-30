@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Calculateur de moyenne gratuit avec coefficients | CramDesk',
     description: 'Ta moyenne actuelle et la note à viser au prochain devoir, sans inscription.',
-    url: 'https://cramdesk.com/calculateur-moyenne',
+    url: 'https://www.cramdesk.com/calculateur-moyenne',
   },
 }
 
@@ -26,7 +26,7 @@ const faqs = [
 
 export default function GradeCalculatorPage() {
   return <>
-    <WebPageJsonLd title="Calculateur de moyenne gratuit avec coefficients" description="Calcule ta moyenne sur 20 et la note à viser au prochain devoir." url="https://cramdesk.com/calculateur-moyenne" />
+    <WebPageJsonLd title="Calculateur de moyenne gratuit avec coefficients" description="Calcule ta moyenne sur 20 et la note à viser au prochain devoir." url="https://www.cramdesk.com/calculateur-moyenne" />
     <FAQJsonLd faqs={faqs} />
     <FeaturePageShell>
       <section className="relative overflow-hidden px-5 pb-16 pt-16 text-center sm:px-8 sm:pb-20 sm:pt-24"><div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[550px] w-[850px] -translate-x-1/2 rounded-full bg-[#ffe9da] opacity-75 blur-[110px]" /><div className="relative mx-auto max-w-4xl"><p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#f1cfbd] bg-[#fff0e6] px-4 py-2 text-xs font-bold text-[#b84432]"><Calculator className="size-4" aria-hidden="true" />Outil gratuit · Résultat instantané</p><h1 className="font-editorial text-[clamp(3.25rem,7vw,7rem)] leading-[1.02] tracking-[-.055em] text-[#33252b]">Ta moyenne, <span className="italic text-[#c25334]">et la suite à viser.</span></h1><p className="mx-auto mt-7 max-w-2xl text-base leading-8 text-[#74696a] sm:text-xl">Ajoute tes notes et leurs coefficients. Vois ta moyenne actuelle, puis découvre la note qu’il te faudrait au prochain devoir pour atteindre ton objectif.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Link href="#calculateur" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full bg-[#b84432] px-7 text-sm font-bold text-white shadow-[0_12px_28px_-15px_rgba(161,52,38,.7)] transition hover:bg-[#973326]">Calculer ma moyenne <ArrowRight className="size-4" aria-hidden="true" /></Link><Link href="/planificateur-revisions" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full border border-[#e8d5ca] bg-white px-7 text-sm font-bold text-[#7f4839] hover:bg-[#fff5ee]">Planifier mes révisions</Link></div><p className="mt-5 text-xs text-[#8f7e7c]">Gratuit, sans compte et sans stockage de tes notes.</p></div></section>

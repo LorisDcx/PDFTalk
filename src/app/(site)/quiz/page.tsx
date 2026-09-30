@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'AI Quiz Generator from PDF & Notes | CramDesk',
     description: 'Create multiple-choice practice quizzes from readable course PDFs.',
-    url: 'https://cramdesk.com/quiz',
+    url: 'https://www.cramdesk.com/quiz',
   },
 }
 
@@ -38,7 +38,7 @@ const faqItems = [
 export default function QuizPage() {
   return (
     <>
-      <WebPageJsonLd title="AI Quiz Generator from PDF & Notes" description="Create multiple-choice practice quizzes from readable course PDFs." url="https://cramdesk.com/quiz" />
+      <WebPageJsonLd title="AI Quiz Generator from PDF & Notes" description="Create multiple-choice practice quizzes from readable course PDFs." url="https://www.cramdesk.com/quiz" />
       <FAQJsonLd faqs={faqItems} />
       <FeaturePageShell locale="en">
         <FeatureHero

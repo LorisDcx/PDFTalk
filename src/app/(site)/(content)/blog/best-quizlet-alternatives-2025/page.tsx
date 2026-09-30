@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Sparkles, Star, ShieldCheck, Clock3, Waves, F
 import { ArticleJsonLd, FAQJsonLd, WebPageJsonLd } from '@/components/json-ld'
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: 'Best Quizlet alternatives in 2025: AI flashcards & study tools compared',
   description:
     'Looking for the best Quizlet alternative? Compare AI flashcards, PDF-to-quiz, spaced repetition, and privacy-friendly tools students love in 2025.',
@@ -19,10 +20,10 @@ export const metadata: Metadata = {
     title: 'Best Quizlet alternatives in 2025',
     description:
       'Roundup of the best Quizlet alternatives with AI flashcards, PDF-to-quiz, spaced repetition, and privacy-focused study tools.',
-    url: 'https://cramdesk.com/blog/best-quizlet-alternatives-2025',
+    url: 'https://www.cramdesk.com/blog/best-quizlet-alternatives-2025',
   },
   alternates: {
-    canonical: 'https://cramdesk.com/blog/best-quizlet-alternatives-2025',
+    canonical: 'https://www.cramdesk.com/blog/best-quizlet-alternatives-2025',
   },
 }
 
@@ -95,14 +96,14 @@ export default function BestQuizletAlternatives2025Page() {
       <WebPageJsonLd
         title="Best Quizlet alternatives in 2025: AI flashcards & study tools compared"
         description="Looking for the best Quizlet alternative? Compare AI flashcards, PDF-to-quiz, spaced repetition, and privacy-friendly tools students love in 2025."
-        url="https://cramdesk.com/blog/best-quizlet-alternatives-2025"
+        url="https://www.cramdesk.com/blog/best-quizlet-alternatives-2025"
       />
       <ArticleJsonLd
         headline="Best Quizlet alternatives in 2025"
         description="Roundup of the best Quizlet alternatives with AI flashcards, PDF-to-quiz, spaced repetition, and privacy-focused study tools."
         authorName="Cramdesk Team"
-        url="https://cramdesk.com/blog/best-quizlet-alternatives-2025"
-        image="https://cramdesk.com/og.png"
+        url="https://www.cramdesk.com/blog/best-quizlet-alternatives-2025"
+        image="https://www.cramdesk.com/og.png"
         keywords={['quizlet alternative', 'ai flashcards', 'study tools 2025']}
       />
       <FAQJsonLd faqs={faqs} />

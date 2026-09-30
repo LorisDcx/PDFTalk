@@ -4,16 +4,17 @@ import { ArrowRight, Sparkles, Star, ShieldCheck, Clock3, CheckCircle2, Zap, Fla
 import { ArticleJsonLd, FAQJsonLd, WebPageJsonLd } from '@/components/json-ld'
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: 'Best AI flashcard tools in 2025: speed, quizzes, and SRS | Cramdesk',
   description: 'Ranking the best AI flashcard tools in 2025 for fast deck creation, quizzes, and spaced repetition. See when to use each tool.',
   keywords: ['ai flashcards', 'flashcard generator', 'quiz generator', 'spaced repetition 2025', 'best ai study tools'],
   openGraph: {
     title: 'Best AI flashcard tools in 2025',
     description: 'Top AI flashcard tools compared: speed, quizzes, SRS, and PDF handling.',
-    url: 'https://cramdesk.com/blog/best-ai-flashcard-tools-2025',
+    url: 'https://www.cramdesk.com/blog/best-ai-flashcard-tools-2025',
   },
   alternates: {
-    canonical: 'https://cramdesk.com/blog/best-ai-flashcard-tools-2025',
+    canonical: 'https://www.cramdesk.com/blog/best-ai-flashcard-tools-2025',
   },
 }
 
@@ -66,14 +67,14 @@ export default function BestAiFlashcardTools2025Page() {
       <WebPageJsonLd
         title="Best AI flashcard tools in 2025"
         description="Ranking the best AI flashcard tools in 2025 for fast deck creation, quizzes, and SRS."
-        url="https://cramdesk.com/blog/best-ai-flashcard-tools-2025"
+        url="https://www.cramdesk.com/blog/best-ai-flashcard-tools-2025"
       />
       <ArticleJsonLd
         headline="Best AI flashcard tools in 2025"
         description="Top AI flashcard tools compared: speed, quizzes, SRS, and PDF handling."
         authorName="Cramdesk Team"
-        url="https://cramdesk.com/blog/best-ai-flashcard-tools-2025"
-        image="https://cramdesk.com/og.png"
+        url="https://www.cramdesk.com/blog/best-ai-flashcard-tools-2025"
+        image="https://www.cramdesk.com/og.png"
         keywords={['ai flashcards', 'flashcard generator', 'quiz generator']}
       />
       <FAQJsonLd faqs={faqs} />

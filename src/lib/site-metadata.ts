@@ -7,11 +7,11 @@ export const siteMetadata: Metadata = {
   authors: [{ name: 'CramDesk' }],
   creator: 'CramDesk',
   publisher: 'CramDesk',
-  metadataBase: new URL('https://cramdesk.com'),
+  metadataBase: new URL('https://www.cramdesk.com'),
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://cramdesk.com',
+    url: 'https://www.cramdesk.com',
     siteName: 'CramDesk',
     title: 'CramDesk | Révise tes PDF avec des fiches, flashcards et quiz',
     description: 'Importe tes cours PDF, comprends l’essentiel et entraîne-toi avec des cartes et des quiz.',

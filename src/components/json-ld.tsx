@@ -5,14 +5,14 @@ export function OrganizationJsonLd() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'CramDesk',
-    url: 'https://cramdesk.com',
-    logo: 'https://cramdesk.com/flame-logo.png',
+    url: 'https://www.cramdesk.com',
+    logo: 'https://www.cramdesk.com/flame-logo.png',
     description: 'Transforme tes cours PDF en fiches de révision, flashcards et quiz.',
     sameAs: [],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      url: 'https://cramdesk.com/contact',
+      url: 'https://www.cramdesk.com/contact',
     },
   }
 
@@ -35,7 +35,7 @@ export function ProductJsonLd() {
       '@type': 'Offer',
       price: '3.99',
       priceCurrency: 'EUR',
-      url: 'https://cramdesk.com/#pricing',
+      url: 'https://www.cramdesk.com/#pricing',
     },
     description: 'Application IA pour transformer des PDF en fiches de révision, flashcards et quiz.',
   }
@@ -88,7 +88,7 @@ export function WebPageJsonLd({
     isPartOf: {
       '@type': 'WebSite',
       name: 'Cramdesk',
-      url: 'https://cramdesk.com',
+      url: 'https://www.cramdesk.com',
     },
   }
 
@@ -136,6 +136,7 @@ export function ArticleJsonLd({
   headline,
   description,
   authorName,
+  authorType = 'Person',
   datePublished,
   dateModified,
   url,
@@ -145,6 +146,7 @@ export function ArticleJsonLd({
   headline: string
   description: string
   authorName: string
+  authorType?: 'Person' | 'Organization'
   datePublished?: string
   dateModified?: string
   url: string
@@ -157,7 +159,7 @@ export function ArticleJsonLd({
     headline,
     description,
     author: {
-      '@type': 'Person',
+      '@type': authorType,
       name: authorName,
     },
     url,

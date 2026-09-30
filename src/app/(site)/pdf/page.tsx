@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Chat with PDF – Summarize & Ask Questions | CramDesk',
     description: 'Ask questions about a readable course PDF.',
-    url: 'https://cramdesk.com/pdf',
+    url: 'https://www.cramdesk.com/pdf',
   },
 }
 
@@ -38,7 +38,7 @@ const faqItems = [
 export default function PDFPage() {
   return (
     <>
-      <WebPageJsonLd title="Chat with PDF – Summarize & Ask Questions" description="Ask questions about a readable course PDF." url="https://cramdesk.com/pdf" />
+      <WebPageJsonLd title="Chat with PDF – Summarize & Ask Questions" description="Ask questions about a readable course PDF." url="https://www.cramdesk.com/pdf" />
       <FAQJsonLd faqs={faqItems} />
       <FeaturePageShell locale="en">
         <FeatureHero

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'AI Flashcards Generator for Studying Faster | CramDesk',
     description: 'Create study flashcards from readable course PDFs.',
-    url: 'https://cramdesk.com/flashcards-landing',
+    url: 'https://www.cramdesk.com/flashcards-landing',
   },
 }
 
@@ -38,7 +38,7 @@ const faqItems = [
 export default function FlashcardsPage() {
   return (
     <>
-      <WebPageJsonLd title="AI Flashcards Generator for Studying Faster" description="Create study flashcards from readable course PDFs." url="https://cramdesk.com/flashcards-landing" />
+      <WebPageJsonLd title="AI Flashcards Generator for Studying Faster" description="Create study flashcards from readable course PDFs." url="https://www.cramdesk.com/flashcards-landing" />
       <FAQJsonLd faqs={faqItems} />
       <FeaturePageShell locale="en">
         <FeatureHero

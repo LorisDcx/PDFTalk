@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Reformuler un texte pour le rendre plus clair | CramDesk',
     description: 'Un outil de réécriture pour améliorer la clarté, le rythme et le ton de tes textes.',
-    url: 'https://cramdesk.com/humanizer',
+    url: 'https://www.cramdesk.com/humanizer',
   },
 }
 
@@ -36,7 +36,7 @@ const faqs = [
 export default function HumanizerPage() {
   return (
     <>
-      <WebPageJsonLd title="Reformuler un texte pour le rendre plus clair" description="Améliore la lisibilité et le ton de tes brouillons avec CramDesk." url="https://cramdesk.com/humanizer" />
+      <WebPageJsonLd title="Reformuler un texte pour le rendre plus clair" description="Améliore la lisibilité et le ton de tes brouillons avec CramDesk." url="https://www.cramdesk.com/humanizer" />
       <FAQJsonLd faqs={faqs} />
       <FeaturePageShell>
         <FeatureHero

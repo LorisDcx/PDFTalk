@@ -10,7 +10,7 @@ export function PdfToolDetailPage({ page, locale }: { page: PdfToolPage; locale:
   const related = pdfToolPages.filter(item => item.id !== page.id).slice(0, 4)
   const english = locale === 'en'
   return <FeaturePageShell locale={locale}>
-    <WebPageJsonLd title={c.title} description={c.description} url={`https://cramdesk.com${pdfToolPath(page, locale)}`} />
+    <WebPageJsonLd title={c.title} description={c.description} url={`https://www.cramdesk.com${pdfToolPath(page, locale)}`} />
     <section className="border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-20">
       <div className="mx-auto max-w-6xl">
         <nav aria-label={english ? 'Breadcrumb' : 'Fil d’Ariane'} className="mb-8 flex flex-wrap items-center gap-2 text-sm text-[#766b70]">

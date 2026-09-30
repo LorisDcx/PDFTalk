@@ -3,8 +3,9 @@ import { SEO_LOCALES } from '@/lib/seo-locales'
 import { pdfToolPages, pdfToolPath } from '@/lib/pdf-tool-pages'
 import { STUDY_PDF_LOCALES, studyPdfPath } from '@/lib/study-pdf-locales'
 import { PDF_EXTRA_LOCALES, pdfHubPath } from '@/lib/pdf-tool-locales'
+import { BLOG_IDS, blogAlternates, blogArticlePath, blogIndexPath } from '@/lib/blog-content'
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://cramdesk.com'
+const baseUrl = 'https://www.cramdesk.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicPaths = [
@@ -12,12 +13,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/flashcards-landing', '/quiz', '/pdf', '/resume', '/humanizer',
     '/planificateur-revisions', '/calculateur-moyenne', '/flashcards-gratuites',
     '/outils-pdf', '/en/pdf-tools', '/en/free-flashcards', '/contact', '/privacy', '/terms',
-    '/blog/best-quizlet-alternatives-2025', '/blog/how-to-turn-pdf-into-flashcards',
-    '/blog/best-ai-flashcard-tools-2025', '/compare/quizlet-alternative',
+    '/blog/how-to-turn-pdf-into-flashcards', '/compare/quizlet-alternative',
     '/use-cases/medical-students', '/use-cases/language-learning', '/use-cases/law-students',
   ]
 
   const toolPaths = pdfToolPages.flatMap(page => [pdfToolPath(page, 'fr'), pdfToolPath(page, 'en')])
-  return [...publicPaths, ...toolPaths, ...STUDY_PDF_LOCALES.map(studyPdfPath), ...PDF_EXTRA_LOCALES.map(pdfHubPath), ...SEO_LOCALES.map(locale => `/${locale}`)]
-    .map(path => ({ url: `${baseUrl}${path === '/' ? '' : path}` }))
+  const standardPaths = [...publicPaths, ...toolPaths, ...STUDY_PDF_LOCALES.map(studyPdfPath), ...PDF_EXTRA_LOCALES.map(pdfHubPath), ...SEO_LOCALES.map(locale => `/${locale}`)]
+  const blogPaths = STUDY_PDF_LOCALES.flatMap(locale => [
+    { url: `${baseUrl}${blogIndexPath(locale)}`, alternates: { languages: Object.fromEntries(Object.entries(blogAlternates()).map(([language, path]) => [language, `${baseUrl}${path}`])) } },
+    ...BLOG_IDS.map(id => ({ url: `${baseUrl}${blogArticlePath(locale, id)}`, alternates: { languages: Object.fromEntries(Object.entries(blogAlternates(id)).map(([language, path]) => [language, `${baseUrl}${path}`])) } })),
+  ])
+  return [...standardPaths.map(path => ({ url: `${baseUrl}${path === '/' ? '' : path}` })), ...blogPaths]
 }

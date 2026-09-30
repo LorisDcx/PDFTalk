@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical: studyPdfPath(locale),
       languages: Object.fromEntries(STUDY_PDF_LOCALES.map(item => [item, studyPdfPath(item)])),
     },
-    openGraph: { title: copy.title, description: copy.description, url: `https://cramdesk.com${studyPdfPath(locale)}` },
+    openGraph: { title: copy.title, description: copy.description, url: `https://www.cramdesk.com${studyPdfPath(locale)}` },
   }
 }
 

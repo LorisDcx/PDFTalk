@@ -1,11 +1,26 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Check, Download, Loader2, RotateCcw, UploadCloud } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, Check, Download, Loader2, RotateCcw, UploadCloud } from 'lucide-react'
 import type { PdfTool } from '@/lib/pdf-tools'
 import { PdfPageGrid } from '@/components/pdf-page-grid'
 import { PdfFileQueue } from '@/components/pdf-file-queue'
 import { extraPdfErrors, extraToolkitCopy, type PdfToolLocale } from '@/lib/pdf-tool-locales'
+import { savePendingDocument } from '@/lib/pending-document'
+import { useAuth } from '@/components/auth-provider'
+
+const studyAction: Record<PdfToolLocale, { title: string; detail: string; button: string; download: string; error: string }> = {
+  fr: { title: 'Et maintenant, révise ce PDF.', detail: 'Utilise le fichier que tu viens de créer pour préparer une synthèse, des cartes et un quiz. L’analyse nécessite un compte.', button: 'Réviser ce PDF', download: 'Télécharger le PDF', error: 'Impossible de préparer ce PDF pour la révision. Télécharge-le et ajoute-le depuis l’accueil.' },
+  en: { title: 'Now, study this PDF.', detail: 'Use the file you just created to prepare a summary, cards and a quiz. Analysis requires an account.', button: 'Study this PDF', download: 'Download PDF', error: 'Could not prepare this PDF for study. Download it and add it from the home page.' },
+  es: { title: 'Ahora, estudia este PDF.', detail: 'Usa el archivo que acabas de crear para preparar un resumen, tarjetas y un cuestionario. El análisis requiere una cuenta.', button: 'Estudiar este PDF', download: 'Descargar PDF', error: 'No se pudo preparar el PDF. Descárgalo y añádelo desde la página de inicio.' },
+  de: { title: 'Lerne jetzt mit diesem PDF.', detail: 'Nutze die eben erstellte Datei für eine Zusammenfassung, Lernkarten und ein Quiz. Für die Analyse brauchst du ein Konto.', button: 'Mit diesem PDF lernen', download: 'PDF herunterladen', error: 'Das PDF konnte nicht vorbereitet werden. Lade es herunter und füge es auf der Startseite hinzu.' },
+  it: { title: 'Ora studia questo PDF.', detail: 'Usa il file appena creato per ottenere un riassunto, schede e un quiz. Per l’analisi serve un account.', button: 'Studia questo PDF', download: 'Scarica il PDF', error: 'Impossibile preparare il PDF. Scaricalo e aggiungilo dalla pagina iniziale.' },
+  pt: { title: 'Agora, estuda este PDF.', detail: 'Usa o ficheiro que acabaste de criar para preparar um resumo, cartões e um quiz. A análise requer uma conta.', button: 'Estudar este PDF', download: 'Descarregar PDF', error: 'Não foi possível preparar o PDF. Descarrega-o e adiciona-o na página inicial.' },
+  zh: { title: '接下来，用这份 PDF 复习。', detail: '使用刚生成的文件制作摘要、卡片和测验。分析需要注册账户。', button: '复习这份 PDF', download: '下载 PDF', error: '无法将此 PDF 加入复习。请下载后从首页重新添加。' },
+  ja: { title: '次は、このPDFで学習しましょう。', detail: '作成したファイルから要約、カード、クイズを準備できます。分析にはアカウントが必要です。', button: 'このPDFで学ぶ', download: 'PDFをダウンロード', error: '学習用の準備ができませんでした。ダウンロードしてトップページから追加してください。' },
+  ar: { title: 'والآن، ذاكر هذا الملف.', detail: 'استخدم الملف الذي أنشأته لتحضير ملخص وبطاقات واختبار. يتطلب التحليل حسابًا.', button: 'ذاكر هذا الملف', download: 'تنزيل ملف PDF', error: 'تعذر تجهيز الملف للمذاكرة. نزّله ثم أضفه من الصفحة الرئيسية.' },
+}
 
 function localizeError(message: string, locale: PdfToolLocale) {
   if (locale === 'fr') return message
@@ -62,7 +77,7 @@ const copy = {
       ['metadata', 'Métadonnées', 'Effacer les champs PDF standards.'],
       ['images', 'Images en PDF', 'Assembler des JPG et PNG dans un PDF A4.'],
     ] as const,
-    title: 'Choisis une action', intro: 'Un seul outil à la fois. Tes fichiers restent sur cet appareil.', add: 'Ajouter des fichiers', drop: 'Choisis tes fichiers', selected: 'Fichiers sélectionnés', pageCount: 'pages détectées', checking: 'Vérification du fichier…', unit: 'Mo', pages: 'Pages à garder', order: 'Ordre des pages', rotatePages: 'Pages à tourner (vide = toutes)', examples: 'Exemple : 1-3, 5', orderHelp: 'Indique le nouvel ordre. Les pages absentes seront retirées.', watermark: 'Texte du filigrane', watermarkPlaceholder: 'COPIE DE TRAVAIL', angle: 'Rotation', start: 'Créer le PDF', working: 'Traitement en cours…', ready: 'Ton PDF est prêt et a été téléchargé.', reset: 'Recommencer', remove: 'Retirer', up: 'Monter', down: 'Descendre', privacy: 'Traitement local, sans compte, sans quota et sans envoi de fichier.', metadataNote: 'Seuls les champs PDF standards sont retirés. Cela ne masque pas le texte ni les données visibles dans les pages.', limits: 'PDF de 40 Mo maximum par fichier ; JPG/PNG de 20 Mo maximum. Les PDF protégés par mot de passe ne sont pas pris en charge.', failure: 'Le traitement a échoué. Vérifie le fichier et réessaie.', available: 'outils disponibles', choose: 'Ajoute un fichier pour commencer.', output: 'Le fichier sera téléchargé automatiquement.',
+    title: 'Choisis une action', intro: 'Un seul outil à la fois. Tes fichiers restent sur cet appareil.', add: 'Ajouter des fichiers', drop: 'Choisis tes fichiers', selected: 'Fichiers sélectionnés', pageCount: 'pages détectées', checking: 'Vérification du fichier…', unit: 'Mo', pages: 'Pages à garder', order: 'Ordre des pages', rotatePages: 'Pages à tourner (vide = toutes)', examples: 'Exemple : 1-3, 5', orderHelp: 'Indique le nouvel ordre. Les pages absentes seront retirées.', watermark: 'Texte du filigrane', watermarkPlaceholder: 'COPIE DE TRAVAIL', angle: 'Rotation', start: 'Créer le PDF', working: 'Traitement en cours…', ready: 'Ton PDF est prêt.', reset: 'Recommencer', remove: 'Retirer', up: 'Monter', down: 'Descendre', privacy: 'Traitement local, sans compte, sans quota et sans envoi de fichier.', metadataNote: 'Seuls les champs PDF standards sont retirés. Cela ne masque pas le texte ni les données visibles dans les pages.', limits: 'PDF de 40 Mo maximum par fichier ; JPG/PNG de 20 Mo maximum. Les PDF protégés par mot de passe ne sont pas pris en charge.', failure: 'Le traitement a échoué. Vérifie le fichier et réessaie.', available: 'outils disponibles', choose: 'Ajoute un fichier pour commencer.', output: 'Crée le PDF, puis télécharge-le.',
   },
   en: {
     tools: [
@@ -75,11 +90,13 @@ const copy = {
       ['metadata', 'Metadata', 'Clear standard PDF metadata fields.'],
       ['images', 'Images to PDF', 'Combine JPG and PNG images into an A4 PDF.'],
     ] as const,
-    title: 'Choose a task', intro: 'One tool at a time. Your files stay on this device.', add: 'Add files', drop: 'Choose files', selected: 'Selected files', pageCount: 'pages detected', checking: 'Checking file…', unit: 'MB', pages: 'Pages to keep', order: 'New page order', rotatePages: 'Pages to rotate (blank = all)', examples: 'Example: 1-3, 5', orderHelp: 'Enter the new order. Omitted pages will be removed.', watermark: 'Watermark text', watermarkPlaceholder: 'DRAFT COPY', angle: 'Rotation', start: 'Create PDF', working: 'Processing…', ready: 'Your PDF is ready and has been downloaded.', reset: 'Start over', remove: 'Remove', up: 'Move up', down: 'Move down', privacy: 'Processed locally, no account, no quota and no file upload.', metadataNote: 'Only standard PDF fields are cleared. Text or information visible on the pages is not hidden.', limits: 'Maximum 40 MB per PDF or 20 MB per JPG/PNG. Password-protected PDFs are not supported.', failure: 'Processing failed. Check the file and try again.', available: 'available tools', choose: 'Add a file to get started.', output: 'The file will download automatically.',
+    title: 'Choose a task', intro: 'One tool at a time. Your files stay on this device.', add: 'Add files', drop: 'Choose files', selected: 'Selected files', pageCount: 'pages detected', checking: 'Checking file…', unit: 'MB', pages: 'Pages to keep', orderHelp: 'Enter the new order. Omitted pages will be removed.', rotatePages: 'Pages to rotate (blank = all)', examples: 'Example: 1-3, 5', watermark: 'Watermark text', watermarkPlaceholder: 'DRAFT COPY', angle: 'Rotation', start: 'Create PDF', working: 'Processing…', ready: 'Your PDF is ready.', reset: 'Start over', remove: 'Remove', up: 'Move up', down: 'Move down', privacy: 'Processed locally, no account, no quota and no file upload.', metadataNote: 'Only standard PDF fields are cleared. Text or information visible on the pages is not hidden.', limits: 'Maximum 40 MB per PDF or 20 MB per JPG/PNG. Password-protected PDFs are not supported.', failure: 'Processing failed. Check the file and try again.', available: 'available tools', choose: 'Add a file to get started.', output: 'Create the PDF, then download it.',
   },
 }
 
 export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = false }: { locale?: PdfToolLocale; initialTool?: PdfTool; focused?: boolean }) {
+  const router = useRouter()
+  const { user } = useAuth()
   const c = locale === 'fr' || locale === 'en' ? copy[locale] : extraToolkitCopy[locale]
   const extra = locale === 'fr' || locale === 'en' ? null : extraToolkitCopy[locale]
   const [tool, setTool] = useState<PdfTool>(initialTool)
@@ -94,10 +111,16 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [outputFile, setOutputFile] = useState<File | null>(null)
+  const [download, setDownload] = useState<{ url: string; name: string } | null>(null)
+  const [handoffBusy, setHandoffBusy] = useState(false)
+  const [handoffError, setHandoffError] = useState('')
   const input = useRef<HTMLInputElement>(null)
   const validationId = useRef(0)
   const multi = tool === 'merge' || tool === 'images'
   const label = c.tools.find(item => item[0] === tool)?.[1]
+
+  useEffect(() => () => { if (download) URL.revokeObjectURL(download.url) }, [download])
 
   useEffect(() => {
     if (focused) return
@@ -193,6 +216,9 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
   async function process() {
     setError('')
     setSuccess(false)
+    setOutputFile(null)
+    setDownload(null)
+    setHandoffError('')
     setBusy(true)
     try {
       const editPages = tool === 'extract' || tool === 'organize' || tool === 'rotate'
@@ -201,24 +227,41 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
         ? pageOrder.filter(page => selectedPages.includes(page))
         : [...selectedPages].sort((a, b) => a - b)
       const pages = editPages ? orderedSelection.map(page => page + 1).join(',') : undefined
-      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+      await new Promise<void>(resolve => window.setTimeout(resolve, 0))
       const { runPdfTool } = await import('@/lib/pdf-tools')
       const bytes = await runPdfTool(tool, files, { pages, angle, text: watermark })
       const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
       const base = files[0]?.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9À-ÿ_-]+/g, '-') || 'document'
-      anchor.download = `${base}-${tool}.pdf`
-      document.body.append(anchor)
-      anchor.click()
-      anchor.remove()
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      const name = `${base}-${tool}.pdf`
+      setDownload({ url, name })
+      if (tool !== 'images' && blob.size <= 20 * 1024 * 1024) {
+        setOutputFile(new File([blob], name, { type: 'application/pdf' }))
+      }
       setSuccess(true)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message === extra?.selectPage ? cause.message : localizeError(cause.message, locale) : c.failure)
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function studyOutput() {
+    if (!outputFile || handoffBusy) return
+    setHandoffBusy(true)
+    setHandoffError('')
+    try {
+      await savePendingDocument(outputFile)
+      sessionStorage.setItem('pendingDocument', JSON.stringify({ name: outputFile.name, size: outputFile.size, type: outputFile.type, lastModified: outputFile.lastModified }))
+      if (user) {
+        sessionStorage.setItem('processPendingDocument', 'true')
+        router.push('/dashboard')
+      } else {
+        router.push('/signup?demo=true')
+      }
+    } catch {
+      setHandoffError(studyAction[locale].error)
+      setHandoffBusy(false)
     }
   }
 
@@ -242,6 +285,8 @@ export function PdfToolkit({ locale = 'fr', initialTool = 'merge', focused = fal
           {files.length === 1 && pageCount !== null && !multi && <PdfPageGrid key={`${files[0].name}-${files[0].size}-${files[0].lastModified}`} file={files[0]} pageCount={pageCount} order={pageOrder} selected={selectedPages} tool={tool} angle={angle} locale={locale} onToggle={togglePage} onMove={movePage} onSelectAll={() => { setSelectedPages(Array.from({ length: pageCount }, (_, index) => index)); setSuccess(false) }} onSelectNone={() => { setSelectedPages([]); setSuccess(false) }} onApplyPages={pages => { setSelectedPages(pages); if (tool === 'organize') setPageOrder([...pages, ...Array.from({ length: pageCount }, (_, index) => index).filter(index => !pages.includes(index))]); setSuccess(false) }} />}
           {error && <p role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
           {success && <p role="status" className="mt-6 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"><Check className="size-4" />{c.ready}</p>}
+          {success && download && <a href={download.url} download={download.name} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--cd-brand)] px-5 text-sm font-bold text-white hover:bg-[var(--cd-brand-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]"><Download className="size-4" aria-hidden="true" />{studyAction[locale].download}</a>}
+          {success && outputFile && <div className="mt-4 rounded-2xl border border-[var(--cd-line)] bg-[#fff7f1] p-5"><h3 className="font-editorial text-2xl text-[var(--cd-ink)]">{studyAction[locale].title}</h3><p className="mt-2 text-base leading-7 text-[var(--cd-muted)]">{studyAction[locale].detail}</p><button type="button" onClick={() => void studyOutput()} disabled={handoffBusy} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--cd-brand)] bg-white px-5 text-sm font-bold text-[var(--cd-brand)] hover:bg-[#fff2ea] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)] disabled:opacity-50">{handoffBusy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <ArrowRight className="size-4" aria-hidden="true" />}{studyAction[locale].button}</button>{handoffError && <p role="alert" className="mt-3 text-sm text-red-800">{handoffError}</p>}</div>}
           <div className="mt-7 flex flex-wrap items-center gap-4"><button type="button" onClick={() => void process()} disabled={busy || validating || files.length === 0 || (tool === 'merge' && files.length < 2) || ((tool === 'extract' || tool === 'organize' || tool === 'rotate') && selectedPages.length === 0)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b84432] px-7 text-sm font-bold text-white hover:bg-[#963326] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b84432] disabled:cursor-not-allowed disabled:opacity-50">{busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}{busy ? c.working : c.start}</button>{files.length > 0 && <button type="button" onClick={() => { validationId.current += 1; setValidating(false); setFiles([]); setPageCount(null); setSelectedPages([]); setPageOrder([]); setError(''); setSuccess(false) }} className="inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-[#745d56]"><RotateCcw className="size-4" />{c.reset}</button>}</div>
           <p className="mt-4 text-sm leading-6 text-[#807374]">{files.length ? c.output : c.choose}</p>
         </div>

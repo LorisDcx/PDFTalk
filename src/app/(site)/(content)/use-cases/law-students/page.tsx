@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: 'Law study: summaries, briefs, and quizzes from PDFs | Cramdesk',
     description:
       'Create summaries, briefs, and quizzes from your law PDFs. Built for law students.',
-    url: 'https://cramdesk.com/use-cases/law-students',
+    url: 'https://www.cramdesk.com/use-cases/law-students',
   },
 }
 
@@ -63,12 +63,12 @@ export default function LawStudentsUseCasePage() {
       <WebPageJsonLd
         title="Law study: summaries, briefs, and quizzes"
         description="Generate law summaries, briefs, and quizzes from your PDFs."
-        url="https://cramdesk.com/use-cases/law-students"
+        url="https://www.cramdesk.com/use-cases/law-students"
       />
       <HowToJsonLd
         name="Create law briefs and quizzes from a PDF"
         description="Turn a law course PDF into structured briefs and MCQ quizzes."
-        url="https://cramdesk.com/use-cases/law-students#how-to"
+        url="https://www.cramdesk.com/use-cases/law-students#how-to"
         steps={[
           { name: 'Upload your PDF', text: 'Drop your law course or case PDF or click to upload it.' },
           { name: 'Generate', text: 'Cramdesk AI extracts rules, holdings, and builds briefs plus MCQs.' },

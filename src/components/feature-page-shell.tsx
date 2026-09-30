@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { HtmlLanguage, LocalePreference } from '@/components/locale-preference'
+import { blogIndexPath } from '@/lib/blog-content'
 
 type Icon = ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 type Action = { label: string; href: string }
@@ -18,9 +19,11 @@ export function FeaturePageShell({ children, locale = 'fr', syncLocale = true }:
         <Link href={english ? '/en' : '/'} className="font-editorial text-2xl text-[#3d2b3b]">CramDesk<span className="text-[#d05a39]">.</span></Link>
         <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label={english ? 'Footer navigation' : 'Navigation de pied de page'}>
           <Link href={english ? '/en' : '/'} className="hover:text-[#b84432]">{english ? 'Home' : 'Accueil'}</Link>
+          <Link href={blogIndexPath(locale)} className="hover:text-[#b84432]">{english ? 'Study guides' : 'Guides de révision'}</Link>
           <Link href="/privacy" className="hover:text-[#b84432]">{english ? 'Privacy' : 'Confidentialité'}</Link>
           <Link href="/terms" className="hover:text-[#b84432]">{english ? 'Terms' : 'Conditions'}</Link>
           <Link href="/contact" className="hover:text-[#b84432]">Contact</Link>
+          <a href="https://www.3h36agency.fr/realisations/cramdesk" className="hover:text-[#b84432]">3h36 Agency</a>
         </nav>
         <p>© {new Date().getFullYear()} CramDesk</p>
       </div>
