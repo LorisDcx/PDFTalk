@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
@@ -19,15 +19,17 @@ export default function BillingPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { t, language } = useLanguage()
+  const handledRedirect = useRef(false)
 
   // Handle success/canceled from Stripe redirect
   useEffect(() => {
+    if (handledRedirect.current) return
     const success = searchParams.get('success')
     const canceled = searchParams.get('canceled')
     
     if (success === 'true') {
-      // Refresh profile to get updated subscription data
-      refreshProfile()
+      handledRedirect.current = true
+      void refreshProfile().catch(error => console.error('Billing profile refresh failed:', error))
       toast({
         title: t('paymentSuccess'),
         description: t('paymentSuccessDesc'),
@@ -35,6 +37,7 @@ export default function BillingPage() {
       // Clean URL
       router.replace('/billing')
     } else if (canceled === 'true') {
+      handledRedirect.current = true
       toast({
         title: t('paymentCanceled'),
         description: t('paymentCanceledDesc'),
@@ -63,7 +66,7 @@ export default function BillingPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session')
+        throw new Error(data.code === 'billing_unavailable' ? t('billingUnavailable') : data.error || t('unexpectedError'))
       }
 
       // Check if plan was switched (no redirect needed)

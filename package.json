@@ -12,7 +12,8 @@
     "test:document-sources": "node --experimental-strip-types scripts/test-document-sources.mjs",
     "test:study-flow": "node --experimental-strip-types scripts/test-study-flow.mjs",
     "test:chat-tutor": "node --experimental-strip-types scripts/test-chat-tutor.mjs",
-    "test:study-content": "node --experimental-strip-types scripts/test-study-content.mjs"
+    "test:study-content": "node --experimental-strip-types scripts/test-study-content.mjs",
+    "test:billing-prices": "node --experimental-strip-types scripts/test-billing-prices.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createCheckoutSession, createStripeCustomer, stripe } from '@/lib/stripe'
 import { PLANS, PlanId } from '@/lib/plans'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { matchesPublishedMonthlyPrice } from '@/lib/billing-price'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +26,14 @@ export async function POST(request: NextRequest) {
     const plan = PLANS[planId]
     
     if (!plan.stripePriceId) {
-      return NextResponse.json({ error: 'Plan not configured' }, { status: 400 })
+      return NextResponse.json({ error: 'Plan temporarily unavailable', code: 'billing_unavailable' }, { status: 503 })
+    }
+
+    // A stale or wrong Stripe price must never charge a different amount than the one shown.
+    const stripePrice = await stripe.prices.retrieve(plan.stripePriceId)
+    if (!matchesPublishedMonthlyPrice(stripePrice, plan.price)) {
+      console.error(`Stripe price does not match the published ${planId} plan`)
+      return NextResponse.json({ error: 'Plan temporarily unavailable', code: 'billing_unavailable' }, { status: 503 })
     }
 
     // Get user profile
