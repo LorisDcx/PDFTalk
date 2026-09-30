@@ -98,8 +98,25 @@ export function FreeFlashcards({ locale, deckId, initialCards, studyFirst = fals
         const stored = localStorage.getItem(deckStorageKey)
         if (stored) {
           const parsed: unknown = JSON.parse(stored)
-          if (validCards(parsed)) setCards(parsed.map(item => ({ id: item.id || crypto.randomUUID(), question: item.question, answer: item.answer })))
-          else setStorageError(true)
+          if (validCards(parsed)) {
+            const saved = parsed.map(item => ({ id: item.id || crypto.randomUUID(), question: item.question, answer: item.answer }))
+            const migrationKey = `${deckStorageKey}-starter-v2`
+            if (deckId && initialCards && !localStorage.getItem(migrationKey)) {
+              // The first six starter cards were already stored in v1. Add only
+              // the new cards once, leaving edited or deleted cards untouched.
+              if (saved.some(card => card.id.startsWith(`${deckId}-`))) {
+                const existingIds = new Set(saved.map(card => card.id))
+                initialCards.slice(6).forEach(([question, answer], offset) => {
+                  const id = `${deckId}-${offset + 6}`
+                  if (!existingIds.has(id) && saved.length < maxCards) saved.push({ id, question, answer })
+                })
+              }
+              localStorage.setItem(migrationKey, '1')
+            }
+            setCards(saved)
+          } else setStorageError(true)
+        } else if (deckId) {
+          localStorage.setItem(`${deckStorageKey}-starter-v2`, '1')
         }
       } catch { setStorageError(true) }
       setHydrated(true)
@@ -187,8 +204,8 @@ export function FreeFlashcards({ locale, deckId, initialCards, studyFirst = fals
           <p className="mt-5 text-xs font-semibold uppercase tracking-[.15em] text-[#a76a57]">{t.remaining(queue.length)}</p>
           <div role="progressbar" aria-label={t.progress(known, cards.length)} aria-valuenow={known} aria-valuemin={0} aria-valuemax={cards.length} className="mt-3 h-2 overflow-hidden rounded-full bg-[#eed9cb]"><span className="block h-full rounded-full bg-[#c25334] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${cards.length ? known / cards.length * 100 : 0}%` }} /></div>
           <div key={`${currentCard.id}-${revealed ? 'answer' : 'question'}`} aria-live="polite" className="study-card-motion mt-4 flex min-h-[300px] flex-col justify-between rounded-[1.4rem] bg-white p-7 shadow-[0_20px_45px_-35px_rgba(120,49,35,.35)] sm:min-h-[330px] sm:p-9"><div><span className="text-xs font-bold uppercase tracking-[.18em] text-[#b46e56]">{revealed ? t.answer : t.question}</span><p className="font-editorial mt-6 break-words text-3xl leading-snug text-[#33252b] sm:text-4xl">{revealed ? currentCard.answer : currentCard.question}</p></div><span className="mt-7 block h-1.5 w-20 rounded-full bg-[#e97743]" /></div>
-          {revealed ? <div className="mt-5 grid grid-cols-2 gap-3"><button type="button" onClick={markAgain} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#dfb5a2] bg-white px-3 text-sm font-bold text-[#a84431] hover:bg-[#fff7f1]"><RotateCcw className="size-4" aria-hidden="true" />{t.again}</button><button type="button" onClick={markKnown} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b84432] px-3 text-sm font-bold text-white hover:bg-[#973326]"><Check className="size-4" aria-hidden="true" />{t.know}</button></div> : <button type="button" onClick={() => setRevealed(true)} className="mt-5 min-h-12 w-full rounded-full bg-[#b84432] px-5 text-sm font-bold text-white hover:bg-[#973326]">{t.show}</button>}
-        </> : <div className="mt-7 flex min-h-[365px] flex-col justify-center rounded-[1.4rem] border border-[#f0dfd5] bg-white p-7 text-center sm:p-10"><span className="font-editorial text-7xl text-[#c25334]">{session === 'complete' ? '✓' : '?'}</span><p className="font-editorial mt-5 text-3xl leading-tight text-[#33252b]">{session === 'complete' ? t.done : cards.length ? t.start : t.createFirst}</p>{session === 'complete' && <p className="mt-3 text-sm leading-6 text-[#7d6c69]">{t.doneHint}</p>}{cards.length > 0 && <button type="button" onClick={startReview} className="mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b84432] px-6 text-sm font-bold text-white hover:bg-[#973326]">{session === 'complete' ? t.restart : t.start}<ArrowRight className="size-4" aria-hidden="true" /></button>}</div>}
+          {revealed ? <div className="mt-5 grid grid-cols-2 gap-3"><button type="button" onClick={markAgain} className="cd-press inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#dfb5a2] bg-white px-3 text-sm font-bold text-[#a84431] hover:bg-[#fff7f1]"><RotateCcw className="size-4" aria-hidden="true" />{t.again}</button><button type="button" onClick={markKnown} className="cd-press inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b84432] px-3 text-sm font-bold text-white hover:bg-[#973326]"><Check className="size-4" aria-hidden="true" />{t.know}</button></div> : <button type="button" onClick={() => setRevealed(true)} className="cd-press mt-5 min-h-12 w-full rounded-full bg-[#b84432] px-5 text-sm font-bold text-white hover:bg-[#973326]">{t.show}</button>}
+        </> : <div className="mt-7 flex min-h-[365px] flex-col justify-center rounded-[1.4rem] border border-[#f0dfd5] bg-white p-7 text-center sm:p-10"><span className="font-editorial text-7xl text-[#c25334]">{session === 'complete' ? '✓' : '?'}</span><p className="font-editorial mt-5 text-3xl leading-tight text-[#33252b]">{session === 'complete' ? t.done : cards.length ? t.start : t.createFirst}</p>{session === 'complete' && <p className="mt-3 text-sm leading-6 text-[#7d6c69]">{t.doneHint}</p>}{cards.length > 0 && <button type="button" onClick={startReview} className="cd-press mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#b84432] px-6 text-sm font-bold text-white hover:bg-[#973326]">{session === 'complete' ? t.restart : t.start}<ArrowRight className="size-4" aria-hidden="true" /></button>}</div>}
         <div className="mt-7 rounded-[1.3rem] bg-[#33252b] p-6 text-white"><p className="font-editorial text-2xl">{t.ctaTitle}</p><p className="mt-2 text-sm leading-6 text-[#e5d5ce]">{t.ctaText}</p><Link href={locale === 'fr' ? '/#produit' : `/${locale}#studio`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#ffd9c5] underline-offset-4 hover:underline">{t.cta}<ArrowRight className="size-4" aria-hidden="true" /></Link></div>
       </div>
     </div>

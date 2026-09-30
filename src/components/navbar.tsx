@@ -14,21 +14,22 @@ import { useLanguage } from '@/lib/i18n'
 import { pdfHubPath } from '@/lib/pdf-tool-locales'
 import { studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
 import { freeFlashcardsPath } from '@/lib/curated-decks'
+import { medicalFlashcardsPath } from '@/lib/medical-decks'
 
 const navigationCopy: Record<StudyPdfLocale, {
-  free: string; pdf: string; explore: string; cards: string; freeCards: string; planner: string
+  free: string; pdf: string; explore: string; cards: string; freeCards: string; medicalCards: string; planner: string
   study: string; how: string; pricing: string; login: string; trial: string
   account: string; open: string; close: string; language: string; app: string
 }> = {
-  fr: { free: 'Outils gratuits', pdf: 'Outils PDF', explore: 'Explorer un PDF', cards: 'Flashcards', freeCards: 'Flashcards gratuites', planner: 'Planifier ses révisions', study: 'Réviser', how: 'Comment ça marche', pricing: 'Tarifs', login: 'Connexion', trial: 'Essayer gratuitement', account: 'Compte', open: 'Ouvrir le menu', close: 'Fermer le menu', language: 'Langue', app: 'Espace de travail' },
-  en: { free: 'Free tools', pdf: 'PDF tools', explore: 'Explore a PDF', cards: 'Flashcards', freeCards: 'Free flashcards', planner: 'Study planner', study: 'Study', how: 'How it works', pricing: 'Plans', login: 'Sign in', trial: 'Start free trial', account: 'Account', open: 'Open menu', close: 'Close menu', language: 'Language', app: 'Workspace' },
-  es: { free: 'Herramientas gratis', pdf: 'Herramientas PDF', explore: 'Explorar un PDF', cards: 'Tarjetas', freeCards: 'Tarjetas gratis', planner: 'Planificar el estudio', study: 'Estudiar', how: 'Cómo funciona', pricing: 'Precios', login: 'Iniciar sesión', trial: 'Probar gratis', account: 'Cuenta', open: 'Abrir menú', close: 'Cerrar menú', language: 'Idioma', app: 'Espacio de trabajo' },
-  de: { free: 'Kostenlose Tools', pdf: 'PDF-Werkzeuge', explore: 'PDF erkunden', cards: 'Karteikarten', freeCards: 'Kostenlose Karteikarten', planner: 'Lernen planen', study: 'Lernen', how: 'So funktioniert es', pricing: 'Preise', login: 'Anmelden', trial: 'Kostenlos testen', account: 'Konto', open: 'Menü öffnen', close: 'Menü schließen', language: 'Sprache', app: 'Arbeitsbereich' },
-  it: { free: 'Strumenti gratuiti', pdf: 'Strumenti PDF', explore: 'Esplora un PDF', cards: 'Flashcard', freeCards: 'Flashcard gratuite', planner: 'Pianifica lo studio', study: 'Studiare', how: 'Come funziona', pricing: 'Prezzi', login: 'Accedi', trial: 'Prova gratis', account: 'Account', open: 'Apri menu', close: 'Chiudi menu', language: 'Lingua', app: 'Area di lavoro' },
-  pt: { free: 'Ferramentas grátis', pdf: 'Ferramentas PDF', explore: 'Explorar um PDF', cards: 'Cartões', freeCards: 'Cartões gratuitos', planner: 'Planear revisões', study: 'Estudar', how: 'Como funciona', pricing: 'Preços', login: 'Entrar', trial: 'Experimentar grátis', account: 'Conta', open: 'Abrir menu', close: 'Fechar menu', language: 'Idioma', app: 'Área de trabalho' },
-  zh: { free: '免费工具', pdf: 'PDF 工具', explore: '探索 PDF', cards: '记忆卡片', freeCards: '免费记忆卡片', planner: '复习计划', study: '学习', how: '使用方法', pricing: '价格', login: '登录', trial: '免费试用', account: '账户', open: '打开菜单', close: '关闭菜单', language: '语言', app: '学习空间' },
-  ja: { free: '無料ツール', pdf: 'PDFツール', explore: 'PDFを調べる', cards: 'フラッシュカード', freeCards: '無料フラッシュカード', planner: '学習計画', study: '学習する', how: '使い方', pricing: '料金', login: 'ログイン', trial: '無料で試す', account: 'アカウント', open: 'メニューを開く', close: 'メニューを閉じる', language: '言語', app: '学習スペース' },
-  ar: { free: 'أدوات مجانية', pdf: 'أدوات PDF', explore: 'استكشف PDF', cards: 'بطاقات', freeCards: 'بطاقات مجانية', planner: 'خطط للمراجعة', study: 'المراجعة', how: 'كيف يعمل', pricing: 'الأسعار', login: 'تسجيل الدخول', trial: 'جرّب مجانًا', account: 'الحساب', open: 'فتح القائمة', close: 'إغلاق القائمة', language: 'اللغة', app: 'مساحة الدراسة' },
+  fr: { free: 'Outils gratuits', pdf: 'Outils PDF', explore: 'Explorer un PDF', cards: 'Flashcards', freeCards: 'Flashcards gratuites', medicalCards: 'Flashcards médecine', planner: 'Planifier ses révisions', study: 'Réviser', how: 'Comment ça marche', pricing: 'Tarifs', login: 'Connexion', trial: 'Essayer gratuitement', account: 'Compte', open: 'Ouvrir le menu', close: 'Fermer le menu', language: 'Langue', app: 'Espace de travail' },
+  en: { free: 'Free tools', pdf: 'PDF tools', explore: 'Explore a PDF', cards: 'Flashcards', freeCards: 'Free flashcards', medicalCards: 'Medical flashcards', planner: 'Study planner', study: 'Study', how: 'How it works', pricing: 'Plans', login: 'Sign in', trial: 'Start free trial', account: 'Account', open: 'Open menu', close: 'Close menu', language: 'Language', app: 'Workspace' },
+  es: { free: 'Herramientas gratis', pdf: 'Herramientas PDF', explore: 'Explorar un PDF', cards: 'Tarjetas', freeCards: 'Tarjetas gratis', medicalCards: 'Tarjetas de medicina', planner: 'Planificar el estudio', study: 'Estudiar', how: 'Cómo funciona', pricing: 'Precios', login: 'Iniciar sesión', trial: 'Probar gratis', account: 'Cuenta', open: 'Abrir menú', close: 'Cerrar menú', language: 'Idioma', app: 'Espacio de trabajo' },
+  de: { free: 'Kostenlose Tools', pdf: 'PDF-Werkzeuge', explore: 'PDF erkunden', cards: 'Karteikarten', freeCards: 'Kostenlose Karteikarten', medicalCards: 'Medizin-Karteikarten', planner: 'Lernen planen', study: 'Lernen', how: 'So funktioniert es', pricing: 'Preise', login: 'Anmelden', trial: 'Kostenlos testen', account: 'Konto', open: 'Menü öffnen', close: 'Menü schließen', language: 'Sprache', app: 'Arbeitsbereich' },
+  it: { free: 'Strumenti gratuiti', pdf: 'Strumenti PDF', explore: 'Esplora un PDF', cards: 'Flashcard', freeCards: 'Flashcard gratuite', medicalCards: 'Flashcard di medicina', planner: 'Pianifica lo studio', study: 'Studiare', how: 'Come funziona', pricing: 'Prezzi', login: 'Accedi', trial: 'Prova gratis', account: 'Account', open: 'Apri menu', close: 'Chiudi menu', language: 'Lingua', app: 'Area di lavoro' },
+  pt: { free: 'Ferramentas grátis', pdf: 'Ferramentas PDF', explore: 'Explorar um PDF', cards: 'Cartões', freeCards: 'Cartões gratuitos', medicalCards: 'Cartões de medicina', planner: 'Planear revisões', study: 'Estudar', how: 'Como funciona', pricing: 'Preços', login: 'Entrar', trial: 'Experimentar grátis', account: 'Conta', open: 'Abrir menu', close: 'Fechar menu', language: 'Idioma', app: 'Área de trabalho' },
+  zh: { free: '免费工具', pdf: 'PDF 工具', explore: '探索 PDF', cards: '记忆卡片', freeCards: '免费记忆卡片', medicalCards: '医学记忆卡片', planner: '复习计划', study: '学习', how: '使用方法', pricing: '价格', login: '登录', trial: '免费试用', account: '账户', open: '打开菜单', close: '关闭菜单', language: '语言', app: '学习空间' },
+  ja: { free: '無料ツール', pdf: 'PDFツール', explore: 'PDFを調べる', cards: 'フラッシュカード', freeCards: '無料フラッシュカード', medicalCards: '医学フラッシュカード', planner: '学習計画', study: '学習する', how: '使い方', pricing: '料金', login: 'ログイン', trial: '無料で試す', account: 'アカウント', open: 'メニューを開く', close: 'メニューを閉じる', language: '言語', app: '学習スペース' },
+  ar: { free: 'أدوات مجانية', pdf: 'أدوات PDF', explore: 'استكشف PDF', cards: 'بطاقات', freeCards: 'بطاقات مجانية', medicalCards: 'بطاقات الطب', planner: 'خطط للمراجعة', study: 'المراجعة', how: 'كيف يعمل', pricing: 'الأسعار', login: 'تسجيل الدخول', trial: 'جرّب مجانًا', account: 'الحساب', open: 'فتح القائمة', close: 'إغلاق القائمة', language: 'اللغة', app: 'مساحة الدراسة' },
 }
 
 export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {}) {
@@ -44,6 +45,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
     { href: toolsHref, label: c.pdf },
     { href: studyPdfPath(locale), label: c.explore },
     { href: freeFlashcardsPath(locale), label: c.freeCards },
+    { href: medicalFlashcardsPath(locale), label: c.medicalCards },
     ...(locale === 'fr' ? [{ href: '/planificateur-revisions', label: c.planner }] : []),
   ]
   const studioHref = `${home}${locale === 'fr' ? '#produit' : '#studio'}`

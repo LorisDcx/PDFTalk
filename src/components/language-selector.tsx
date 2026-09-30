@@ -13,6 +13,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { STUDY_PDF_LOCALES, studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
 import { pdfHubPath } from '@/lib/pdf-tool-locales'
 import { CURATED_DECK_IDS, curatedDeckPath, freeFlashcardsPath } from '@/lib/curated-decks'
+import { medicalFlashcardsPath } from '@/lib/medical-decks'
 
 export function LanguageSelector({ currentLocale, label }: { currentLocale?: StudyPdfLocale; label?: string } = {}) {
   const { language, setLanguage } = useLanguage()
@@ -37,6 +38,8 @@ export function LanguageSelector({ currentLocale, label }: { currentLocale?: Stu
       router.push(code === 'fr' ? '/' : `/${code}`)
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === freeFlashcardsPath(locale))) {
       router.push(freeFlashcardsPath(code))
+    } else if (STUDY_PDF_LOCALES.some(locale => pathname === medicalFlashcardsPath(locale))) {
+      router.push(medicalFlashcardsPath(code))
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === studyPdfPath(locale))) {
       router.push(studyPdfPath(code))
     } else if (STUDY_PDF_LOCALES.some(locale => pathname === pdfHubPath(locale))) {

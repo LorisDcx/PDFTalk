@@ -5,6 +5,7 @@ import { STUDY_PDF_LOCALES, studyPdfPath } from '@/lib/study-pdf-locales'
 import { PDF_EXTRA_LOCALES, pdfHubPath } from '@/lib/pdf-tool-locales'
 import { BLOG_IDS, blogAlternates, blogArticlePath, blogIndexPath } from '@/lib/blog-content'
 import { CURATED_DECK_IDS, curatedDeckAlternates, curatedDeckPath, freeFlashcardsAlternates, freeFlashcardsPath } from '@/lib/curated-decks'
+import { medicalFlashcardsAlternates, medicalFlashcardsPath } from '@/lib/medical-decks'
 
 const baseUrl = 'https://www.cramdesk.com'
 
@@ -15,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/planificateur-revisions', '/calculateur-moyenne',
     '/outils-pdf', '/en/pdf-tools', '/contact', '/privacy', '/terms',
     '/blog/how-to-turn-pdf-into-flashcards', '/compare/quizlet-alternative',
-    '/use-cases/medical-students', '/use-cases/language-learning', '/use-cases/law-students',
+    '/use-cases/language-learning', '/use-cases/law-students',
   ]
 
   const toolPaths = pdfToolPages.flatMap(page => [pdfToolPath(page, 'fr'), pdfToolPath(page, 'en')])
@@ -26,6 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ])
   const cardPaths = STUDY_PDF_LOCALES.flatMap(locale => [
     { url: `${baseUrl}${freeFlashcardsPath(locale)}`, alternates: { languages: Object.fromEntries(Object.entries(freeFlashcardsAlternates()).map(([language, path]) => [language, `${baseUrl}${path}`])) } },
+    { url: `${baseUrl}${medicalFlashcardsPath(locale)}`, alternates: { languages: Object.fromEntries(Object.entries(medicalFlashcardsAlternates()).map(([language, path]) => [language, `${baseUrl}${path}`])) } },
     ...CURATED_DECK_IDS.map(id => ({ url: `${baseUrl}${curatedDeckPath(locale, id)}`, alternates: { languages: Object.fromEntries(Object.entries(curatedDeckAlternates(id)).map(([language, path]) => [language, `${baseUrl}${path}`])) } })),
   ])
   return [...standardPaths.map(path => ({ url: `${baseUrl}${path === '/' ? '' : path}` })), ...blogPaths, ...cardPaths]

@@ -1,12 +1,17 @@
-import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
+import { STUDY_PDF_LOCALES, type StudyPdfLocale } from '@/lib/study-pdf-locales'
+import { curatedDeckExpansions } from '@/lib/curated-deck-expansions'
+import { MEDICAL_DECK_IDS, medicalDecks } from '@/lib/medical-decks'
 
-export const CURATED_DECK_IDS = ['cell-biology', 'chemistry', 'derivatives', 'thermodynamics', 'economics', 'algorithms'] as const
+export const BASE_DECK_IDS = ['cell-biology', 'chemistry', 'derivatives', 'thermodynamics', 'economics', 'algorithms'] as const
+export const SPECIALIZED_DECK_IDS = ['organic-chemistry', 'mechanics'] as const
+export const CURATED_DECK_IDS = [...BASE_DECK_IDS, ...SPECIALIZED_DECK_IDS, ...MEDICAL_DECK_IDS] as const
 export type CuratedDeckId = typeof CURATED_DECK_IDS[number]
+type BaseDeckId = typeof BASE_DECK_IDS[number]
 type Card = readonly [question: string, answer: string]
 type Deck = { title: string; description: string; cards: readonly Card[] }
 type LocaleContent = { title: string; intro: string; search: string; noResults: string; cards: string; start: string; deck: Record<CuratedDeckId, Deck> }
 
-export const curatedDeckCopy: Record<StudyPdfLocale, LocaleContent> = {
+const baseCuratedDeckCopy: Record<StudyPdfLocale, Omit<LocaleContent, 'deck'> & { deck: Record<BaseDeckId, Deck> }> = {
   fr: {
     title: 'Des flashcards prêtes à réviser', intro: 'Choisis une matière et commence sans compte. Ces jeux de départ sont rédigés par CramDesk ; adapte les cartes à ton cours avant un examen.', search: 'Rechercher une matière', noResults: 'Aucune matière ne correspond à ta recherche.', cards: 'cartes', start: 'Réviser ce jeu',
     deck: {
@@ -484,6 +489,27 @@ export const curatedDeckCopy: Record<StudyPdfLocale, LocaleContent> = {
       ] },
     },
   },
+}
+
+export const curatedDeckCopy: Record<StudyPdfLocale, LocaleContent> = Object.fromEntries(STUDY_PDF_LOCALES.map(locale => {
+  const base = baseCuratedDeckCopy[locale]
+  const expansion = curatedDeckExpansions[locale]
+  const extend = (id: BaseDeckId): Deck => ({ ...base.deck[id], cards: [...base.deck[id].cards, ...expansion.extra[id]] })
+  const deck: Record<BaseDeckId, Deck> = {
+    'cell-biology': extend('cell-biology'), chemistry: extend('chemistry'), derivatives: extend('derivatives'),
+    thermodynamics: extend('thermodynamics'), economics: extend('economics'), algorithms: extend('algorithms'),
+  }
+  return [locale, { ...base, deck: { ...deck, ...expansion.specialties, ...medicalDecks[locale] } }]
+})) as Record<StudyPdfLocale, LocaleContent>
+
+for (const locale of STUDY_PDF_LOCALES) {
+  for (const id of CURATED_DECK_IDS) {
+    const cards = curatedDeckCopy[locale].deck[id].cards
+    if (cards.length !== 20 || new Set(cards.map(([question]) => question)).size !== cards.length ||
+      cards.some(([question, answer]) => !question.trim() || !answer.trim() || question.length > 280 || answer.length > 600)) {
+      throw new Error(`Invalid curated deck: ${locale}/${id}`)
+    }
+  }
 }
 
 export function freeFlashcardsPath(locale: StudyPdfLocale) {

@@ -502,14 +502,32 @@ html {
 .study-card-motion.study-card-reveal { animation: study-card-reveal 220ms ease-out both; }
 .curated-hero-card { animation: curated-card-in 500ms ease-out both; }
 @keyframes curated-card-in { from { opacity: 0; } to { opacity: 1; } }
+.curated-grid-card { animation: curated-grid-enter 280ms cubic-bezier(.2,.7,.2,1) backwards; }
+@keyframes curated-grid-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+.cd-press { transition: transform 140ms ease, background-color 140ms ease; }
+.cd-press:active { transform: scale(.985); }
 .cd-lift { transition: transform 220ms cubic-bezier(.2,.7,.2,1), box-shadow 220ms ease; }
+main :where(a, button).rounded-full { transition-duration: 180ms; }
+main :where(a, button).rounded-full:active { transform: scale(.985); }
+header nav :is(a, button) { transition: color 180ms ease, background-color 180ms ease, transform 180ms ease; }
+header #main-mobile-menu { animation: cd-menu-enter 180ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes cd-menu-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+details[open] > :not(summary) { animation: cd-detail-enter 180ms ease-out both; }
+@keyframes cd-detail-enter { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (hover: hover) {
+  header nav :is(a, button):hover { transform: translateY(-1px); }
+}
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .cd-lift:hover, .cd-lift:focus-within { transform: translateY(-4px); box-shadow: 0 22px 38px -28px rgba(83, 41, 30, .35); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .study-card-motion, .study-card-motion.study-card-reveal, .curated-hero-card, .glow-orb { animation: none; }
-  .cd-lift { transition: none; }
+  .study-card-motion, .study-card-motion.study-card-reveal, .curated-hero-card, .curated-grid-card, .glow-orb, header #main-mobile-menu, details[open] > :not(summary) { animation: none; }
+  header nav :is(a, button) { transition: none; }
+  header nav :is(a, button):hover { transform: none; }
+  .cd-lift, .cd-press { transition: none; }
+  .cd-press:active { transform: none; }
+  main :where(a, button).rounded-full:active { transform: none; }
 }
 /* The document remains in the layout when its PDF is open. The width is
    persisted by the accessible splitter in the document workspace. */
