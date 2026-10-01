@@ -137,7 +137,7 @@ export default function HowToPdfFlashcardsPage() {
                 Try Cramdesk free
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/use-cases/medical-students" className="text-sm text-primary hover:underline">Med students</Link>
+              <Link href="/en/medical-flashcards" className="text-sm text-primary hover:underline">Med students</Link>
               <Link href="/use-cases/language-learning" className="text-sm text-primary hover:underline">Language learning</Link>
               <Link href="/use-cases/law-students" className="text-sm text-primary hover:underline">Law students</Link>
             </div>

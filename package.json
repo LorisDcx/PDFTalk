@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint src next.config.js",
     "db:check": "node scripts/check-database.mjs",
+    "audit:seo": "node scripts/audit-public-seo.mjs",
     "test:pdf-tools": "node scripts/test-pdf-tools.mjs",
     "test:document-sources": "node --experimental-strip-types scripts/test-document-sources.mjs",
     "test:study-flow": "node --experimental-strip-types scripts/test-study-flow.mjs",
