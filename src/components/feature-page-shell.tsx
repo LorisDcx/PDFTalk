@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { HtmlLanguage, LocalePreference } from '@/components/locale-preference'
 import { blogIndexPath } from '@/lib/blog-content'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 
 type Icon = ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 type Action = { label: string; href: string }
@@ -44,8 +45,8 @@ export function FeatureHero({
   note?: string
 }) {
   return (
-    <section className="relative px-5 pb-20 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:pt-24">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-52 -top-52 size-[650px] rounded-full bg-[#ffe9da] opacity-80 blur-[110px]" />
+    <section className="landing-hero px-5 pb-20 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:pt-24">
+      <LandingBackdrop />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_.95fr] lg:gap-16">
         <div>
           <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#ead8e6] bg-[#ffebe1] px-4 py-2 text-xs font-bold text-[#ae4731]">

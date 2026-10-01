@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, BookOpenText, CalendarDays, CheckCircle2, Fil
 import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd } from '@/components/json-ld'
 import { DemoUpload } from '@/components/demo-upload'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { LocalizedStudioPreview } from '@/components/localized-studio-preview'
 import { PublicSiteHeader } from '@/components/public-site-header'
 import { landingExperienceCopy } from '@/lib/landing-experience-locales'
@@ -55,7 +56,8 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
     <FAQJsonLd faqs={faq} />
     <PublicSiteHeader locale={locale} />
     <main lang={locale} dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
-      <section id="essayer" className="scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">
+      <section id="essayer" className="landing-hero scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">
+        <LandingBackdrop layout="centered" />
         <div className="mx-auto max-w-6xl text-center">
           <p className="mb-4 text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{content.eyebrow}</p>
           <h1 className={`${display} mx-auto max-w-4xl text-[clamp(2.65rem,6.7vw,6rem)] leading-[1.03] tracking-[-.05em] text-[var(--cd-ink)]`}>{copy.hero.lead} <span className="italic text-[var(--cd-brand)]">{copy.hero.accent}</span></h1>

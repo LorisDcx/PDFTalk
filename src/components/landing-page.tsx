@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { DemoUpload } from '@/components/demo-upload'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { LocalePreference } from '@/components/locale-preference'
 import { FAQJsonLd, OrganizationJsonLd, ProductJsonLd } from '@/components/json-ld'
 
@@ -125,7 +126,8 @@ export default function LandingPage() {
     <div className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
       <Navbar publicLocale="fr" />
       <main>
-        <section id="essayer" className="scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">
+        <section id="essayer" className="landing-hero scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">
+          <LandingBackdrop layout="centered" />
           <div className="mx-auto max-w-6xl text-center">
             <p className="mb-4 text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">CramDesk · ton atelier de révision</p>
             <h1 className="font-editorial mx-auto max-w-4xl text-[clamp(2.65rem,6.7vw,6rem)] leading-[1.03] tracking-[-.05em] text-[var(--cd-ink)]">Ton cours PDF, <span className="italic text-[var(--cd-brand)]">prêt à réviser.</span></h1>

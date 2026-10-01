@@ -4,6 +4,7 @@ import { EditorialFooter } from '@/components/editorial-footer'
 import { WebPageJsonLd } from '@/components/json-ld'
 import { LocalePreference } from '@/components/locale-preference'
 import { PublicSiteHeader } from '@/components/public-site-header'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { curatedDeckCopy, curatedDeckPath, freeFlashcardsPath } from '@/lib/curated-decks'
 import { MEDICAL_DECK_IDS, medicalFlashcardsPath } from '@/lib/medical-decks'
 import { medicalFlashcardsCopy } from '@/lib/medical-flashcards-copy'
@@ -18,7 +19,7 @@ export function MedicalFlashcardsLandingPage({ locale }: { locale: StudyPdfLocal
     <LocalePreference locale={locale} />
     <PublicSiteHeader locale={locale} />
     <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
-      <section className="px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20"><div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
+      <section className="landing-hero px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20"><LandingBackdrop /><div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
         <div>
         <Link href={freeFlashcardsPath(locale)} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--cd-brand)] underline-offset-4 hover:underline"><span aria-hidden="true">{locale === 'ar' ? '→' : '←'}</span>{c.back}</Link>
         <p className="mt-8 flex w-fit items-center gap-2 rounded-full border border-[var(--cd-line)] bg-white px-4 py-2 text-xs font-bold uppercase tracking-[.1em] text-[var(--cd-brand)]"><HeartPulse aria-hidden="true" className="size-4" />{c.eyebrow}</p>

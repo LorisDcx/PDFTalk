@@ -499,6 +499,31 @@ html {
 }
 
 .study-card-motion { animation: study-card-enter 220ms cubic-bezier(.2, .7, .2, 1) both; }
+/* Stationery sits in the spare hero margins. The drawing is finite, and the
+   content stays readable before CSS animation or JavaScript is available. */
+.landing-hero { position: relative; isolation: isolate; overflow: hidden; }
+.landing-backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.landing-margin-grid { position: absolute; top: 12%; bottom: 8%; width: min(18vw, 300px); opacity: .3; background-image: radial-gradient(var(--cd-line) .8px, transparent .8px); background-size: 22px 22px; mask-image: radial-gradient(ellipse at center, #000, transparent 72%); }
+.landing-margin-grid--left { left: 0; }
+.landing-margin-grid--right { right: 0; }
+.landing-side-note { display: none; position: absolute; width: clamp(150px, 15vw, 230px); color: var(--cd-brand); opacity: .3; }
+.landing-side-note--left { left: max(28px, calc((100% - 1550px) / 2)); top: 34%; transform: rotate(-2deg); }
+.landing-side-note--right { right: max(28px, calc((100% - 1550px) / 2)); top: 42%; transform: rotate(2deg); }
+@media (min-width: 1200px) {
+  .landing-backdrop--centered .landing-side-note { display: block; }
+}
+@media (min-width: 1600px) {
+  .landing-backdrop--split .landing-side-note { display: block; width: 150px; opacity: .22; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .landing-side-note { animation: landing-note-arrive 1100ms cubic-bezier(.2,.7,.2,1) both; }
+  .landing-side-note--right { animation-delay: 160ms; }
+  .landing-ink { stroke-dasharray: 1; animation: landing-ink-draw 1600ms ease-out 350ms backwards; }
+  .landing-ink--later { animation-delay: 650ms; }
+}
+@keyframes landing-note-arrive { from { opacity: 0; translate: 0 12px; } }
+@keyframes landing-ink-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (max-width: 767px) { .landing-margin-grid { display: none; } }
 .study-card-motion.study-card-reveal { animation: study-card-reveal 220ms ease-out both; }
 .curated-hero-card { animation: curated-card-in 500ms ease-out both; }
 @keyframes curated-card-in { from { opacity: 0; } to { opacity: 1; } }
