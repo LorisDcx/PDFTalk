@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -41,21 +41,79 @@ function navClass(active = false) {
   return `inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] ${active ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white hover:text-[var(--cd-brand)]'}`
 }
 
-function HeaderDropdown({ label, links, active, rtl }: { label: string; links: HeaderLink[]; active: boolean; rtl: boolean }) {
-  return <DropdownMenu modal={false} dir={rtl ? 'rtl' : 'ltr'}>
-    <DropdownMenuTrigger className={navClass(active)}>
+function HeaderDropdown({ label, links, active, open, onOpenChange }: { label: string; links: HeaderLink[]; active: boolean; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const panelId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const focusFirst = useRef(false)
+  const hoverOpened = useRef(false)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const cancelClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current) }
+  const scheduleClose = () => {
+    cancelClose()
+    if (hoverOpened.current) closeTimer.current = setTimeout(() => onOpenChange(false), 200)
+  }
+  useEffect(() => {
+    if (!open) return
+    if (focusFirst.current) {
+      contentRef.current?.querySelector<HTMLAnchorElement>('a')?.focus()
+      focusFirst.current = false
+    }
+    const closeOutside = (event: Event) => {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) onOpenChange(false)
+    }
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      onOpenChange(false)
+      if (rootRef.current?.contains(document.activeElement)) triggerRef.current?.focus()
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('focusin', closeOutside)
+    document.addEventListener('keydown', onEscape)
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current)
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('focusin', closeOutside)
+      document.removeEventListener('keydown', onEscape)
+    }
+  }, [open, onOpenChange])
+
+  return <div ref={rootRef} className="relative" onPointerLeave={scheduleClose}>
+    <button ref={triggerRef} type="button" className={navClass(active)} aria-expanded={open} aria-controls={panelId}
+      onPointerEnter={event => {
+        if (event.pointerType !== 'mouse') return
+        cancelClose()
+        if (!open) { hoverOpened.current = true; onOpenChange(true) }
+      }}
+      onClick={() => {
+        cancelClose()
+        // A click keeps a menu already revealed by hover available until dismissal.
+        if (!open || !hoverOpened.current) onOpenChange(!open)
+        hoverOpened.current = false
+      }}
+      onKeyDown={event => {
+        cancelClose()
+        hoverOpened.current = false
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          if (open) contentRef.current?.querySelector<HTMLAnchorElement>('a')?.focus()
+          else { focusFirst.current = true; onOpenChange(true) }
+        }
+      }}>
       {label}<ChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start" sideOffset={12} className="w-64 rounded-2xl border-[var(--cd-line)] bg-white p-2 shadow-[0_16px_40px_-20px_rgba(51,37,43,.2)]">
+    </button>
+    {open && <div id={panelId} ref={contentRef} className="absolute start-0 top-full z-50 w-64 pt-3" onPointerEnter={cancelClose}
+      onKeyDown={() => { cancelClose(); hoverOpened.current = false }}>
+      <div className="rounded-2xl border border-[var(--cd-line)] bg-white p-2 shadow-[0_16px_40px_-20px_rgba(51,37,43,.2)]">
       {links.map(link => {
         // Native fragment navigation also works when the current route is unchanged.
         const Destination = link.href.includes('#') ? 'a' : Link
-        return <DropdownMenuItem key={link.href} asChild>
-          <Destination href={link.href} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-medium">{link.label}</Destination>
-        </DropdownMenuItem>
+        return <Destination key={link.href} href={link.href} onClick={() => onOpenChange(false)} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-[var(--cd-ink)] hover:bg-[#fff0e6] hover:text-[var(--cd-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]">{link.label}</Destination>
       })}
-    </DropdownMenuContent>
-  </DropdownMenu>
+      </div>
+    </div>}
+  </div>
 }
 
 function MobileGroup({ label, links, onNavigate }: { label: string; links: HeaderLink[]; onNavigate: () => void }) {
@@ -77,6 +135,9 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   const pathname = usePathname()
   const { t, language } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const setStudyOpen = useCallback((open: boolean) => setOpenDropdown(current => open ? 'study' : current === 'study' ? null : current), [])
+  const setFreeOpen = useCallback((open: boolean) => setOpenDropdown(current => open ? 'free' : current === 'free' ? null : current), [])
   const headerRef = useRef<HTMLElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const locale = publicLocale ?? language
@@ -113,6 +174,13 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   const closeMenu = () => setMenuOpen(false)
 
   useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1280px)')
+    const closeHiddenDropdown = () => { if (!desktop.matches) setOpenDropdown(null) }
+    desktop.addEventListener('change', closeHiddenDropdown)
+    return () => desktop.removeEventListener('change', closeHiddenDropdown)
+  }, [])
+
+  useEffect(() => {
     if (!menuOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -147,10 +215,10 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
 
       <nav className="hidden items-center justify-center gap-1 xl:flex" aria-label={user ? c.app : c.study}>
         {user ? appLinks.map(link => <Link key={link.href} href={link.href} aria-current={activePath(link.href) ? 'page' : undefined} className={navClass(activePath(link.href))}>{link.label}</Link>) : <>
-          <HeaderDropdown label={c.study} links={studyLinks} active={studyActive} rtl={rtl} />
+          <HeaderDropdown label={c.study} links={studyLinks} active={studyActive} open={openDropdown === 'study'} onOpenChange={setStudyOpen} />
           <Link href={cardsHref} aria-current={pathname === cardsHref ? 'page' : undefined} className={navClass(cardsActive)}>{c.cards}</Link>
         </>}
-        <HeaderDropdown label={c.free} links={freeLinks} active={freeActive} rtl={rtl} />
+        <HeaderDropdown label={c.free} links={freeLinks} active={freeActive} open={openDropdown === 'free'} onOpenChange={setFreeOpen} />
       </nav>
 
       <div className="ms-auto flex shrink-0 items-center justify-end gap-2 xl:ms-0">

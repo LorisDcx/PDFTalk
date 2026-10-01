@@ -1,9 +1,8 @@
-// Decorative graph paper and study stationery, shared by every locale.
+// Soft graph paper in the center, leaving the study stationery margins clear.
 // CSS reveals the grid once on arrival; reduced motion keeps it static.
 export function LandingBackdrop({ layout = 'split', stationery = true }: { layout?: 'centered' | 'split'; stationery?: boolean }) {
   return <div aria-hidden="true" className={`landing-backdrop landing-backdrop--${layout}`}>
-    <div className="landing-margin-grid landing-margin-grid--left" />
-    <div className="landing-margin-grid landing-margin-grid--right" />
+    <div className="landing-center-grid" />
     {stationery && <>
     <svg className="landing-side-note landing-side-note--left" viewBox="0 0 240 340" fill="none" focusable="false">
       <g stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">

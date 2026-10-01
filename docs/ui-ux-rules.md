@@ -32,6 +32,8 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 - Une seule action d’inscription, libellé court (« Essayer »), sur une ligne. Le logo, la navigation et les actions ont des espaces distincts ; aucune compression des libellés pour faire entrer trop de liens.
 - Mobile : logo, action principale et menu. Les accès secondaires sont regroupés dans des sections dépliables. Le menu se ferme à la navigation, à Échap et lors du passage au desktop ; la langue conserve la page équivalente quand elle existe.
 - Le header reste visible pendant le défilement. Aucun conteneur parent ne doit créer un contexte de défilement qui neutralise son positionnement sticky.
+- Les menus de navigation s’ouvrent au survol de la souris, sans déplacer le focus. Garder le clic, le clavier et Échap ; laisser un bref délai de fermeture pour traverser l’espace entre bouton et menu. Un seul menu de navigation est ouvert à la fois.
+- La grille décorative du hero reste discrète et centrée, avec des bords fondus. Les illustrations dans les marges restent sur un fond dégagé.
 
 ## Accessibilité et contrôle qualité
 

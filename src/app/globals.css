@@ -503,21 +503,23 @@ html {
    content stays readable before CSS animation or JavaScript is available. */
 .landing-hero { position: relative; isolation: isolate; overflow: hidden; }
 .landing-backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.landing-margin-grid {
+.landing-center-grid {
   position: absolute;
-  top: -5%;
+  top: 0;
   bottom: 0;
-  width: min(56vw, 760px);
-  opacity: .8;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(62vw, 900px);
+  opacity: .3;
   background-image:
     linear-gradient(to right, var(--cd-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--cd-line) 1px, transparent 1px);
   background-size: 56px 56px;
-  filter: blur(.2px);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 8%, transparent 70%);
-  mask-image: radial-gradient(ellipse at 50% 40%, #000 8%, transparent 70%);
+  filter: blur(.45px);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 32%, #000 5%, transparent 66%);
+  mask-image: radial-gradient(ellipse at 50% 32%, #000 5%, transparent 66%);
 }
-.landing-margin-grid::after {
+.landing-center-grid::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -525,14 +527,12 @@ html {
     linear-gradient(to right, var(--cd-muted) 1px, transparent 1px),
     linear-gradient(to bottom, var(--cd-muted) 1px, transparent 1px);
   background-size: inherit;
-  opacity: .12;
+  opacity: .08;
   filter: blur(.6px);
   -webkit-mask-image: radial-gradient(ellipse at 50% 32%, #000, transparent 57%);
   mask-image: radial-gradient(ellipse at 50% 32%, #000, transparent 57%);
   transition: opacity 900ms ease;
 }
-.landing-margin-grid--left { left: -9%; }
-.landing-margin-grid--right { right: -9%; top: 12%; }
 .landing-side-note { display: none; position: absolute; width: clamp(150px, 15vw, 230px); color: var(--cd-brand); opacity: .3; }
 .landing-side-note--left { left: max(28px, calc((100% - 1550px) / 2)); top: 34%; transform: rotate(-2deg); }
 .landing-side-note--right { right: max(28px, calc((100% - 1550px) / 2)); top: 42%; transform: rotate(2deg); }
@@ -543,9 +543,8 @@ html {
   .landing-backdrop--split .landing-side-note { display: block; width: 150px; opacity: .22; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .landing-margin-grid { animation: landing-grid-arrive 2400ms ease-out both; }
-  .landing-margin-grid::after { animation: landing-grid-light 4800ms ease-in-out backwards; }
-  .landing-margin-grid--right::after { animation-direction: reverse; }
+  .landing-center-grid { animation: landing-grid-arrive 2400ms ease-out both; }
+  .landing-center-grid::after { animation: landing-grid-light 4800ms ease-in-out backwards; }
   .landing-side-note { animation: landing-note-arrive 1100ms cubic-bezier(.2,.7,.2,1) both; }
   .landing-side-note--right { animation-delay: 160ms; }
   .landing-ink { stroke-dasharray: 1; animation: landing-ink-draw 1600ms ease-out 350ms backwards; }
@@ -555,19 +554,14 @@ html {
 @keyframes landing-ink-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes landing-grid-arrive { from { opacity: 0; } }
 @keyframes landing-grid-light {
-  0%, 100% { opacity: .12; transform: translateY(0); }
-  45% { opacity: .32; transform: translateY(12px); }
-}
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .landing-hero:hover .landing-margin-grid::after { opacity: .22; }
+  0%, 100% { opacity: .08; transform: translateY(0); }
+  45% { opacity: .16; transform: translateY(8px); }
 }
 @media (max-width: 767px) {
-  .landing-margin-grid { width: 80vw; opacity: .4; background-size: 40px 40px; }
-  .landing-margin-grid--left { left: -42%; }
-  .landing-margin-grid--right { right: -42%; top: 6%; }
+  .landing-center-grid { width: 90vw; opacity: .18; background-size: 40px 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .landing-margin-grid::after { transition: none; }
+  .landing-center-grid::after { transition: none; }
 }
 .study-card-motion.study-card-reveal { animation: study-card-reveal 220ms ease-out both; }
 .curated-hero-card { animation: curated-card-in 500ms ease-out both; }
