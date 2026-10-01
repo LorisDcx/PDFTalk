@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { ArrowRight, FileStack } from 'lucide-react'
 import { PublicSiteHeader } from '@/components/public-site-header'
 import { LocalePreference } from '@/components/locale-preference'
@@ -44,7 +45,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
     <FAQJsonLd faqs={[{ question: c.faqOne, answer: c.faqAnswerOne }, { question: c.faqTwo, answer: c.faqAnswerTwo }]} />
     <PublicSiteHeader locale={locale} />
     <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
-      <section className="px-5 pb-16 pt-16 sm:px-8 sm:pb-20 sm:pt-24"><div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.2fr_.8fr]">
+      <section className="landing-hero px-5 pb-16 pt-16 sm:px-8 sm:pb-20 sm:pt-24"><LandingBackdrop stationery={false} /><div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.2fr_.8fr]">
         <div><p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{c.eyebrow}</p>
           <h1 className={`mt-5 max-w-3xl text-[clamp(3.25rem,6.5vw,6rem)] leading-[1.02] tracking-[-.05em] ${locale === 'ar' ? 'font-semibold' : 'font-editorial'}`}>{c.heading}</h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-[var(--cd-muted)]">{c.intro}</p>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { ArrowRight, BookOpenText, CheckCircle2 } from 'lucide-react'
 import { blogArticlePath, blogCopy, blogIndexPath, BLOG_IDS, type BlogArticleId } from '@/lib/blog-content'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
@@ -6,7 +7,7 @@ import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 export function BlogIndex({ locale }: { locale: StudyPdfLocale }) {
   const c = blogCopy[locale]
   return <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
-    <section className="border-b border-[var(--cd-line)] px-5 py-16 sm:px-8 lg:py-24"><div className="mx-auto max-w-6xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{c.eyebrow}</p><h1 className={`${locale === 'ar' ? 'font-semibold' : 'font-editorial'} mt-5 max-w-4xl text-5xl leading-[1.06] sm:text-6xl`}>{c.indexTitle}</h1><p className="mt-6 max-w-2xl text-base leading-8 text-[var(--cd-muted)]">{c.indexDescription}</p></div></section>
+    <section className="landing-hero border-b border-[var(--cd-line)] px-5 py-16 sm:px-8 lg:py-24"><LandingBackdrop stationery={false} /><div className="mx-auto max-w-6xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--cd-brand)]">{c.eyebrow}</p><h1 className={`${locale === 'ar' ? 'font-semibold' : 'font-editorial'} mt-5 max-w-4xl text-5xl leading-[1.06] sm:text-6xl`}>{c.indexTitle}</h1><p className="mt-6 max-w-2xl text-base leading-8 text-[var(--cd-muted)]">{c.indexDescription}</p></div></section>
     <section className="px-5 py-14 sm:px-8 lg:py-20"><div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">{BLOG_IDS.map(id => { const article = c.articles[id]; return <article key={id} className="flex flex-col rounded-3xl border border-[var(--cd-line)] bg-white p-7 sm:p-9"><span className="flex size-11 items-center justify-center rounded-2xl bg-[#ffe5d5] text-[var(--cd-brand)]"><BookOpenText className="size-5" /></span><h2 className={`${locale === 'ar' ? 'font-semibold' : 'font-editorial'} mt-8 text-3xl leading-tight`}>{article.title}</h2><p className="mt-4 flex-1 text-base leading-7 text-[var(--cd-muted)]">{article.description}</p><Link href={blogArticlePath(locale, id)} className="mt-7 inline-flex min-h-11 items-center gap-2 font-bold text-[var(--cd-brand)] underline-offset-4 hover:underline">{c.read}<ArrowRight className="size-4" /></Link></article> })}</div></section>
   </main>
 }

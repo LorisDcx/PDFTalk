@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, Layers3 } from 'lucide-react'
 import { FreeFlashcards } from '@/components/free-flashcards'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { curatedDeckCopy, freeFlashcardsPath, type CuratedDeckId } from '@/lib/curated-decks'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 
@@ -19,7 +20,7 @@ export function CuratedDeckPage({ locale, id }: { locale: StudyPdfLocale; id: Cu
   const c = curatedDeckCopy[locale]
   const deck = c.deck[id]
   return <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[#fffaf5] text-[var(--cd-ink)]">
-    <section className="px-5 pb-8 pt-8 sm:px-8 sm:pb-10 sm:pt-12"><div className="mx-auto max-w-4xl">
+    <section className="landing-hero px-5 pb-8 pt-8 sm:px-8 sm:pb-10 sm:pt-12"><LandingBackdrop stationery={false} /><div className="mx-auto max-w-4xl">
       <Link href={freeFlashcardsPath(locale)} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--cd-brand)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]"><ArrowLeft className={`size-4 ${locale === 'ar' ? 'rotate-180' : ''}`} aria-hidden="true" />{backLabel[locale]}</Link>
       <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[.14em] text-[var(--cd-brand)]"><span className="inline-flex items-center gap-2"><Layers3 className="size-4" aria-hidden="true" />CramDesk · Free</span><span>{deck.cards.length} {c.cards}</span></div>
       <h1 className="font-editorial mt-4 max-w-4xl break-words text-[clamp(2.25rem,5vw,4rem)] leading-[1.06] tracking-[-.04em]">{deck.title}</h1>

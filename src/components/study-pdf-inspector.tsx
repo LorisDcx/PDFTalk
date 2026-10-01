@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { LandingBackdrop } from '@/components/landing-backdrop'
 import { ArrowUpRight, Check, Download, FileSearch, Loader2, Search, UploadCloud } from 'lucide-react'
 import { LocalePreference } from '@/components/locale-preference'
 import { PublicSiteHeader } from '@/components/public-site-header'
@@ -129,7 +130,7 @@ export function StudyPdfInspector({ locale }: { locale: StudyPdfLocale }) {
     <PublicSiteHeader locale={locale} />
     <main lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-[var(--cd-paper)] text-[var(--cd-ink)]">
 
-    <section className="px-5 pb-8 pt-12 sm:px-8 sm:pt-16"><div className="mx-auto max-w-5xl"><p className="text-sm font-bold uppercase tracking-[.14em] text-[var(--cd-brand)]">{c.eyebrow}</p><h1 className="font-editorial mt-4 max-w-4xl text-[clamp(2.6rem,6vw,5.2rem)] leading-[1.06] tracking-[-.045em]">{c.heading}</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--cd-muted)]">{c.intro}</p></div></section>
+    <section className="landing-hero px-5 pb-8 pt-12 sm:px-8 sm:pt-16"><LandingBackdrop stationery={false} /><div className="mx-auto max-w-5xl"><p className="text-sm font-bold uppercase tracking-[.14em] text-[var(--cd-brand)]">{c.eyebrow}</p><h1 className="font-editorial mt-4 max-w-4xl text-[clamp(2.6rem,6vw,5.2rem)] leading-[1.06] tracking-[-.045em]">{c.heading}</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--cd-muted)]">{c.intro}</p></div></section>
 
     <section className="px-5 pb-14 sm:px-8"><div className="mx-auto max-w-5xl rounded-3xl border border-[var(--cd-line)] bg-[var(--cd-surface)] p-5 sm:p-8">
       <input ref={input} type="file" accept=".pdf,application/pdf" className="sr-only" aria-label={c.choose} onChange={event => void inspect(event.target.files?.[0])} />

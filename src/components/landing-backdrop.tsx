@@ -1,9 +1,10 @@
-// Decorative, language-neutral study stationery. Kept out of the reading and
-// focus order; motion finishes after the initial drawing sequence.
-export function LandingBackdrop({ layout = 'split' }: { layout?: 'centered' | 'split' }) {
+// Decorative graph paper and study stationery, shared by every locale.
+// CSS reveals the grid once on arrival; reduced motion keeps it static.
+export function LandingBackdrop({ layout = 'split', stationery = true }: { layout?: 'centered' | 'split'; stationery?: boolean }) {
   return <div aria-hidden="true" className={`landing-backdrop landing-backdrop--${layout}`}>
     <div className="landing-margin-grid landing-margin-grid--left" />
     <div className="landing-margin-grid landing-margin-grid--right" />
+    {stationery && <>
     <svg className="landing-side-note landing-side-note--left" viewBox="0 0 240 340" fill="none" focusable="false">
       <g stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
         <g transform="rotate(-8 112 130)">
@@ -32,5 +33,6 @@ export function LandingBackdrop({ layout = 'split' }: { layout?: 'centered' | 's
         <path d="M194 26v12m-6-6h12m-5 231 3-6 3 6 6 3-6 3-3 6-3-6-6-3 6-3ZM41 295h17" opacity=".55" />
       </g>
     </svg>
+    </>}
   </div>
 }
