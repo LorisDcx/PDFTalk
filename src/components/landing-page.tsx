@@ -123,7 +123,7 @@ export default function LandingPage() {
     <ProductJsonLd />
     <FAQJsonLd faqs={questions.map(([question, answer]) => ({ question, answer }))} />
     <LocalePreference locale="fr" />
-    <div className="min-h-screen overflow-hidden bg-[#fffaf5] text-[#33252b]">
+    <div className="min-h-screen overflow-x-clip bg-[#fffaf5] text-[#33252b]">
       <Navbar publicLocale="fr" />
       <main>
         <section id="essayer" className="landing-hero scroll-mt-20 border-b border-[var(--cd-line)] bg-[var(--cd-paper)] px-5 pb-12 pt-8 sm:px-8 sm:pb-20 sm:pt-16">

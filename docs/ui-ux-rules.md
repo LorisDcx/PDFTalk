@@ -25,6 +25,14 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 7. Les pages d'accueil localisées et leurs outils liés conservent la même hiérarchie, le même en-tête et la même action principale que la version française. Traduire les textes sans remplacer un parcours utilisable par un simple bouton d'inscription. Le sélecteur de langue doit ouvrir la page équivalente quand elle existe.
 8. Pour la révision, le document sert à créer les cartes et à lancer le quiz ; la bibliothèque `/flashcards` sert à retrouver et réviser les cartes enregistrées. Il n'y a qu'un seul lecteur de cartes et qu'un seul moteur de quiz. Les liens entre les deux espaces doivent garder le document sélectionné. La génération IA affiche son coût en pages ; un quiz issu des cartes existantes est annoncé comme gratuit.
 
+## En-tête de navigation
+
+- Public : trois entrées principales centrées — **Réviser**, **Flashcards**, **Outils gratuits**. Le menu Réviser contient le studio, les guides et les tarifs. Les flashcards ouvrent la bibliothèque ; le menu gratuit contient les outils PDF, l’exploration PDF et les utilitaires réellement disponibles dans la langue choisie.
+- Compte connecté : tableau de bord, documents et flashcards au centre, avec un accès permanent aux outils gratuits. Rédacteur, abonnement et paramètres sont accessibles depuis le compte.
+- Une seule action d’inscription, libellé court (« Essayer »), sur une ligne. Le logo, la navigation et les actions ont des espaces distincts ; aucune compression des libellés pour faire entrer trop de liens.
+- Mobile : logo, action principale et menu. Les accès secondaires sont regroupés dans des sections dépliables. Le menu se ferme à la navigation, à Échap et lors du passage au desktop ; la langue conserve la page équivalente quand elle existe.
+- Le header reste visible pendant le défilement. Aucun conteneur parent ne doit créer un contexte de défilement qui neutralise son positionnement sticky.
+
 ## Accessibilité et contrôle qualité
 
 - Navigation clavier complète, focus visible, intitulés explicites et ordre de lecture logique. Cible tactile d'au moins 44 px sur mobile ; aucune action fondée uniquement sur la couleur. Contraste de texte au niveau WCAG 2.2 AA et zoom navigateur préservé.

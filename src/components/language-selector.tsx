@@ -15,7 +15,7 @@ import { pdfHubPath } from '@/lib/pdf-tool-locales'
 import { CURATED_DECK_IDS, curatedDeckPath, freeFlashcardsPath } from '@/lib/curated-decks'
 import { medicalFlashcardsPath } from '@/lib/medical-decks'
 
-export function LanguageSelector({ currentLocale, label }: { currentLocale?: StudyPdfLocale; label?: string } = {}) {
+export function LanguageSelector({ currentLocale, label, onLocaleChange }: { currentLocale?: StudyPdfLocale; label?: string; onLocaleChange?: () => void } = {}) {
   const { language, setLanguage } = useLanguage()
   const pathname = usePathname()
   const router = useRouter()
@@ -29,6 +29,19 @@ export function LanguageSelector({ currentLocale, label }: { currentLocale?: Stu
 
   const changeLanguage = (code: typeof language) => {
     setLanguage(code)
+    onLocaleChange?.()
+    // Reuse the page's SEO alternates rather than downloading every translated
+    // article into the header bundle just to look up its slug.
+    const alternate = document.head.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${code}"], link[rel="alternate"][hreflang^="${code}-"]`)
+    if (alternate) {
+      const url = new URL(alternate.href, window.location.origin)
+      router.push(url.pathname)
+      return
+    }
+    if (STUDY_PDF_LOCALES.some(locale => pathname.startsWith(`${pdfHubPath(locale)}/`))) {
+      router.push(pdfHubPath(code))
+      return
+    }
     const deck = CURATED_DECK_IDS.find(id => STUDY_PDF_LOCALES.some(locale => pathname === curatedDeckPath(locale, id)))
     if (deck) {
       router.push(curatedDeckPath(code, deck))

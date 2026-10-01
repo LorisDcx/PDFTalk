@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -15,6 +15,8 @@ import { pdfHubPath } from '@/lib/pdf-tool-locales'
 import { studyPdfPath, type StudyPdfLocale } from '@/lib/study-pdf-locales'
 import { freeFlashcardsPath } from '@/lib/curated-decks'
 import { medicalFlashcardsPath } from '@/lib/medical-decks'
+import { blogIndexPath } from '@/lib/blog-content'
+import { headerLabels } from '@/lib/header-labels'
 
 const navigationCopy: Record<StudyPdfLocale, {
   free: string; pdf: string; explore: string; cards: string; freeCards: string; medicalCards: string; planner: string
@@ -32,91 +34,165 @@ const navigationCopy: Record<StudyPdfLocale, {
   ar: { free: 'أدوات مجانية', pdf: 'أدوات PDF', explore: 'استكشف PDF', cards: 'بطاقات', freeCards: 'بطاقات مجانية', medicalCards: 'بطاقات الطب', planner: 'خطط للمراجعة', study: 'المراجعة', how: 'كيف يعمل', pricing: 'الأسعار', login: 'تسجيل الدخول', trial: 'جرّب مجانًا', account: 'الحساب', open: 'فتح القائمة', close: 'إغلاق القائمة', language: 'اللغة', app: 'مساحة الدراسة' },
 }
 
+
+type HeaderLink = { href: string; label: string }
+
+function navClass(active = false) {
+  return `inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] ${active ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white hover:text-[var(--cd-brand)]'}`
+}
+
+function HeaderDropdown({ label, links, active, rtl }: { label: string; links: HeaderLink[]; active: boolean; rtl: boolean }) {
+  return <DropdownMenu modal={false} dir={rtl ? 'rtl' : 'ltr'}>
+    <DropdownMenuTrigger className={navClass(active)}>
+      {label}<ChevronDown className="size-3.5 opacity-60" aria-hidden="true" />
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start" sideOffset={12} className="w-64 rounded-2xl border-[var(--cd-line)] bg-white p-2 shadow-[0_16px_40px_-20px_rgba(51,37,43,.2)]">
+      {links.map(link => {
+        // Native fragment navigation also works when the current route is unchanged.
+        const Destination = link.href.includes('#') ? 'a' : Link
+        return <DropdownMenuItem key={link.href} asChild>
+          <Destination href={link.href} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-medium">{link.label}</Destination>
+        </DropdownMenuItem>
+      })}
+    </DropdownMenuContent>
+  </DropdownMenu>
+}
+
+function MobileGroup({ label, links, onNavigate }: { label: string; links: HeaderLink[]; onNavigate: () => void }) {
+  return <details className="group border-b border-[var(--cd-line)]">
+    <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-2 text-base font-semibold text-[var(--cd-ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]">
+      {label}<ChevronDown className="size-4 opacity-60 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
+    </summary>
+    <div className="grid gap-1 pb-3 ps-3">
+      {links.map(link => {
+        const Destination = link.href.includes('#') ? 'a' : Link
+        return <Destination key={link.href} href={link.href} onClick={onNavigate} className="flex min-h-11 items-center rounded-xl px-3 text-sm text-[var(--cd-muted)] hover:bg-white hover:text-[var(--cd-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]">{link.label}</Destination>
+      })}
+    </div>
+  </details>
+}
+
 export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {}) {
   const { user, profile, signOut, isLoading } = useAuth()
   const pathname = usePathname()
   const { t, language } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
-  const locale = (publicLocale ?? language) as StudyPdfLocale
+  const headerRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const locale = publicLocale ?? language
   const c = navigationCopy[locale]
+  const labels = headerLabels[locale]
+  const rtl = locale === 'ar'
   const home = locale === 'fr' ? '/' : `/${locale}`
   const toolsHref = pdfHubPath(locale)
-  const freeLinks = [
+  const cardsHref = freeFlashcardsPath(locale)
+  const medicalHref = medicalFlashcardsPath(locale)
+  const studyLinks: HeaderLink[] = [
+    { href: `${home}${locale === 'fr' ? '#produit' : '#studio'}`, label: labels.studio },
+    { href: blogIndexPath(locale), label: labels.guides },
+    { href: `${home}#pricing`, label: c.pricing },
+  ]
+  const freeLinks: HeaderLink[] = [
     { href: toolsHref, label: c.pdf },
     { href: studyPdfPath(locale), label: c.explore },
-    { href: freeFlashcardsPath(locale), label: c.freeCards },
-    { href: medicalFlashcardsPath(locale), label: c.medicalCards },
-    ...(locale === 'fr' ? [{ href: '/planificateur-revisions', label: c.planner }] : []),
-  ]
-  const studioHref = `${home}${locale === 'fr' ? '#produit' : '#studio'}`
-  const pricingHref = `${home}#pricing`
-  const publicCardsHref = freeFlashcardsPath(locale)
-  const mobileFreeLinks = user ? freeLinks : freeLinks.filter(link => link.href !== studyPdfPath(locale) && link.href !== publicCardsHref)
-  const publicLinks = [
-    { href: studioHref, label: c.study, active: pathname === home },
-    { href: studyPdfPath(locale), label: c.explore, active: pathname === studyPdfPath(locale) },
-    { href: publicCardsHref, label: c.cards, active: pathname === publicCardsHref },
-    { href: pricingHref, label: c.pricing, active: false },
+    ...(locale === 'fr' ? [
+      { href: '/planificateur-revisions', label: c.planner },
+      { href: '/calculateur-moyenne', label: labels.average },
+    ] : []),
   ]
   const appLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { href: '/documents', label: t('documents'), icon: FolderOpen },
     { href: '/flashcards', label: t('flashcards'), icon: GraduationCap },
-    { href: '/writer', label: t('writer'), icon: PenTool },
   ]
-  const activeAppLink = (href: string) => href === '/dashboard' ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
-  const freeActive = pathname === toolsHref || pathname.startsWith(`${toolsHref}/`)
+  const activePath = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const freeActive = freeLinks.some(link => activePath(link.href))
+  const studyActive = pathname === home || activePath(blogIndexPath(locale))
+  const cardsActive = activePath(cardsHref) || activePath(medicalHref)
   const initials = (profile?.name || user?.email || 'U').slice(0, 2).toUpperCase()
   const closeMenu = () => setMenuOpen(false)
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-[var(--cd-line)] bg-[var(--cd-paper)]/95 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-[4.75rem] max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:px-8">
-        <Link href={home} className="inline-flex shrink-0 items-center gap-2.5" aria-label="CramDesk — accueil">
-          <Image src="/flame-logo.png" width={44} height={44} alt="" className="size-11 rounded-xl" />
-          <span dir="ltr" className="font-editorial text-[1.65rem] leading-none tracking-[-.045em] text-[var(--cd-ink)]">CramDesk<span className="text-[var(--cd-brand)]">.</span></span>
-        </Link>
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (document.querySelector('[role="menu"][data-state="open"]')) return
+        setMenuOpen(false)
+        menuButtonRef.current?.focus()
+      }
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      // Radix menus live in a portal outside the header, including the language menu.
+      if (event.target instanceof Element && event.target.closest('[role="menu"], [role="dialog"]')) return
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) setMenuOpen(false)
+    }
+    const desktop = window.matchMedia('(min-width: 1280px)')
+    const onResize = () => { if (desktop.matches) setMenuOpen(false) }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    desktop.addEventListener('change', onResize)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+      desktop.removeEventListener('change', onResize)
+    }
+  }, [menuOpen])
 
-        {isLoading ? <span className="hidden h-10 w-72 animate-pulse rounded-xl bg-[#f1e9e3] xl:block" /> : (
-          <nav className="hidden items-center justify-center gap-1 xl:flex" aria-label={user ? c.app : c.study}>
-            {user ? appLinks.map(link => <Link key={link.href} href={link.href} aria-current={activeAppLink(link.href) ? 'page' : undefined} className={`inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold transition-colors ${activeAppLink(link.href) ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white hover:text-[var(--cd-brand)]'}`}>{link.label}</Link>) : publicLinks.map(link => <Link key={link.href} href={link.href} aria-current={link.active ? 'page' : undefined} className={`inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold transition-colors ${link.active ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white hover:text-[var(--cd-brand)]'}`}>{link.label}</Link>)}
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger className={`inline-flex min-h-11 items-center gap-1 rounded-xl px-3 text-sm font-semibold outline-none hover:bg-white hover:text-[var(--cd-brand)] focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] ${freeActive ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)]'}`}>{c.free}<ChevronDown className="size-4" /></DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={8} className="w-72 rounded-xl border-[var(--cd-line)] bg-white p-2"><DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-[.12em] text-[var(--cd-muted)]">{c.free}</DropdownMenuLabel>{freeLinks.map(link => <DropdownMenuItem key={link.href} asChild><Link href={link.href} className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium">{link.label}</Link></DropdownMenuItem>)}</DropdownMenuContent>
-            </DropdownMenu>
-          </nav>
-        )}
+  return <header ref={headerRef} dir={rtl ? 'rtl' : 'ltr'} className="sticky top-0 z-50 border-b border-[var(--cd-line)] bg-[var(--cd-paper)]/95 backdrop-blur-xl">
+    <div className="mx-auto flex min-h-[4.5rem] max-w-[1280px] items-center gap-3 px-4 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:gap-6 xl:px-8">
+      <Link href={home} onClick={closeMenu} className="inline-flex min-h-11 w-fit shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]" aria-label="CramDesk">
+        <Image src="/flame-logo.png" width={40} height={40} alt="" className="size-8 sm:size-10" />
+        <span dir="ltr" className="font-editorial whitespace-nowrap text-[1.4rem] leading-none tracking-[-.045em] text-[var(--cd-ink)] sm:text-[1.65rem]">CramDesk<span className="text-[var(--cd-brand)]">.</span></span>
+      </Link>
 
-        <div className="hidden items-center justify-end gap-2 xl:flex">
-          {!isLoading && <LanguageSelector currentLocale={publicLocale} label={c.language} />}
-          {!isLoading && user ? <>
-            {profile?.subscription_status !== 'active' && <TrialCountdown />}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild><button type="button" aria-label={c.account} className="rounded-full p-1 outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--cd-brand)]"><Avatar className="size-9 border border-[var(--cd-line)]"><AvatarFallback className="bg-[#fff0e6] text-xs font-bold text-[var(--cd-brand)]">{initials}</AvatarFallback></Avatar></button></DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60" align="end">
-                <DropdownMenuLabel className="font-normal"><p className="truncate text-sm font-bold">{profile?.name || c.account}</p><p className="truncate text-xs text-muted-foreground">{user.email}</p></DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link href="/billing"><CreditCard className="mr-2 size-4" />{t('billing')}</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link href="/settings"><Settings className="mr-2 size-4" />{t('settings')}</Link></DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => void signOut()} className="text-red-700"><LogOut className="mr-2 size-4" />{t('logout')}</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </> : !isLoading ? <>
-            <Link href="/login" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--cd-ink)] hover:text-[var(--cd-brand)]">{c.login}</Link>
-            <Link href="/signup" className="inline-flex min-h-11 items-center rounded-xl bg-[var(--cd-brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--cd-brand-hover)]">{c.trial}</Link>
-          </> : null}
-        </div>
+      <nav className="hidden items-center justify-center gap-1 xl:flex" aria-label={user ? c.app : c.study}>
+        {user ? appLinks.map(link => <Link key={link.href} href={link.href} aria-current={activePath(link.href) ? 'page' : undefined} className={navClass(activePath(link.href))}>{link.label}</Link>) : <>
+          <HeaderDropdown label={c.study} links={studyLinks} active={studyActive} rtl={rtl} />
+          <Link href={cardsHref} aria-current={pathname === cardsHref ? 'page' : undefined} className={navClass(cardsActive)}>{c.cards}</Link>
+        </>}
+        <HeaderDropdown label={c.free} links={freeLinks} active={freeActive} rtl={rtl} />
+      </nav>
 
-        <button type="button" aria-label={menuOpen ? c.close : c.open} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(value => !value)} className="inline-flex size-11 items-center justify-center rounded-xl border border-[var(--cd-line)] bg-white text-[var(--cd-ink)] xl:hidden">{menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
+      <div className="ms-auto flex shrink-0 items-center justify-end gap-2 xl:ms-0">
+        <div className="hidden xl:block"><LanguageSelector currentLocale={publicLocale} label={c.language} /></div>
+        {isLoading ? <span aria-hidden="true" className="h-11 w-20 animate-pulse rounded-full bg-[#f1e9e3] motion-reduce:animate-none" /> : user ? <>
+          {profile?.subscription_status !== 'active' && <div className="hidden xl:block [&>button]:min-h-11 [&>button]:whitespace-nowrap"><TrialCountdown /></div>}
+          <DropdownMenu dir={rtl ? 'rtl' : 'ltr'}>
+            <DropdownMenuTrigger asChild>
+              <button type="button" aria-label={c.account} className="inline-flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]">
+                <Avatar className="size-9 border border-[var(--cd-line)]"><AvatarFallback className="bg-[#fff0e6] text-xs font-bold text-[var(--cd-brand)]">{initials}</AvatarFallback></Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64 rounded-2xl border-[var(--cd-line)] p-2" align="end" sideOffset={12}>
+              <DropdownMenuLabel className="px-3 py-2 font-normal"><p className="truncate text-sm font-bold">{profile?.name || c.account}</p><p className="truncate text-xs text-muted-foreground">{user.email}</p></DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild><Link href="/writer" onClick={closeMenu} className="min-h-11 rounded-xl px-3"><PenTool className="me-3 size-4" aria-hidden="true" />{t('writer')}</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/billing" onClick={closeMenu} className="min-h-11 rounded-xl px-3"><CreditCard className="me-3 size-4" aria-hidden="true" />{t('billing')}</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/settings" onClick={closeMenu} className="min-h-11 rounded-xl px-3"><Settings className="me-3 size-4" aria-hidden="true" />{t('settings')}</Link></DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { void signOut(); closeMenu() }} className="min-h-11 rounded-xl px-3 text-red-700"><LogOut className="me-3 size-4" aria-hidden="true" />{t('logout')}</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </> : <>
+          <Link href="/login" className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm font-semibold text-[var(--cd-ink)] hover:text-[var(--cd-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] xl:inline-flex">{c.login}</Link>
+          <Link href="/signup" title={c.trial} className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[var(--cd-brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--cd-brand-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] focus-visible:ring-offset-2">{labels.trial}</Link>
+        </>}
+        <button ref={menuButtonRef} type="button" aria-label={menuOpen ? c.close : c.open} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(value => !value)} className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-[var(--cd-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] xl:hidden">{menuOpen ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}</button>
       </div>
+    </div>
 
-      {menuOpen && <div id="main-mobile-menu" className="max-h-[calc(100dvh-4.75rem)] overflow-y-auto border-t border-[var(--cd-line)] bg-[var(--cd-paper)] px-4 py-4 shadow-lg xl:hidden"><div className="mx-auto max-w-[1280px] space-y-5">
-        <div className="flex min-h-12 items-center justify-between rounded-xl bg-white px-4"><span className="text-sm font-semibold text-[var(--cd-muted)]">{c.language}</span><LanguageSelector currentLocale={publicLocale} label={c.language} /></div>
-        {user ? <nav aria-label={c.app} className="grid gap-1">{appLinks.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={activeAppLink(link.href) ? 'page' : undefined} className={`flex min-h-12 items-center gap-3 rounded-xl px-4 text-base font-semibold ${activeAppLink(link.href) ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white'}`}><link.icon className="size-5" />{link.label}</Link>)}</nav> : <nav aria-label={c.study} className="grid gap-1">{publicLinks.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={link.active ? 'page' : undefined} className={`flex min-h-12 items-center rounded-xl px-4 text-base font-semibold ${link.active ? 'bg-[#fff0e6] text-[var(--cd-brand)]' : 'text-[var(--cd-ink)] hover:bg-white'}`}>{link.label}</Link>)}</nav>}
-        <nav aria-label={c.free} className="border-t border-[var(--cd-line)] pt-4"><p className="px-4 pb-2 text-xs font-bold uppercase tracking-[.14em] text-[var(--cd-muted)]">{c.free}</p><div className="grid gap-1">{mobileFreeLinks.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} className="flex min-h-12 items-center rounded-xl px-4 text-base font-medium text-[var(--cd-ink)] hover:bg-white">{link.label}</Link>)}</div></nav>
-        {user ? <div className="grid gap-1 border-t border-[var(--cd-line)] pt-4"><p className="truncate px-4 pb-2 text-sm text-[var(--cd-muted)]">{user.email}</p><Link href="/billing" onClick={closeMenu} className="flex min-h-12 items-center gap-3 rounded-xl px-4 text-base font-semibold text-[var(--cd-ink)] hover:bg-white"><CreditCard className="size-5" />{t('billing')}</Link><Link href="/settings" onClick={closeMenu} className="flex min-h-12 items-center gap-3 rounded-xl px-4 text-base font-semibold text-[var(--cd-ink)] hover:bg-white"><Settings className="size-5" />{t('settings')}</Link><button type="button" onClick={() => { void signOut(); closeMenu() }} className="flex min-h-12 items-center gap-3 rounded-xl px-4 text-left text-base font-semibold text-red-700"><LogOut className="size-5" />{t('logout')}</button></div> : <div className="grid gap-2 border-t border-[var(--cd-line)] pt-4 sm:grid-cols-2"><Link href="/login" onClick={closeMenu} className="flex min-h-12 items-center justify-center rounded-xl border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-brand)]">{c.login}</Link><Link href="/signup" onClick={closeMenu} className="flex min-h-12 items-center justify-center rounded-xl bg-[var(--cd-brand)] text-sm font-semibold text-white">{c.trial}</Link></div>}
-      </div></div>}
-    </header>
-  )
+    {menuOpen && <div id="main-mobile-menu" className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-[var(--cd-line)] bg-[var(--cd-paper)] px-4 pb-5 shadow-sm xl:hidden">
+      <div className="mx-auto max-w-[1280px]">
+        <nav aria-label={user ? c.app : c.study}>
+          {user ? appLinks.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={activePath(link.href) ? 'page' : undefined} className={`flex min-h-14 items-center gap-3 border-b border-[var(--cd-line)] px-2 text-base font-semibold ${activePath(link.href) ? 'text-[var(--cd-brand)]' : 'text-[var(--cd-ink)]'}`}><link.icon className="size-5" aria-hidden="true" />{link.label}</Link>) : <>
+            <MobileGroup label={c.study} links={studyLinks} onNavigate={closeMenu} />
+            <Link href={cardsHref} onClick={closeMenu} className={`flex min-h-14 items-center border-b border-[var(--cd-line)] px-2 text-base font-semibold ${cardsActive ? 'text-[var(--cd-brand)]' : 'text-[var(--cd-ink)]'}`}>{c.cards}</Link>
+          </>}
+          <MobileGroup label={c.free} links={freeLinks} onNavigate={closeMenu} />
+        </nav>
+        <div className="mt-3 flex min-h-12 items-center justify-between gap-3 px-2"><span className="text-sm text-[var(--cd-muted)]">{c.language}</span><LanguageSelector currentLocale={publicLocale} label={c.language} onLocaleChange={closeMenu} /></div>
+        {!isLoading && !user && <Link href="/login" onClick={closeMenu} className="mt-2 flex min-h-11 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-ink)]">{c.login}</Link>}
+      </div>
+    </div>}
+  </header>
 }
