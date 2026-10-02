@@ -1,4 +1,5 @@
 import { selectQuizCards, type ProgressMap } from './study-scheduler.ts'
+import { isCourseQuestion } from './course-question-quality.ts'
 
 export type QuizCard = { id: string; question: string; answer: string; sourceRef?: string }
 export type StudyQuizQuestion = {
@@ -32,6 +33,7 @@ function shuffled<T>(items: T[], random: () => number) {
 }
 
 export function buildAdaptiveQuiz(cards: QuizCard[], progress: ProgressMap, requestedCount: number, now = Date.now(), random = Math.random): StudyQuizQuestion[] {
+  cards = cards.filter(card => isCourseQuestion(card.question))
   const uniqueAnswers = [...new Map(cards.map(card => card.answer.trim()).filter(Boolean).map(answer => [answer.toLocaleLowerCase(), answer])).values()]
   if (uniqueAnswers.length < 4) return []
 

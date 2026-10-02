@@ -1,3 +1,4 @@
+import { courseQuestionInstructions } from '@/lib/course-question-quality'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
@@ -19,7 +20,7 @@ async function generateBatch(documentContent: string, count: number, language: s
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
-      { role: 'system', content: `Create exactly ${count} distinct, useful student flashcards in ${language} from the document excerpts. Questions must be specific and answers concise (one or two sentences). Cover different important concepts, not repeated facts. For each card, copy a short sourceQuote EXACTLY from the excerpts when possible. Never invent a source or page. Return valid JSON only: {"flashcards":[{"question":"...","answer":"...","sourceQuote":"..."}]}\n\nDOCUMENT:\n${documentContent}` },
+      { role: 'system', content: `Create exactly ${count} distinct, useful student flashcards in ${language} from the document excerpts. ${courseQuestionInstructions} Questions must be specific and answers concise (one or two sentences). Cover different important concepts, not repeated facts. For each card, copy a short sourceQuote EXACTLY from the excerpts when possible. Never invent a source or page. Return valid JSON only: {"flashcards":[{"question":"...","answer":"...","sourceQuote":"..."}]}\n\nDOCUMENT:\n${documentContent}` },
       { role: 'user', content: `Create ${count} flashcards. Avoid these existing questions: ${existing.slice(-100).join(' | ') || 'none'}.` },
     ],
     temperature: 0.55,

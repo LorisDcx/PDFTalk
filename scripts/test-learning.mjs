@@ -10,6 +10,7 @@ import { getDocumentContextWithStatus } from '../src/lib/document-context.ts'
 import { learningCopy, learningError } from '../src/lib/learning-copy.ts'
 import * as voice from '../src/lib/learning-voice.ts'
 import * as costs from '../src/lib/learning-cost.ts'
+import * as quality from '../src/lib/course-question-quality.ts'
 
 const profile = { topic: 'Derivatives', goal: 'Differentiate a polynomial', knowledge: 'I know powers', level: 'beginner' }
 const plan = { title: 'Derivatives', introduction: 'A focused course', steps: [
@@ -41,11 +42,14 @@ assert.notEqual(learningError('ai_unavailable', learningCopy.fr), learningCopy.f
 
 let denied = null, documentResult = { content: '[[PAGE 2]] The derivative describes a rate of change.', code: null }
 let chargeFailure = null, modelResult = { plan }, modelCalls = 0, charges = 0, speechCalls = 0, speechEmpty = false, transcriptionCalls = 0, transcript = 'Explain the derivative'
+let coachingCode = null
 const access = { response: null, supabase: {}, user: { id: 'learner' } }
 const modules = {
   'next/server': { NextResponse: Response },
   '@/lib/learning': learning,
   '@/lib/learning-cost': costs,
+  '@/lib/course-question-quality': quality,
+  '@/lib/learning-coaching': { reserveIncludedCoaching: async () => ({ code: coachingCode, limit: 20, remaining: coachingCode ? 0 : 19, resetAt: '2026-10-03T00:00:00.000Z' }) },
   '@/lib/learning-voice': voice,
   '@/lib/learning-access': {
     checkLearningAccess: async pages => { assert.ok(Object.values(costs.learningCost).includes(pages)); return denied ? { response: Response.json({ code: denied }, { status: 403 }) } : { ...access, pages } },
@@ -99,14 +103,32 @@ modelResult = { ...lesson, questions: [] }
 const chargesBeforeInvalid = charges
 assert.equal((await POST(request(lessonInput))).status, 502)
 assert.equal(charges, chargesBeforeInvalid)
+modelResult = { ...lesson, questions: ['Qui a écrit le manuel ?'] }
+assert.equal((await POST(request(lessonInput))).status, 502)
+assert.equal(charges, chargesBeforeInvalid)
+modelResult = { ...lesson, questions: ['Qui a écrit le manuel ?', 'What is a rate of change?'] }
+assert.deepEqual((await (await POST(request(lessonInput))).json()).lesson.questions, ['What is a rate of change?'])
 modelResult = { answer: 'Correct understanding.', mastered: true }
 const coachInput = { ...base, action: 'coach', step: plan.steps[0], lesson, question: 'Explain the rate', mode: 'question', history: [] }
 assert.equal((await (await POST(request(coachInput))).json()).mastered, false)
 assert.equal((await (await POST(request({ ...coachInput, mode: 'evaluate' }))).json()).mastered, true)
 chargeFailure = 'usage_charge_failed'
-assert.equal((await POST(request(coachInput))).status, 503)
+const chargesBeforeCoaching = charges
+const included = await (await POST(request(coachInput))).json()
+assert.equal(included.pagesUsed, 0)
+assert.equal(included.includedRequestsRemaining, 19)
 chargeFailure = 'quota_exceeded'
-assert.equal((await POST(request(coachInput))).status, 403)
+assert.equal((await POST(request(coachInput))).status, 200)
+assert.equal(charges, chargesBeforeCoaching)
+const callsBeforeDailyLimit = modelCalls
+coachingCode = 'learning_daily_limit'
+assert.equal((await POST(request(coachInput))).status, 429)
+assert.equal(modelCalls, callsBeforeDailyLimit)
+coachingCode = 'service_unavailable'
+assert.equal((await POST(request(coachInput))).status, 503)
+assert.equal(modelCalls, callsBeforeDailyLimit)
+assert.equal(learningError('learning_daily_limit', learningCopy.fr), learningCopy.fr.coachingLimit)
+coachingCode = null
 chargeFailure = null
 assert.equal((await SPEECH(request({ text: 'Read me', voice: 'invalid', language: 'en' }))).status, 400)
 assert.equal(speechCalls, 0)
@@ -150,9 +172,10 @@ modules['@/lib/usage'] = { checkUserUsage: async (_db, _id, pages) => { checkedP
 modules['@/lib/usage-response'] = { usageFailureResponse: () => { throw new Error('Unexpected usage failure') } }
 const realAccess = loadModule('../src/lib/learning-access.ts')
 for (const pages of Object.values(costs.learningCost)) {
+  chargedPages = -1
   const allowed = await realAccess.checkLearningAccess(pages)
   assert.equal(checkedPages, pages)
   assert.equal(await realAccess.chargeLearningGeneration(allowed), null)
-  assert.equal(chargedPages, pages)
+  assert.equal(chargedPages, pages === 0 ? -1 : pages)
 }
 console.log('Learning validation, access, verified sources, feedback, quota failures and speech passed (mocked services).')

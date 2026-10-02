@@ -1,3 +1,4 @@
+import { isCourseQuestion } from './course-question-quality.ts'
 export type GeneratedCard = { question: string; answer: string; sourceQuote?: string }
 export type GeneratedQuizQuestion = { question: string; correctAnswer: string; options: string[]; sourceQuote?: string }
 
@@ -15,7 +16,7 @@ export function parseGeneratedCards(content: string): GeneratedCard[] {
     if (typeof card.question !== 'string' || typeof card.answer !== 'string') return []
     const question = card.question.trim()
     const answer = card.answer.trim()
-    if (question.length < 8 || answer.length < 2 || seen.has(normalized(question))) return []
+    if (question.length < 8 || answer.length < 2 || !isCourseQuestion(question) || seen.has(normalized(question))) return []
     seen.add(normalized(question))
     return [{ question, answer, sourceQuote: typeof card.sourceQuote === 'string' ? card.sourceQuote : undefined }]
   })
@@ -32,7 +33,7 @@ export function parseGeneratedQuiz(content: string): GeneratedQuizQuestion[] {
     const prompt = question.question.trim()
     const answer = question.correctAnswer.trim()
     const options = question.options.filter((option): option is string => typeof option === 'string').map(option => option.trim())
-    if (prompt.length < 8 || !answer || options.length !== 4 || options.some(option => !option) ||
+    if (prompt.length < 8 || !isCourseQuestion(prompt) || !answer || options.length !== 4 || options.some(option => !option) ||
         new Set(options.map(normalized)).size !== 4 || !options.some(option => normalized(option) === normalized(answer)) || seen.has(normalized(prompt))) return []
     seen.add(normalized(prompt))
     return [{ question: prompt, correctAnswer: options.find(option => normalized(option) === normalized(answer))!, options,

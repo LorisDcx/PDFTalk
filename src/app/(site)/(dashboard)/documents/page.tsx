@@ -78,7 +78,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-[#faf7f5] px-4 pb-20 pt-9 text-[#33252b] sm:px-6 sm:pt-12 lg:px-8">
-      <div className="w-full">
+      <div className="student-content">
         <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#bc6b50]">{t('documents')}</p>

@@ -18,7 +18,8 @@ import { DocumentSidebar } from '@/components/document-sidebar'
 import { Flashcards } from '@/components/flashcards'
 import { PDFChat } from '@/components/pdf-chat'
 import { LearningWorkspace } from '@/components/learning-workspace'
-import { learnLabels, learningCopy } from '@/lib/learning-copy'
+import { learnLabels } from '@/lib/learning-copy'
+import { isCourseQuestion } from '@/lib/course-question-quality'
 import { Quiz } from '@/components/quiz'
 import { Slides } from '@/components/slides'
 import { TranslateButton } from '@/components/translate-button'
@@ -133,7 +134,7 @@ export default function DocumentPage() {
           summary: data.summary as string[],
           keyClauses: data.key_clauses as DocumentDigest['keyClauses'],
           risks: data.risks as DocumentDigest['risks'],
-          questions: data.questions as string[],
+          questions: (data.questions as string[] || []).filter(isCourseQuestion),
           actions: data.actions as DocumentDigest['actions'],
         })
       }
@@ -314,7 +315,7 @@ export default function DocumentPage() {
   const pdfSourceUrl = pdfUrl ? `${pdfUrl}#page=${pdfPage}&toolbar=1&navpanes=0` : null
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#faf8f5] text-[#291c2b] lg:flex">
+    <div className="student-document-shell min-h-[calc(100vh-4rem)] bg-[#faf8f5] text-[#291c2b] lg:flex">
       {desktopLibraryOpen && <aside className="hidden w-72 shrink-0 border-r border-[#e8dedb] lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)]">
         <DocumentSidebar currentDocumentId={document.id} />
       </aside>}
@@ -487,9 +488,7 @@ export default function DocumentPage() {
                 </div>}
 
                 {activeView === 'tools' && <section className="py-2">
-                  <h2 className="font-editorial text-2xl sm:text-3xl">{t('studyTools')}</h2>
-                  <p className="mt-1 text-sm text-[#776b73]">{t('studyToolsDesc')}</p>
-                  <div className={`mt-6 grid gap-4 ${pdfVisible ? '' : 'md:grid-cols-2'}`}>
+                  <div className={`grid gap-4 ${pdfVisible ? '' : 'md:grid-cols-2'}`}>
                     <Flashcards documentId={document.id} onFlashcardsChange={setFlashcards} />
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-quiz-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><ListChecks className="size-5" /></span><div><h3 id="document-quiz-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('quizMode')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('quizModeDesc')}</p></div></div><div className="mt-5"><Quiz documentId={document.id} flashcards={flashcards} openFromCards={openCardsQuiz} onAutoOpen={() => setOpenCardsQuiz(false)} /></div></section>
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-slides-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><Layers3 className="size-5" /></span><div><h3 id="document-slides-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('slides')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('slidesDesc')}</p></div></div><div className="mt-5"><Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} /></div></section>
@@ -497,13 +496,10 @@ export default function DocumentPage() {
                 </section>}
 
                 {activeView === 'learn' && <section className="space-y-4">
-                  <h2 className="font-editorial text-3xl">{learnLabels[language]}</h2>
-                  <p className="text-base leading-7 text-[var(--cd-muted)]">{learningCopy[language === 'fr' ? 'fr' : 'en'].description}</p>
                   <LearningWorkspace key={`${userId}:${document.id}:${language}`} userId={userId} documentId={document.id} documentName={document.file_name} onOpenSource={page => void openPdf(page)} />
                 </section>}
 
                 {activeView === 'chat' && <section className="space-y-4">
-                  <h2 className="font-editorial text-2xl sm:text-3xl">{t('chatTitle')}</h2>
                   <PDFChat documentId={document.id} documentContent={documentContent} documentName={document.file_name} onOpenSource={page => void openPdf(page)} />
                 </section>}
               </div>

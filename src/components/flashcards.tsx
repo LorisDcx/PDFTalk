@@ -12,6 +12,7 @@ import { getPlanLimits } from '@/lib/plans'
 import { createClient } from '@/lib/supabase/client'
 import { studyFlowCopy } from '@/lib/study-flow-locales'
 import { adaptiveStudyCopy } from '@/lib/adaptive-study-locales'
+import { isCourseQuestion } from '@/lib/course-question-quality'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 
 export type Flashcard = { id: string; question: string; answer: string; sourceRef?: string }
@@ -42,7 +43,7 @@ export function Flashcards({ documentId, onFlashcardsChange }: {
         .eq('document_id', documentId)
         .order('order_index', { ascending: true })
       if (error) throw error
-      setCards((data || []).map(card => ({
+      setCards((data || []).filter(card => isCourseQuestion(card.question)).map(card => ({
         id: card.id, question: card.question, answer: card.answer, sourceRef: card.source_ref || undefined,
       })))
       setState('ready')

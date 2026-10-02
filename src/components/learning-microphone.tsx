@@ -100,7 +100,7 @@ export function LearningMicrophone({ copy, disabled, onText, onUsage, onBusy }: 
     }
   }
   return <div className="space-y-2">
-    <p className="text-base leading-7 text-[var(--cd-muted)]">{copy.micHint}</p>
+    <details className="text-sm text-[var(--cd-muted)]"><summary className="flex min-h-11 cursor-pointer items-center">{copy.micDetails}</summary><p className="pb-3 text-base leading-7">{copy.micHint}</p></details>
     <div className="flex flex-wrap gap-3">
       {state === 'recording' ? <>
         <Button type="button" variant="outline" onClick={() => void finish()} className="min-h-11 h-auto gap-2 whitespace-normal"><Square className="size-4 shrink-0" />{copy.micStop} · {seconds} / 60 s</Button>

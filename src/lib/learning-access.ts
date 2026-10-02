@@ -14,6 +14,7 @@ export async function checkLearningAccess(pages = 1) {
 
 export async function chargeLearningGeneration(access: Awaited<ReturnType<typeof checkLearningAccess>>) {
   if (access.response) return access.response
+  if (access.pages === 0) return null
   const charge = await deductPages(access.supabase, access.user.id, access.pages)
   return charge.success ? null : NextResponse.json({ code: charge.code }, { status: charge.code === 'quota_exceeded' ? 403 : 503 })
 }

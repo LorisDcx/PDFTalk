@@ -27,6 +27,8 @@ export default function DashboardPage() {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
   const [documents, setDocuments] = useState<DocumentWithSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [documentsError, setDocumentsError] = useState(false)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadService, setUploadService] = useState<'checking' | 'ready' | 'unavailable'>('checking')
   const router = useRouter()
@@ -65,6 +67,7 @@ export default function DashboardPage() {
 
     const loadData = async () => {
       hasLoadedRef.current = true
+      setDocumentsError(false)
 
       try {
         // Fetch documents
@@ -102,10 +105,11 @@ export default function DashboardPage() {
           }))
         )
       } catch (error) {
+        setDocumentsError(true)
         console.error('Error fetching documents:', error)
         toast({
-          title: 'Error',
-          description: t('uploadError'),
+          title: t('error'),
+          description: t('notAvailable'),
           variant: 'destructive',
         })
       } finally {
@@ -115,7 +119,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [user, supabase, toast])
+  }, [user, supabase, toast, loadAttempt])
 
   const handleUpload = async (file: File) => {
     if (!profile) return false
@@ -321,12 +325,12 @@ export default function DashboardPage() {
           <Skeleton className="mb-3 h-3 w-24 rounded-full" />
           <Skeleton className="h-12 w-64 rounded-xl" />
           <Skeleton className="mt-4 h-5 w-80 max-w-full rounded-lg" />
-          <div className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+          <div className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Skeleton className="h-[340px] rounded-[28px]" />
             <Skeleton className="h-[340px] rounded-[28px]" />
           </div>
           <Skeleton className="mt-12 h-8 w-52 rounded-lg" />
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 document-library-grid grid gap-4">
             <Skeleton className="h-48 rounded-[24px]" />
             <Skeleton className="h-48 rounded-[24px]" />
           </div>
@@ -339,25 +343,16 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#faf7f5] px-4 pb-20 pt-9 text-[#33252b] sm:px-6 sm:pt-12 lg:px-8">
-      <div className="w-full">
+      <div className="student-content">
         <header className="mb-8 flex flex-col justify-between gap-5 sm:mb-10 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#bc6b50]">{t('dashboard')}</p>
-            <h1 className="font-editorial text-4xl leading-[1.08] tracking-tight sm:text-5xl">{t('dashboardTitle')}</h1>
+            <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">{t('dashboardTitle')}</h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#756a74] sm:text-base">{t('analyzeDocuments')}</p>
           </div>
           <Link href="/documents" className="inline-flex w-fit items-center gap-2 rounded-full border border-[#e5dbe1] bg-white px-4 py-2.5 text-sm font-medium text-[#b84432] transition-colors hover:border-[#bfa8b8] hover:bg-[#f7eff4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b84432]">
             {t('myDocuments')} <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </header>
-
-        <section className="mb-8 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-[var(--cd-paper)] p-5 sm:p-7" aria-labelledby="learn-entry-title">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-2xl"><h2 id="learn-entry-title" className="font-editorial text-3xl">{language === 'fr' ? 'Un cours qui t’aide à comprendre' : 'A course that helps you understand'}</h2><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{language === 'fr' ? 'Choisis un PDF ou un sujet. Apprendre crée des leçons à ton niveau, te pose des questions et explique ce qui te bloque. Tu peux aussi écouter et parler au tuteur.' : 'Choose a PDF or a topic. Learn builds lessons at your level, asks questions and explains where you get stuck. You can also listen and speak to your tutor.'}</p></div>
-            <Link href="/apprendre" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--cd-brand)] px-5 py-3 text-base font-semibold text-white hover:bg-[var(--cd-brand-hover)]">{language === 'fr' ? 'Commencer à apprendre' : 'Start learning'}<ArrowRight className="size-5" aria-hidden="true" /></Link>
-          </div>
-          <div className="mt-3"><WorkspaceTutorialButton /></div>
-        </section>
 
         {showTrialExpired && (
           <div role="alert" className="mb-6 flex flex-col gap-4 rounded-[22px] border border-[#edc5c0] bg-[#fff2f0] p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -382,30 +377,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
-          <section id="upload-panel" aria-labelledby="upload-title" className="rounded-[28px] border border-[#e9e0e5] bg-white p-5 shadow-[0_24px_60px_-50px_rgba(43,34,48,0.4)] sm:p-7">
-            <div className="mb-6 flex items-start gap-4">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#f4eaf0] text-[#b84432]">
-                <UploadCloud className="size-5" aria-hidden="true" />
-              </span>
-              <div>
-                <h2 id="upload-title" className="font-editorial text-[1.65rem] leading-tight">{t('uploadDocument')}</h2>
-                <p className="mt-1 text-sm text-[#786d77]">{t('uploadFirstPdf')}</p>
-              </div>
-            </div>
-            <div className="[&>div>div]:border-[#e3cbbf] [&>div>div]:bg-[#fcfafb] [&>div>div]:p-7 sm:[&>div>div]:p-10">
-              <FileUpload onUpload={handleUpload} disabled={!canUpload() || isUploading || uploadService !== 'ready'} />
-            </div>
-            {uploadService === 'checking' && <p role="status" className="mt-3 text-sm text-[#756a74]">{language === 'fr' ? 'Vérification du service…' : 'Checking service…'}</p>}
-          </section>
-          <UsageCard />
-        </div>
-
-        <section aria-labelledby="documents-title" className="mt-12 sm:mt-14">
+        <section aria-labelledby="documents-title" className="mb-8">
+          <div className="mb-6"><UsageCard /></div>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#bc6b50]">{t('documents')}</p>
-              <h2 id="documents-title" className="font-editorial text-3xl leading-tight sm:text-[2.2rem]">{t('recentDocuments')}</h2>
+              <h2 id="documents-title" className="font-editorial text-3xl leading-tight sm:text-[2.2rem]">{t('myDocuments')}</h2>
             </div>
             {documents.length > 0 && (
               <Link href="/documents" className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-sm font-medium text-[#b84432] transition-colors hover:text-[#412039] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b84432]">
@@ -414,9 +390,14 @@ export default function DashboardPage() {
             )}
           </div>
           {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2" aria-label={t('recentDocuments')}>
+            <div className="document-library-grid grid gap-4" aria-label={t('recentDocuments')}>
               <Skeleton className="h-[194px] rounded-[24px]" />
               <Skeleton className="h-[194px] rounded-[24px]" />
+            </div>
+          ) : documentsError ? (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-base text-red-900">
+              <p>{language === 'fr' ? 'Ta bibliothèque est temporairement indisponible. Tes documents ne sont pas supprimés.' : 'Your library is temporarily unavailable. Your documents have not been deleted.'}</p>
+              <Button variant="outline" className="mt-3 min-h-11 bg-white" onClick={() => { hasLoadedRef.current = false; setIsLoading(true); setLoadAttempt(value => value + 1) }}>{language === 'fr' ? 'Réessayer' : 'Try again'}</Button>
             </div>
           ) : documents.length === 0 ? (
             <div className="flex flex-col items-center rounded-[28px] border border-dashed border-[#e3cbbf] bg-white px-5 py-14 text-center">
@@ -430,13 +411,38 @@ export default function DashboardPage() {
               </a>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="document-library-grid grid gap-4">
               {documents.map(doc => (
                 <DocumentCard key={doc.id} document={doc} summaryPreview={doc.summaryPreview} onDelete={handleDeleteDocument} />
               ))}
             </div>
           )}
         </section>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <section id="upload-panel" aria-labelledby="upload-title" className="rounded-[28px] border border-[#e9e0e5] bg-white p-5 shadow-[0_24px_60px_-50px_rgba(43,34,48,0.4)] sm:p-7">
+            <div className="mb-6 flex items-start gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#f4eaf0] text-[#b84432]">
+                <UploadCloud className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="upload-title" className="text-xl font-semibold leading-tight">{t('uploadDocument')}</h2>
+                <p className="mt-1 text-sm text-[#786d77]">{t('uploadFirstPdf')}</p>
+              </div>
+            </div>
+            <div className="[&>div>div]:border-[#e3cbbf] [&>div>div]:bg-[#fcfafb] [&>div>div]:p-7 sm:[&>div>div]:p-10">
+              <FileUpload onUpload={handleUpload} disabled={!canUpload() || isUploading || uploadService !== 'ready'} />
+            </div>
+            {uploadService === 'checking' && <p role="status" className="mt-3 text-sm text-[#756a74]">{language === 'fr' ? 'Vérification du service…' : 'Checking service…'}</p>}
+          </section>
+          <section className="rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-[var(--cd-paper)] p-5 sm:p-6" aria-labelledby="learn-entry-title">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-2xl"><h2 id="learn-entry-title" className="text-2xl font-semibold">{language === 'fr' ? 'Un cours qui t’aide à comprendre' : 'A course that helps you understand'}</h2><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{language === 'fr' ? 'Un PDF ou un sujet, des leçons à ton niveau et un professeur pour t’aider à comprendre.' : 'A PDF or a topic, lessons at your level and a teacher to help you understand.'}</p></div>
+            <Link href="/apprendre" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--cd-brand)] px-5 py-3 text-base font-semibold text-white hover:bg-[var(--cd-brand-hover)]">{language === 'fr' ? 'Commencer à apprendre' : 'Start learning'}<ArrowRight className="size-5" aria-hidden="true" /></Link>
+          </div>
+          <div className="mt-3"><WorkspaceTutorialButton /></div>
+          </section>
+        </div>
       </div>
     </div>
   )

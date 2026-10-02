@@ -9,8 +9,8 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 | Élément | Règle |
 | --- | --- |
 | Couleur | Utiliser les variables `--cd-*` de `src/app/globals.css`. Orange rouge pour une action primaire ou un état actif ; jamais comme simple décoration répétée. Vert seulement pour un succès, rouge d'alerte pour une erreur. Un statut a aussi un libellé. |
-| Typographie | Serif éditorial pour les titres et chiffres forts ; sans serif pour consignes, données et contrôles. Un seul `h1` par page. Texte courant de 16 px minimum sur mobile, largeur de lecture autour de 65–75 caractères. |
-| Grille | Contenu public limité à 1152 px ; espace étudiant fluide sur la largeur disponible, avec 16 px de marge mobile et 32 px desktop. Utiliser les panneaux latéraux pour programme, professeur et sources ; limiter le texte de lecture à 65–75 caractères. La disposition dépend de la largeur disponible dans le panneau, même avec un PDF ouvert. Espacements issus de 4, 8, 12, 16, 24, 32, 48, 64 px. Aligner titres, champs et actions sur la même grille. |
+| Typographie | Serif éditorial pour les titres de bibliothèque ; sans serif pour titres de leçon, consignes, données et contrôles. Un seul `h1` par page. Texte courant de 16 px minimum sur mobile, largeur de lecture autour de 65–75 caractères. |
+| Grille | Contenu public limité à 1152 px ; espace étudiant fluide, contenu jusqu’à 1736 px et studio jusqu’à 1800 px, avec 16 px de marge mobile et 24–32 px desktop. Utiliser les panneaux latéraux pour programme, professeur et sources ; limiter le texte de lecture à 65–75 caractères. La disposition dépend de la largeur disponible dans le panneau, même avec un PDF ouvert. Espacements issus de 4, 8, 12, 16, 24, 32, 48, 64 px. Aligner titres, champs et actions sur la même grille. |
 | Surfaces | Blanc/papier en base ; une seule surface dominante par zone. Coins de 12 px pour les contrôles et 24 px pour un panneau principal. Les bordures séparent ; les ombres sont rares et discrètes. |
 | Mouvement | Animer uniquement une relation de cause à effet, en priorité `opacity` et `transform`. Respecter `prefers-reduced-motion`. Pas d'éléments flottants ou de halos sur chaque section. |
 
@@ -52,3 +52,11 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 | P1 | Le produit connecté n'a pas de traitement visuel unique pour ses états. | Unifier les panneaux, messages de statut, contrôles et actions de récupération. |
 
 Références : [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) pour les interactions et les états ; [WCAG 2.2](https://www.w3.org/TR/WCAG22/) pour l'accessibilité.
+
+
+## Étudier sans bruit commercial
+
+- Le forfait reste un compteur compact au-dessus des documents ; les documents précèdent les grandes zones d’import. Une limite réelle a un état explicite, sans panneau promotionnel permanent.
+- Le parcours, la leçon et le professeur ont des rôles visuels distincts. Le titre de l’onglet actif ne se répète pas dans le contenu. Les détails techniques de stockage et d’accès se déplient ; les erreurs restent visibles.
+- La correction reste près des réponses. La question d’une flashcard reste visible après révélation. Le quiz demande une confirmation explicite avant de corriger et montrer sa source. Les questions et corrections incluses ne montrent pas un prix par bouton.
+- Références de cette itération : [navigation latérale de Notion](https://www.notion.com/en-gb/help/navigate-with-the-sidebar), [parcours Learn de Quizlet](https://help.quizlet.com/hc/en-us/articles/360030986971-Studying-with-Learn) et [progression de maîtrise de Khan Academy](https://support.khanacademy.org/hc/en-us/articles/5548760867853--How-do-Khan-Academy-s-Mastery-levels-work). Application à CramDesk : navigation secondaire compacte, progression visible, une question à la fois et retour près de l’exercice.

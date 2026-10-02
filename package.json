@@ -15,7 +15,8 @@
     "test:chat-tutor": "node --experimental-strip-types scripts/test-chat-tutor.mjs",
     "test:study-content": "node --experimental-strip-types scripts/test-study-content.mjs",
     "test:billing-prices": "node --experimental-strip-types scripts/test-billing-prices.mjs",
-    "test:learning": "node --experimental-strip-types scripts/test-learning.mjs"
+    "test:learning": "node --experimental-strip-types scripts/test-learning.mjs",
+    "test:course-coaching": "node --experimental-strip-types scripts/test-course-coaching.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

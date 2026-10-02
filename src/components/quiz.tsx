@@ -34,6 +34,7 @@ import { quizFlowCopy, studyFlowCopy } from '@/lib/study-flow-locales'
 import type { StudyPdfLocale } from '@/lib/study-pdf-locales'
 import { adaptiveStudyCopy } from '@/lib/adaptive-study-locales'
 import { buildAdaptiveQuiz } from '@/lib/study-quiz'
+import { isCourseQuestion } from '@/lib/course-question-quality'
 import { scheduleReview } from '@/lib/study-scheduler'
 import { readStudyProgress, writeStudyProgress } from '@/lib/study-progress-storage'
 
@@ -72,7 +73,7 @@ interface QuizProps {
   onAutoOpen?: () => void
 }
 
-export function Quiz({ documentId, flashcards = [], openFromCards = false, onAutoOpen }: QuizProps) {
+export function Quiz({ documentId, flashcards: storedCards = [], openFromCards = false, onAutoOpen }: QuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
@@ -96,6 +97,8 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
   const common = studyFlowCopy[language as StudyPdfLocale] || studyFlowCopy.en
   const adaptive = adaptiveStudyCopy[language as StudyPdfLocale] || adaptiveStudyCopy.en
 
+  const flashcards = storedCards.filter(card => isCourseQuestion(card.question))
+  const confirmAnswer = ({ fr: 'Valider ma réponse', en: 'Check my answer', es: 'Comprobar mi respuesta', de: 'Antwort prüfen', it: 'Verifica la risposta', pt: 'Verificar resposta', zh: '检查答案', ja: '回答を確認', ar: 'تحقق من إجابتي' } as const)[language]
   const maxQuestions = getPlanLimits(profile?.current_plan ?? null).maxQuizQuestions
   const selectedQuestionCount = Math.min(Math.max(questionCount, 5), maxQuestions)
   const distinctAnswers = Array.from(new Map(flashcards.map(card => card.answer.trim()).filter(Boolean).map(answer => [answer.toLocaleLowerCase(), answer])).values())
@@ -328,7 +331,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                     key={num}
                     onClick={() => setQuestionCount(num)}
                     className={cn(
-                      "px-3 py-1 rounded-full text-sm font-medium transition-all",
+                      "min-h-11 px-4 py-2 rounded-xl text-sm font-medium transition-colors",
                       selectedQuestionCount === num
                         ? "bg-primary text-primary-foreground" 
                         : "bg-muted hover:bg-muted/80"
@@ -345,8 +348,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                 <Button 
                   onClick={generateQuizFromFlashcards}
                   disabled={!canQuizFromFlashcards}
-                  className="min-h-11 w-full"
-                  variant="outline"
+                  className="min-h-11 w-full bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]"
                   title={!canQuizFromFlashcards ? t('quizNeedsDistinctCards') : undefined}
                 >
                   <Target className="h-4 w-4 mr-2" />
@@ -360,7 +362,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
               <Button 
                 onClick={generateQuizFromAI} 
                 disabled={isGenerating}
-                className="min-h-11 w-full bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]"
+                className="min-h-11 w-full border border-[var(--cd-line)] bg-white text-[var(--cd-ink)] hover:bg-[var(--cd-paper)]"
               >
                 {isGenerating ? (
                   <>
@@ -384,6 +386,7 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
       <Dialog open={isQuizActive} onOpenChange={(open) => !open && setIsQuizActive(false)}>
         <DialogContent lang={language} dir={language === 'ar' ? 'rtl' : 'ltr'} className="max-h-[90dvh] overflow-y-auto p-0 sm:max-w-2xl">
           <DialogTitle className="sr-only">{t('quizMode')}</DialogTitle>
+          <DialogDescription className="sr-only">{t('quizModeDesc')}</DialogDescription>
           {!isComplete ? (
             <>
               <div className="border-b p-4 pr-12">
@@ -413,8 +416,8 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
 
               <div className="p-6">
                 <div className="mb-6">
-                  <p className="text-lg font-medium leading-relaxed">{currentQuestion?.question}</p>
-                  {currentQuestion?.sourceRef && (() => {
+                  <p className="text-xl font-semibold leading-relaxed sm:text-2xl">{currentQuestion?.question}</p>
+                  {isAnswered && currentQuestion?.sourceRef && (() => {
                     const page = Number(currentQuestion.sourceRef.match(/^Page\s+(\d+)/i)?.[1])
                     return page ? <a href={`/documents/${documentId}?page=${page}`} target="_blank" rel="noopener noreferrer" className="mt-2 flex min-h-11 items-center gap-1 text-left text-xs text-[var(--cd-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]"><AlertCircle className="h-3 w-3" />{common.source} : {currentQuestion.sourceRef}</a>
                       : <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><AlertCircle className="h-3 w-3" />{common.source} : {currentQuestion.sourceRef}</p>
@@ -431,22 +434,23 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                       <button
                         type="button"
                         key={i}
-                        onClick={() => handleAnswer(option)}
+                        onClick={() => setSelectedAnswer(option)}
                         disabled={isAnswered}
                         aria-label={`${String.fromCharCode(65 + i)}. ${option}`}
+                        aria-pressed={isSelected}
                         className={cn(
-                          "min-h-12 w-full rounded-xl border-2 p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]",
+                          "min-h-12 w-full rounded-xl border border-[var(--cd-line)] p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cd-brand)]",
                           !showResult && !isSelected && "hover:border-primary/50 hover:bg-primary/5",
                           !showResult && isSelected && "border-primary bg-primary/10",
                           showResult && isCorrect && "border-emerald-500 bg-emerald-50 dark:bg-emerald-950",
                           showResult && isSelected && !isCorrect && "border-red-500 bg-red-50 dark:bg-red-950",
-                          showResult && !isSelected && !isCorrect && "opacity-50"
+                          showResult && !isSelected && !isCorrect && "text-[var(--cd-muted)]"
                         )}
                       >
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-3">
                             <span className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+                              "w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-sm font-medium",
                               showResult && isCorrect ? "bg-emerald-500 text-white" :
                               showResult && isSelected && !isCorrect ? "bg-red-500 text-white" :
                               "bg-muted"
@@ -463,7 +467,8 @@ export function Quiz({ documentId, flashcards = [], openFromCards = false, onAut
                   })}
                 </div>
 
-                <p aria-live="polite" className="mt-4 text-sm font-medium text-[var(--cd-ink)]">{isAnswered ? (selectedAnswer === currentQuestion?.correctAnswer ? t('correct') : `${t('answer')} : ${currentQuestion?.correctAnswer}`) : ''}</p>
+                {!isAnswered && <Button onClick={() => selectedAnswer && handleAnswer(selectedAnswer)} disabled={!selectedAnswer} className="mt-6 min-h-12 w-full bg-[var(--cd-brand)] text-white hover:bg-[var(--cd-brand-hover)]">{confirmAnswer}</Button>}
+                <p aria-live="polite" className="mt-4 text-base font-medium text-[var(--cd-ink)]">{isAnswered ? (selectedAnswer === currentQuestion?.correctAnswer ? t('correct') : `${t('answer')} : ${currentQuestion?.correctAnswer}`) : ''}</p>
 
                 {isAnswered && (
                   <Button 

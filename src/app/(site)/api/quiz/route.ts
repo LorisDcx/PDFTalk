@@ -1,3 +1,4 @@
+import { courseQuestionInstructions } from '@/lib/course-question-quality'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { openai } from '@/lib/openai'
@@ -19,7 +20,7 @@ async function generateBatch(content: string, count: number, language: string, e
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
-      { role: 'system', content: `Create exactly ${count} distinct multiple-choice study questions in ${language}. Each has four plausible, distinct options and exactly one correct answer. Test important concepts at varied difficulty. Copy a short sourceQuote EXACTLY from the document when possible; never invent a page. Return valid JSON only: {"questions":[{"question":"...","correctAnswer":"...","options":["...","...","...","..."],"sourceQuote":"..."}]}\n\nDOCUMENT:\n${content}` },
+      { role: 'system', content: `Create exactly ${count} distinct multiple-choice study questions in ${language}. ${courseQuestionInstructions} Each has four plausible, distinct options and exactly one correct answer. Test important concepts at varied difficulty. Copy a short sourceQuote EXACTLY from the document when possible; never invent a page. Return valid JSON only: {"questions":[{"question":"...","correctAnswer":"...","options":["...","...","...","..."],"sourceQuote":"..."}]}\n\nDOCUMENT:\n${content}` },
       { role: 'user', content: `Create ${count} questions. Avoid these existing questions: ${existing.slice(-100).join(' | ') || 'none'}.` },
     ],
     temperature: 0.55,

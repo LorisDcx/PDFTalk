@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import type { DocumentDigest } from '@/types/database'
 import { sampleDocumentSections, verifySourceQuote } from '@/lib/document-retrieval'
+import { courseQuestionInstructions, isCourseQuestion } from '@/lib/course-question-quality'
 import { cleanSummaryItem, studyLanguageNames, type StudyLanguage } from '@/lib/study-language'
 
 export const openai = new OpenAI({
@@ -26,7 +27,7 @@ Your task is to analyze the provided document and create a comprehensive digest 
 2. **Summary**: The first item is one concise sentence naming the document's actual subject. Then give 2-5 distinct, specific ideas in logical order whenever the source supports them. Prefer explanations of relationships, mechanisms and distinctions over isolated facts. Scale the length to the source; do not pad a short document.
 3. **Key Concepts/Sections**: Explain up to 5 important concepts in plain language. For each, include a short sourceQuote copied VERBATIM from the supplied text, at most 25 words, that directly supports the explanation. If no precise excerpt supports a concept, omit that concept. Never fabricate a quote or a page number.
 4. **Points of Attention**: Identify only genuine nuances or likely misunderstandings supported by the document. Do not predict exam questions or invent risks.
-5. **Practice Questions**: Ask questions answerable from this document.
+5. **Practice Questions**: Ask questions answerable from this document. ${courseQuestionInstructions}
 6. **Study Actions**: Suggest concrete next review steps suited to the material.
 
 Base every factual statement on the supplied text. If the source lacks information, do not invent it. Keep technical terminology accurate and explain it in plain language. Write EVERY generated field in ${studyLanguageNames[language]}, regardless of the source language. Only sourceQuote must remain verbatim in the original language. Summary array items must be plain prose: no Markdown, bold markers, headings, or numbering. The first item must state the document's actual subject in one sentence, without generic claims about its importance. The remaining items must each capture one distinct, specific idea from the source. Avoid filler and promotional language. Verify mathematical statements and examples before including them. If the source is sampled, do not claim comprehensive coverage.
@@ -68,7 +69,7 @@ Return your analysis in the following JSON format:
       return { title: item.title.trim(), description: item.description.trim(), ...(source ? { sourceQuote: source.quote, ...(source.page ? { sourcePage: source.page } : {}) } : {}) }
     }),
     risks: Array.isArray(parsed.risks) ? parsed.risks : [],
-    questions: Array.isArray(parsed.questions) ? parsed.questions : [],
+    questions: Array.isArray(parsed.questions) ? parsed.questions.filter(question => typeof question === 'string' && isCourseQuestion(question)) : [],
     actions: Array.isArray(parsed.actions) ? parsed.actions : [],
   }
   return { digest, tokensUsed: response.usage?.total_tokens ?? 0 }

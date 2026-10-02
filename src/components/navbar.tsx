@@ -211,7 +211,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   }, [menuOpen])
 
   return <header ref={headerRef} dir={rtl ? 'rtl' : 'ltr'} className="sticky top-0 z-50 border-b border-[var(--cd-line)] bg-[var(--cd-paper)]/95 backdrop-blur-xl">
-    <div className={`mx-auto flex min-h-[4.5rem] ${workspaceHeader ? 'w-full' : 'max-w-[1280px]'} items-center gap-3 px-4 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:gap-6 xl:px-8`}>
+    <div className={`mx-auto flex min-h-[4.5rem] ${workspaceHeader ? 'w-full max-w-[1800px]' : 'max-w-[1280px]'} items-center gap-3 px-4 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:gap-6 xl:px-8`}>
       <Link href={home} onClick={closeMenu} className="inline-flex min-h-11 w-fit shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)]" aria-label="CramDesk">
         <Image src="/flame-logo.png" width={40} height={40} alt="" className="size-8 sm:size-10" />
         <span dir="ltr" className="font-editorial whitespace-nowrap text-[1.4rem] leading-none tracking-[-.045em] text-[var(--cd-ink)] sm:text-[1.65rem]">CramDesk<span className="text-[var(--cd-brand)]">.</span></span>

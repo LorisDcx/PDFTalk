@@ -48,5 +48,11 @@ assert.equal(parseGeneratedQuiz(JSON.stringify({ questions: [
   { question: 'Which answer is absent?', correctAnswer: 'Missing', options: ['A', 'B', 'C', 'D'] },
 ] })).length, 1)
 assert.equal(uniqueByQuestion([{ question: 'A fact?' }, { question: '  a FACT? ' }]).length, 1)
+const metadataCard = { id: 'metadata', question: 'Who wrote the textbook?', answer: 'The textbook author.' }
+assert.equal(parseGeneratedCards(JSON.stringify({ flashcards: [metadataCard, cards[0]] })).length, 1)
+assert.equal(parseGeneratedQuiz(JSON.stringify({ questions: [{ question: 'De quoi parle le manuel ?', correctAnswer: 'Chemistry', options: ['Chemistry','Physics','Biology','Math'] }] })).length, 0)
+const courseQuiz = buildAdaptiveQuiz([metadataCard, ...cards], {}, 10, now, () => 0.4)
+assert.equal(courseQuiz.length, cards.length)
+assert.ok(courseQuiz.every(question => question.cardId !== 'metadata' && !question.options.includes(metadataCard.answer)))
 
 console.log('Adaptive review, priority quiz and generated-content validation passed')

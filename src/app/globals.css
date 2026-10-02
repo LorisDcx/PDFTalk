@@ -630,13 +630,15 @@ details[open] > :not(summary) { animation: cd-detail-enter 180ms ease-out both; 
 
 /* Use the available study width, including when the source PDF or library
    takes up part of the screen. Keep the lesson itself comfortable to read. */
+.student-document-shell { width: 100%; max-width: 1800px; margin-inline: auto; }
+.student-content { width: 100%; max-width: 1736px; margin-inline: auto; }
 .learning-workspace { container: learning / inline-size; }
 .learning-grid { grid-template-columns: minmax(0, 1fr); }
 .learning-program, .learning-tutor { overflow-wrap: anywhere; }
 .document-library-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
 
 @container learning (min-width: 880px) {
-  .learning-grid { grid-template-columns: 240px minmax(0, 1fr); }
+  .learning-grid { grid-template-columns: 220px minmax(0, 1fr); }
   .learning-program { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 88px; max-height: calc(100dvh - 112px); overflow-y: auto; }
   .learning-program-toggle { display: none; }
   .learning-program-list { display: block; }
@@ -644,7 +646,7 @@ details[open] > :not(summary) { animation: cd-detail-enter 180ms ease-out both; 
 }
 
 @container learning (min-width: 1180px) {
-  .learning-grid { grid-template-columns: clamp(220px, 16cqw, 300px) minmax(0, 1fr) clamp(320px, 23cqw, 400px); }
+  .learning-grid { grid-template-columns: clamp(200px, 15cqw, 240px) minmax(0, 1fr) clamp(300px, 22cqw, 360px); }
   .learning-program { grid-row: 1; }
   .learning-tutor-link { display: none; }
   .learning-tutor { grid-column: 3; grid-row: 1; position: sticky; top: 88px; max-height: calc(100dvh - 112px); overflow-y: auto; }
