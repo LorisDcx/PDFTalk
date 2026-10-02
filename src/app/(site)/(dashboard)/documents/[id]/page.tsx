@@ -17,6 +17,8 @@ import { useAuth } from '@/components/auth-provider'
 import { DocumentSidebar } from '@/components/document-sidebar'
 import { Flashcards } from '@/components/flashcards'
 import { PDFChat } from '@/components/pdf-chat'
+import { LearningWorkspace } from '@/components/learning-workspace'
+import { learnLabels, learningCopy } from '@/lib/learning-copy'
 import { Quiz } from '@/components/quiz'
 import { Slides } from '@/components/slides'
 import { TranslateButton } from '@/components/translate-button'
@@ -29,7 +31,7 @@ import { formatDate } from '@/lib/utils'
 import { cleanSummaryItem } from '@/lib/study-language'
 import type { Document, DocumentDigest, Summary } from '@/types/database'
 
-type WorkspaceView = 'summary' | 'review' | 'tools' | 'chat'
+type WorkspaceView = 'summary' | 'review' | 'tools' | 'chat' | 'learn'
 type FlashcardItem = { id: string; question: string; answer: string; sourceRef?: string }
 
 const pdfLabels = {
@@ -156,6 +158,7 @@ export default function DocumentPage() {
       queueMicrotask(() => setActiveView('tools'))
       if (query.get('quiz') === 'cards') queueMicrotask(() => setOpenCardsQuiz(true))
     }
+    if (query.get('view') === 'learn') queueMicrotask(() => setActiveView('learn'))
   }, [])
 
   // The processing page actually checks for completion; the timer stops on unmount
@@ -301,6 +304,7 @@ export default function DocumentPage() {
 
   const views: { id: WorkspaceView; label: string; icon: typeof BookOpenText }[] = [
     { id: 'summary', label: t('summary'), icon: BookOpenText },
+    { id: 'learn', label: learnLabels[language], icon: BookOpenText },
     { id: 'review', label: t('risks'), icon: ListChecks },
     { id: 'tools', label: t('studyTools'), icon: Layers3 },
     { id: 'chat', label: t('chatTitle'), icon: MessageCircle },
@@ -490,6 +494,12 @@ export default function DocumentPage() {
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-quiz-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><ListChecks className="size-5" /></span><div><h3 id="document-quiz-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('quizMode')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('quizModeDesc')}</p></div></div><div className="mt-5"><Quiz documentId={document.id} flashcards={flashcards} openFromCards={openCardsQuiz} onAutoOpen={() => setOpenCardsQuiz(false)} /></div></section>
                     <section className="rounded-2xl border border-[var(--cd-line)] bg-white p-5 sm:p-6" aria-labelledby="document-slides-title"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff0e6] text-[var(--cd-brand)]"><Layers3 className="size-5" /></span><div><h3 id="document-slides-title" className="font-editorial text-2xl text-[var(--cd-ink)]">{t('slides')}</h3><p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('slidesDesc')}</p></div></div><div className="mt-5"><Slides documentId={document.id} documentContent={documentContent} documentName={document.file_name} /></div></section>
                   </div>
+                </section>}
+
+                {activeView === 'learn' && <section className="space-y-4">
+                  <h2 className="font-editorial text-3xl">{learnLabels[language]}</h2>
+                  <p className="text-base leading-7 text-[var(--cd-muted)]">{learningCopy[language === 'fr' ? 'fr' : 'en'].description}</p>
+                  <LearningWorkspace key={`${userId}:${document.id}:${language}`} userId={userId} documentId={document.id} documentName={document.file_name} onOpenSource={page => void openPdf(page)} />
                 </section>}
 
                 {activeView === 'chat' && <section className="space-y-4">

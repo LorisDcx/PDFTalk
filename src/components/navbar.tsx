@@ -17,6 +17,7 @@ import { freeFlashcardsPath } from '@/lib/curated-decks'
 import { medicalFlashcardsPath } from '@/lib/medical-decks'
 import { blogIndexPath } from '@/lib/blog-content'
 import { headerLabels } from '@/lib/header-labels'
+import { learnLabels } from '@/lib/learning-copy'
 
 const navigationCopy: Record<StudyPdfLocale, {
   free: string; pdf: string; explore: string; cards: string; freeCards: string; medicalCards: string; planner: string
@@ -149,6 +150,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   const cardsHref = freeFlashcardsPath(locale)
   const medicalHref = medicalFlashcardsPath(locale)
   const studyLinks: HeaderLink[] = [
+    { href: '/apprendre', label: learnLabels[locale] },
     { href: `${home}${locale === 'fr' ? '#produit' : '#studio'}`, label: labels.studio },
     { href: blogIndexPath(locale), label: labels.guides },
     { href: `${home}#pricing`, label: c.pricing },
@@ -164,6 +166,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
   const appLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { href: '/documents', label: t('documents'), icon: FolderOpen },
+    { href: '/apprendre', label: learnLabels[locale], icon: GraduationCap },
     { href: '/flashcards', label: t('flashcards'), icon: GraduationCap },
   ]
   const activePath = (href: string) => pathname === href || pathname.startsWith(`${href}/`)

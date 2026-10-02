@@ -64,7 +64,7 @@ export default function SignupClient() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: { name },
+          data: { name, onboarding_pending: true },
         },
       })
 

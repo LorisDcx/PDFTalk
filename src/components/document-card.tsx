@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, FileText, Loader2, Trash2 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import type { Document } from '@/types/database'
+import { learnLabels } from '@/lib/learning-copy'
 
 interface DocumentCardProps {
   document: Document
@@ -61,6 +62,8 @@ export function DocumentCard({ document, summaryPreview, onDelete }: DocumentCar
           <ArrowUpRight className="size-4 shrink-0 text-[#b84432] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
         </div>
       </Link>
+
+      {status === 'completed' && <Link href={`/documents/${document.id}?view=learn`} className="mt-3 inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-[var(--cd-line)] px-4 py-2 text-base font-semibold text-[var(--cd-brand)] hover:bg-[var(--cd-paper)]">{learnLabels[language]}<ArrowUpRight className="size-4" aria-hidden="true" /></Link>}
 
       {onDelete && (
         <button

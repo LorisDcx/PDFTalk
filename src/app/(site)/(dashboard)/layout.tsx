@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/navbar'
+import { WorkspaceOnboarding } from '@/components/workspace-onboarding'
 import type { Metadata } from 'next'
 import 'katex/dist/katex.min.css'
 
@@ -14,6 +15,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <WorkspaceOnboarding />
       <main className="flex-1">
         {children}
       </main>

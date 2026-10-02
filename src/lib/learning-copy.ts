@@ -1,0 +1,65 @@
+import { learningCost } from './learning-cost.ts'
+
+export const learnLabels = { fr: 'Apprendre', en: 'Learn', es: 'Aprender', de: 'Lernen', it: 'Imparare', pt: 'Aprender', zh: '学习', ja: '学ぶ', ar: 'تعلّم' } as const
+
+export const learningCopy = {
+  fr: {
+    title: 'Apprendre, étape par étape', description: 'Un cours construit pour toi, à partir d’un PDF ou d’un sujet précis. Comprends une idée, pratique, puis avance à ton rythme.',
+    source: 'Point de départ', subject: 'Un sujet libre', pdf: 'Un de mes PDF', choose: 'Choisir un PDF prêt à étudier', upload: 'Importer un PDF', noDocuments: 'Aucun PDF prêt pour le moment. Importe un document ou commence avec un sujet libre.', documentsError: 'La bibliothèque est indisponible. Réessaie pour retrouver tes PDF.', retry: 'Réessayer',
+    topic: 'Quel thème veux-tu comprendre ?', topicPlaceholder: 'Ex. les dérivées, la Révolution française, les bases de Python…',
+    level: 'Ton niveau sur ce thème', beginner: 'Je découvre', intermediate: 'J’ai quelques bases', advanced: 'Je veux approfondir',
+    goal: 'Qu’aimerais-tu savoir faire à la fin ?', goalPlaceholder: 'Ex. résoudre seul un exercice de dérivation.',
+    knowledge: 'Que sais-tu déjà ? Qu’est-ce qui te bloque ?', knowledgePlaceholder: 'Décris tes connaissances ou une question précise (facultatif).',
+    create: `Construire mon parcours · ${learningCost.plan} pages`, building: 'L’IA prépare ton programme…', loadingLesson: 'L’IA construit cette leçon à ton niveau…', thinking: 'Le tuteur examine ta demande…',
+    cost: `Quota partagé : programme ${learningCost.plan} pages, leçon ${learningCost.lesson}, réponse ou correction ${learningCost.coach}, audio IA ${learningCost.speech}, dictée ${learningCost.transcription}. Relire et écouter avec le navigateur est gratuit. Rejouer un audio déjà chargé est gratuit jusqu’à la fermeture de cette leçon.`,
+    local: 'Le parcours et ta progression sont conservés dans ce navigateur, pour ton compte. Ils ne sont pas synchronisés entre appareils.', saveError: 'La sauvegarde dans ce navigateur a échoué. Exporte ton parcours pour garder ton travail.',
+    program: 'Ton programme', step: 'Étape', completed: 'validée', done: 'Parcours terminé', congratulations: 'Tu as validé toutes les étapes. Tu peux revenir sur chaque leçon et poursuivre avec un nouveau thème.',
+    start: `Créer cette leçon · ${learningCost.lesson} pages`, continue: 'Étape suivante', previous: 'Étape précédente', locked: 'Valide l’étape précédente pour continuer.', emptyLesson: 'Cette étape t’attend. La leçon sera adaptée à ton profil et aux difficultés rencontrées jusque-là.',
+    questions: 'À toi de vérifier ta compréhension', answer: 'Tes réponses', answerPlaceholder: 'Réponds aux questions avec tes propres mots. Tu peux numéroter tes réponses.', evaluate: `Faire corriger mes réponses · ${learningCost.coach} pages`,
+    ask: 'Une notion à éclaircir ?', askPlaceholder: 'Pose une question précise, demande un autre exemple ou une explication plus simple…', send: `Demander au tuteur · ${learningCost.coach} pages`,
+    passed: 'Compréhension validée. Tu peux passer à la suite.', sourceQuote: 'Extrait vérifié', sourceMissing: 'Cette leçon ne contient pas d’extrait vérifié. Reviens au PDF pour contrôler les points importants.', openPdf: 'Voir le PDF source',
+    export: 'Exporter mon parcours', newCourse: 'Nouveau parcours', replace: 'Créer un nouveau parcours remplacera celui enregistré pour cette source. Exporte-le si tu souhaites le conserver.', cancel: 'Revenir au parcours',
+    sourceUnavailable: 'Le texte source de ce PDF doit être actualisé. Ouvre le document et actualise ses notes avant de créer le cours.',
+    voice: 'Voix', listen: `Créer la lecture audio · ${learningCost.speech} pages`, audioLoading: 'La voix IA prépare la lecture…', aiVoice: 'Écouter et retenir · voix générée par IA', speed: 'Vitesse de lecture', download: 'Télécharger l’audio', audioError: 'La lecture audio est indisponible. Tu peux réessayer ; la leçon reste accessible.',
+    audioContent: 'Contenu de l’audio IA', audioLesson: 'Explication orale', audioSummary: 'Résumé à retenir', browserHint: 'Lecture intégrale avec la voix de ton navigateur, sans coût API. La prononciation des formules dépend du navigateur.', browserRead: 'Lire à voix haute · gratuit', browserError: 'Cette voix est indisponible dans ton navigateur. Essaie la voix IA ou un autre navigateur.', reading: 'Lecture en cours…', pause: 'Pause', resume: 'Reprendre', stop: 'Arrêter',
+    micStart: `Dicter ma question · ${learningCost.transcription} pages`, micHint: 'Conversation vocale : dicte jusqu’à 60 secondes, vérifie le texte puis envoie-le au tuteur. Tu pourras écouter sa réponse. Ton enregistrement est envoyé à OpenAI pour transcription ; CramDesk ne le conserve pas.', micStop: 'Terminer et transcrire', micCancel: 'Annuler sans envoyer', micRecording: 'Micro actif. Termine pour vérifier ta question.', micPermission: 'Autorise le microphone dans ton navigateur…', micLoading: 'Transcription de ta question…', micDenied: 'L’accès au micro est refusé. Autorise-le dans les réglages du site ou écris ta question.', micUnsupported: 'La dictée n’est pas disponible dans ce navigateur. Tu peux écrire ta question.', micEmpty: 'Aucune parole exploitable. Rapproche-toi du micro et réessaie, ou écris ta question.', micError: 'La transcription est indisponible. Réessaie ou écris ta question.', micReady: 'Question transcrite : vérifie le texte avant de l’envoyer.',
+    error: 'La génération est indisponible. Ton travail est conservé ; réessaie.', quota: 'Ton quota de pages est insuffisant pour cette génération.', expired: 'Ton essai ou ton abonnement a expiré.', service: 'Le service ou la base de données est indisponible. Réessaie plus tard.', unavailable: 'Ce PDF est indisponible ou son traitement n’est pas terminé. Vérifie-le dans tes documents.', invalid: 'Vérifie les champs du parcours puis réessaie.', login: 'Ta session a expiré. Reconnecte-toi pour continuer.', billing: 'Voir mon abonnement', signIn: 'Se reconnecter', loading: 'Chargement…',
+  },
+  en: {
+    title: 'Learn, step by step', description: 'A course built for you, from a PDF or a focused topic. Understand an idea, practise, then move on at your own pace.',
+    source: 'Starting point', subject: 'A topic of my choice', pdf: 'One of my PDFs', choose: 'Choose a PDF ready to study', upload: 'Upload a PDF', noDocuments: 'No PDF is ready yet. Upload a document or start with a topic of your choice.', documentsError: 'The library is unavailable. Try again to find your PDFs.', retry: 'Try again',
+    topic: 'Which topic do you want to understand?', topicPlaceholder: 'E.g. derivatives, the French Revolution, Python basics…',
+    level: 'Your level on this topic', beginner: 'I’m starting out', intermediate: 'I know the basics', advanced: 'I want to go deeper',
+    goal: 'What would you like to be able to do?', goalPlaceholder: 'E.g. solve a differentiation exercise on my own.',
+    knowledge: 'What do you already know? Where are you stuck?', knowledgePlaceholder: 'Describe your knowledge or a specific question (optional).',
+    create: `Build my learning path · ${learningCost.plan} pages`, building: 'AI is preparing your programme…', loadingLesson: 'AI is building this lesson for your level…', thinking: 'Your tutor is considering your request…',
+    cost: `Shared quota: programme ${learningCost.plan} pages, lesson ${learningCost.lesson}, answer or assessment ${learningCost.coach}, AI audio ${learningCost.speech}, dictation ${learningCost.transcription}. Rereading and browser speech are free. Replaying loaded audio is free until you close this lesson.`,
+    local: 'Your course and progress are saved in this browser for your account. They are not synced across devices.', saveError: 'Saving in this browser failed. Export your course to keep your work.',
+    program: 'Your programme', step: 'Step', completed: 'completed', done: 'Course completed', congratulations: 'You have completed every step. Revisit any lesson or continue with a new topic.',
+    start: `Create this lesson · ${learningCost.lesson} pages`, continue: 'Next step', previous: 'Previous step', locked: 'Complete the previous step to continue.', emptyLesson: 'This step is waiting for you. The lesson will adapt to your profile and the difficulties you have encountered so far.',
+    questions: 'Check your understanding', answer: 'Your answers', answerPlaceholder: 'Answer in your own words. You can number your answers.', evaluate: `Check my answers · ${learningCost.coach} pages`,
+    ask: 'Something to clarify?', askPlaceholder: 'Ask a specific question, request another example or a simpler explanation…', send: `Ask my tutor · ${learningCost.coach} pages`,
+    passed: 'Understanding confirmed. You can move on.', sourceQuote: 'Verified excerpt', sourceMissing: 'This lesson has no verified excerpt. Refer to the PDF to check important points.', openPdf: 'View source PDF',
+    export: 'Export my course', newCourse: 'New course', replace: 'Creating a new course replaces the one saved for this source. Export it if you want to keep it.', cancel: 'Return to course',
+    sourceUnavailable: 'The source text of this PDF needs updating. Open the document and refresh its study notes before creating the course.',
+    voice: 'Voice', listen: `Create audio reading · ${learningCost.speech} pages`, audioLoading: 'AI is preparing the audio…', aiVoice: 'Listen and remember · AI-generated voice', speed: 'Playback speed', download: 'Download audio', audioError: 'Audio is unavailable. Try again; your lesson is still available.',
+    audioContent: 'AI audio content', audioLesson: 'Spoken explanation', audioSummary: 'Key points summary', browserHint: 'Read the full text with your browser voice, without API costs. Formula pronunciation depends on your browser.', browserRead: 'Read aloud · free', browserError: 'Browser speech is unavailable. Try AI speech or another browser.', reading: 'Reading aloud…', pause: 'Pause', resume: 'Resume', stop: 'Stop',
+    micStart: `Dictate my question · ${learningCost.transcription} pages`, micHint: 'Voice conversation: dictate for up to 60 seconds, check the text and send it to your tutor, then listen to the answer. Your recording is sent to OpenAI for transcription; CramDesk does not store it.', micStop: 'Finish and transcribe', micCancel: 'Cancel without sending', micRecording: 'Microphone active. Finish to check your question.', micPermission: 'Allow microphone access in your browser…', micLoading: 'Transcribing your question…', micDenied: 'Microphone access denied. Enable it in site settings or type your question.', micUnsupported: 'Dictation is unavailable in this browser. Type your question instead.', micEmpty: 'No usable speech. Move closer to the microphone and retry, or type your question.', micError: 'Transcription is unavailable. Retry or type your question.', micReady: 'Question transcribed: check the text before sending.',
+    error: 'Generation is unavailable. Your work is saved; try again.', quota: 'Your page quota is insufficient for this generation.', expired: 'Your trial or subscription has expired.', service: 'The service or database is unavailable. Try again later.', unavailable: 'This PDF is unavailable or is still processing. Check it in your documents.', invalid: 'Check the course fields and try again.', login: 'Your session has expired. Sign in again to continue.', billing: 'View my subscription', signIn: 'Sign in again', loading: 'Loading…',
+  },
+} as const
+export type LearningCopy = { [K in keyof typeof learningCopy.fr]: string }
+
+export function learningError(code: string | null, copy: LearningCopy) {
+  if (['quota_exceeded', 'insufficient_pages', 'daily_limit_reached'].includes(code || '')) return copy.quota
+  if (['subscription_expired', 'access_expired'].includes(code || '')) return copy.expired
+  if (['service_unavailable', 'usage_charge_failed', 'database_schema_missing', 'usage_check_failed', 'profile_not_found'].includes(code || '')) return copy.service
+  if (code === 'document_unavailable') return copy.unavailable
+  if (code === 'source_unavailable') return copy.sourceUnavailable
+  if (code === 'invalid_request') return copy.invalid
+  if (code === 'unauthorized') return copy.login
+  if (['transcription_empty', 'invalid_audio'].includes(code || '')) return copy.micEmpty
+  if (code === 'transcription_unavailable') return copy.micError
+  if (code === 'speech_unavailable') return copy.audioError
+  return copy.error
+}

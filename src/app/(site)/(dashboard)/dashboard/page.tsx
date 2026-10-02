@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth-provider'
 import { FileUpload } from '@/components/file-upload'
 import { DocumentCard } from '@/components/document-card'
 import { UsageCard } from '@/components/usage-card'
+import { WorkspaceTutorialButton } from '@/components/workspace-onboarding'
 import { useToast } from '@/components/ui/use-toast'
 import { isSameUtcDay, isTrialExpired } from '@/lib/utils'
 import { getPlanLimits } from '@/lib/plans'
@@ -349,6 +350,14 @@ export default function DashboardPage() {
             {t('myDocuments')} <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </header>
+
+        <section className="mb-8 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-[var(--cd-paper)] p-5 sm:p-7" aria-labelledby="learn-entry-title">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-2xl"><h2 id="learn-entry-title" className="font-editorial text-3xl">{language === 'fr' ? 'Un cours qui t’aide à comprendre' : 'A course that helps you understand'}</h2><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{language === 'fr' ? 'Choisis un PDF ou un sujet. Apprendre crée des leçons à ton niveau, te pose des questions et explique ce qui te bloque. Tu peux aussi écouter et parler au tuteur.' : 'Choose a PDF or a topic. Learn builds lessons at your level, asks questions and explains where you get stuck. You can also listen and speak to your tutor.'}</p></div>
+            <Link href="/apprendre" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--cd-brand)] px-5 py-3 text-base font-semibold text-white hover:bg-[var(--cd-brand-hover)]">{language === 'fr' ? 'Commencer à apprendre' : 'Start learning'}<ArrowRight className="size-5" aria-hidden="true" /></Link>
+          </div>
+          <div className="mt-3"><WorkspaceTutorialButton /></div>
+        </section>
 
         {showTrialExpired && (
           <div role="alert" className="mb-6 flex flex-col gap-4 rounded-[22px] border border-[#edc5c0] bg-[#fff2f0] p-5 sm:flex-row sm:items-center sm:justify-between">
