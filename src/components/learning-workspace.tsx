@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, BookOpenText, CheckCircle2, Download, Loader2 } from 'lucide-react'
+import { ArrowRight, BookOpenText, CheckCircle2, ChevronDown, Download, Loader2, MessageCircle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
@@ -18,6 +18,9 @@ import { learningSessionSchema, learningPlanSchema, learningLessonSchema, learni
 
 const fieldClass = 'mt-2 block min-h-11 w-full rounded-[var(--cd-radius-control)] border border-[var(--cd-line)] bg-white px-3 py-3 text-base text-[var(--cd-ink)]'
 const actionClass = 'min-h-11 h-auto whitespace-normal bg-[var(--cd-brand)] px-5 py-3 text-base text-white hover:bg-[var(--cd-brand-hover)]'
+
+// Saved model titles may already include their step number.
+function stepTitle(title: string) { return title.replace(/^\s*(?:étape\s+|step\s+)?\d+\s*[.):\-–]\s+/i, '') }
 
 function Markdown({ children }: { children: string }) {
   return <div className="study-chat-answer min-w-0 break-words text-base leading-8"><ReactMarkdown components={{ h1: props => <h4 className="mb-3 mt-5 text-lg font-bold">{props.children}</h4> }} remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { trust: false, strict: 'ignore', throwOnError: false }]]}>{children}</ReactMarkdown></div>
@@ -35,12 +38,19 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
   const [pending, setPending] = useState<LearningRequest['action'] | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
   const [voiceReady, setVoiceReady] = useState(false)
+  const [programOpen, setProgramOpen] = useState(false)
+  const programId = useId()
+  const lessonId = useId()
+  const tutorId = useId()
   const [question, setQuestion] = useState('')
   const [errorCode, setErrorCode] = useState<string | null>(null)
+  const [errorAction, setErrorAction] = useState<LearningRequest['action'] | null>(null)
   const [saveFailed, setSaveFailed] = useState(false)
   const controllerRef = useRef<AbortController | null>(null)
   const busyRef = useRef(false)
   const lessonRef = useRef<HTMLElement>(null)
+  const tutorRef = useRef<HTMLElement>(null)
+  const conversationRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let active = true
@@ -71,6 +81,11 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
     queueMicrotask(() => setSaveFailed(failed))
   }, [ready, session, storageKey])
 
+  const conversation = session?.conversations[session.activeStep]
+  useEffect(() => {
+    if (conversationRef.current) conversationRef.current.scrollTop = conversationRef.current.scrollHeight
+  }, [conversation])
+
   const refreshUsage = () => { void refreshProfile().catch(() => {}) }
   const request = async (input: LearningRequest) => {
     if (busyRef.current) return null
@@ -79,6 +94,7 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
     controllerRef.current = controller
     setPending(input.action)
     setErrorCode(null)
+    setErrorAction(input.action)
     try {
       const response = await fetch('/api/learn', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -130,11 +146,13 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
         adaptation: mode === 'evaluate' ? data.answer : previous.adaptation }
     })
     if (mode === 'question') { setQuestion(''); setVoiceReady(false) }
+    else requestAnimationFrame(() => tutorRef.current?.focus())
   }
   const selectStep = (index: number) => {
     if (!session || pending || voiceBusy || (index > 0 && !session.completed.includes(index - 1))) return
     setSession({ ...session, activeStep: index })
     setQuestion('')
+    setProgramOpen(false)
     setErrorCode(null)
     lessonRef.current?.focus()
   }
@@ -145,7 +163,7 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
       `${copy.topic}: ${session.profile.topic}\n${copy.goal}: ${session.profile.goal}\n${copy.level}: ${copy[session.profile.level]}`,
       ...session.plan.steps.map((step, index) => {
         const lesson = session.lessons[index]
-        return [`## ${index + 1}. ${step.title}`, step.objective, lesson?.content || '',
+        return [`## ${index + 1}. ${stepTitle(step.title)}`, step.objective, lesson?.content || '',
           lesson?.source ? `> ${lesson.source.quote}${lesson.source.page ? ` (p. ${lesson.source.page})` : ''}` : '',
           lesson ? `### ${copy.questions}\n${lesson.questions.map((item, i) => `${i + 1}. ${item}`).join('\n')}` : '',
           session.answers[index] ? `### ${copy.answer}\n${session.answers[index]}` : '',
@@ -172,10 +190,10 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
     {errorCode === 'source_unavailable' && documentId && <Link href={`/documents/${documentId}`} className="mt-2 inline-flex min-h-11 items-center font-semibold underline">{copy.openPdf}</Link>}
   </div> : null
 
-  return <div className="space-y-6 text-[var(--cd-ink)]">
+  return <div className="learning-workspace space-y-6 text-[var(--cd-ink)]">
     <p className="text-base leading-7 text-[var(--cd-muted)]">{copy.local}</p>
     {saveFailed && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-base text-red-900">{copy.saveError}</p>}
-    {(!session || editing) ? <form onSubmit={event => { event.preventDefault(); void createPlan() }} className="space-y-5 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-white p-5 sm:p-8">
+    {(!session || editing) ? <form onSubmit={event => { event.preventDefault(); void createPlan() }} className="max-w-4xl space-y-5 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-white p-5 sm:p-8">
       {session && <div className="space-y-3"><p className="text-base leading-7">{copy.replace}</p><Button type="button" variant="outline" className="min-h-11" disabled={(!!pending || voiceBusy)} onClick={() => exportCourse()}>{copy.export}</Button></div>}
       {documentName && <p className="flex items-center gap-2 break-words text-base text-[var(--cd-muted)]"><BookOpenText className="size-5 shrink-0" aria-hidden="true" />{documentName}</p>}
       <fieldset disabled={(!!pending || voiceBusy)} className="space-y-5 disabled:opacity-70">
@@ -192,50 +210,62 @@ export function LearningWorkspace({ userId, documentId = null, documentName, onO
         <h2 className="break-words font-editorial text-3xl">{session.plan.title}</h2>
         <p className="max-w-3xl text-base leading-7 text-[var(--cd-muted)]">{session.plan.introduction}</p>
         <div className="flex flex-wrap gap-3"><Button type="button" variant="outline" onClick={() => exportCourse()} className="min-h-11 h-auto gap-2 whitespace-normal"><Download className="size-4 shrink-0" aria-hidden="true" />{copy.export}</Button><Button type="button" variant="ghost" className="min-h-11" disabled={(!!pending || voiceBusy)} onClick={() => { setEditing(true); setErrorCode(null) }}>{copy.newCourse}</Button></div>
-        <p className="text-base text-[var(--cd-muted)]">{copy.cost}</p>
+        <details className="text-base text-[var(--cd-muted)]"><summary className="flex min-h-11 w-fit cursor-pointer items-center gap-2 font-semibold text-[var(--cd-ink)]">{copy.usageDetails}<ChevronDown className="size-4" aria-hidden="true" /></summary><p className="max-w-3xl pb-3 leading-7">{copy.cost}</p></details>
       </header>
       {session.completed.length === session.plan.steps.length && <div role="status" className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-900"><p className="font-semibold">{copy.done}</p><p className="mt-2 text-base leading-7">{copy.congratulations}</p></div>}
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
-        <nav aria-label={copy.program} className="min-w-0 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-[var(--cd-paper)] p-4 xl:self-start">
+      <div className="learning-grid grid min-w-0 items-start gap-6">
+        <nav aria-label={copy.program} className="learning-program min-w-0 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-[var(--cd-paper)] p-4">
           <h3 className="mb-3 font-editorial text-2xl">{copy.program}</h3>
           <p className="mb-4 text-base text-[var(--cd-muted)]">{session.completed.length} / {session.plan.steps.length} {copy.completed}</p>
-          <ol className="space-y-2">{session.plan.steps.map((step, index) => <li key={index}><button type="button" disabled={(!!pending || voiceBusy) || (index > 0 && !session.completed.includes(index - 1))} onClick={() => selectStep(index)} aria-current={session.activeStep === index ? 'step' : undefined} title={index > 0 && !session.completed.includes(index - 1) ? copy.locked : undefined} className={`flex min-h-11 w-full items-start gap-3 rounded-xl border p-3 text-left text-base disabled:opacity-60 ${session.activeStep === index ? 'border-[var(--cd-brand)] bg-white font-semibold text-[var(--cd-brand)]' : 'border-transparent hover:border-[var(--cd-line)]'}`}>
-            <span className="shrink-0">{session.completed.includes(index) ? <CheckCircle2 className="mt-1 size-5 text-green-700" aria-label={copy.completed} /> : `${index + 1}.`}</span><span className="min-w-0 break-words">{step.title}</span>
+          <button type="button" aria-expanded={programOpen} aria-controls={programId} onClick={() => setProgramOpen(value => !value)} className="learning-program-toggle flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-[var(--cd-line)] bg-white p-3 text-left text-base"><span>{copy.step} {session.activeStep + 1} · {programOpen ? copy.hideProgram : copy.showProgram}</span><ChevronDown className={`size-5 shrink-0 ${programOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></button>
+          <ol id={programId} className={`learning-program-list mt-3 space-y-2 ${programOpen ? 'block' : 'hidden'}`}>{session.plan.steps.map((step, index) => <li key={index}><button type="button" disabled={(!!pending || voiceBusy) || (index > 0 && !session.completed.includes(index - 1))} onClick={() => selectStep(index)} aria-current={session.activeStep === index ? 'step' : undefined} title={index > 0 && !session.completed.includes(index - 1) ? copy.locked : undefined} className={`flex min-h-11 w-full items-start gap-3 rounded-xl border p-3 text-left text-base disabled:opacity-60 ${session.activeStep === index ? 'border-[var(--cd-brand)] bg-white font-semibold text-[var(--cd-brand)]' : 'border-transparent hover:border-[var(--cd-line)]'}`}>
+            <span className="shrink-0">{session.completed.includes(index) ? <CheckCircle2 className="mt-1 size-5 text-green-700" aria-label={copy.completed} /> : `${index + 1}.`}</span><span className="min-w-0 break-words">{stepTitle(step.title)}</span>
           </button></li>)}</ol>
         </nav>
-        <section ref={lessonRef} tabIndex={-1} aria-label={`${copy.step} ${session.activeStep + 1}`} aria-busy={(!!pending || voiceBusy)} className="min-w-0 scroll-mt-24 space-y-6 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-white p-5 sm:p-8">
-          <header><p className="text-base font-semibold text-[var(--cd-brand)]">{copy.step} {session.activeStep + 1}</p><h3 className="mt-2 break-words font-editorial text-2xl sm:text-3xl">{currentStep?.title}</h3><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{currentStep?.objective}</p></header>
-          {error}
+        <section id={lessonId} ref={lessonRef} tabIndex={-1} aria-label={`${copy.step} ${session.activeStep + 1}`} aria-busy={!!pending} className="learning-lesson min-w-0 scroll-mt-24 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-white p-5 sm:p-8">
+          <div className="mx-auto max-w-[74ch] space-y-6">
+          <header><p className="text-base font-semibold text-[var(--cd-brand)]">{copy.step} {session.activeStep + 1}</p><h3 className="mt-2 break-words font-editorial text-2xl sm:text-3xl">{currentStep ? stepTitle(currentStep.title) : ''}</h3><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{currentStep?.objective}</p></header>
+          {lesson && <a href={`#${tutorId}`} className="learning-tutor-link inline-flex min-h-11 items-center gap-2 text-base font-semibold text-[var(--cd-brand)] underline"><MessageCircle className="size-4 shrink-0" aria-hidden="true" />{copy.tutorLink}</a>}
+          {errorAction !== 'coach' && error}
           {!lesson ? <div className="space-y-4"><p className="text-base leading-7">{copy.emptyLesson}</p><Button type="button" disabled={(!!pending || voiceBusy)} onClick={() => void createLesson()} className={`${actionClass} gap-2`}>{pending && <Loader2 className="size-5 shrink-0 animate-spin" aria-hidden="true" />}{pending ? copy.loadingLesson : copy.start}</Button></div> : <>
             <Markdown>{lesson.content}</Markdown>
             {documentId && <div className="space-y-2 rounded-xl border border-[var(--cd-line)] bg-[var(--cd-paper)] p-4">
               {lesson.source ? <><p className="text-base font-semibold">{copy.sourceQuote}{lesson.source.page ? ` · p. ${lesson.source.page}` : ''}</p><blockquote className="text-base leading-7">« {lesson.source.quote} »</blockquote></> : <p className="text-base leading-7 text-[var(--cd-muted)]">{copy.sourceMissing}</p>}
               {onOpenSource ? <Button type="button" variant="outline" className="min-h-11" onClick={() => onOpenSource(lesson.source?.page || undefined)}>{copy.openPdf}</Button> : <Link href={`/documents/${documentId}${lesson.source?.page ? `?page=${lesson.source.page}` : ''}`} className="inline-flex min-h-11 items-center font-semibold text-[var(--cd-brand)] underline">{copy.openPdf}</Link>}
             </div>}
-            <LearningAudio key={`${session.activeStep}:${lesson.narration}`} text={lesson.narration} summary={lesson.audioSummary} fullText={lesson.content} language={language} copy={copy} onUsage={refreshUsage} />
             <form onSubmit={event => { event.preventDefault(); void coach('evaluate') }} className="space-y-4 border-t border-[var(--cd-line)] pt-6">
               <h4 className="font-editorial text-2xl">{copy.questions}</h4>
               <ol className="list-decimal space-y-3 ps-6">{lesson.questions.map((item, index) => <li key={index}><Markdown>{item}</Markdown></li>)}</ol>
               <label className="block text-base font-semibold">{copy.answer}<textarea required rows={4} maxLength={3000} value={session.answers[session.activeStep] || ''} disabled={(!!pending || voiceBusy)} onChange={event => setSession({ ...session, answers: { ...session.answers, [session.activeStep]: event.target.value } })} placeholder={copy.answerPlaceholder} className={fieldClass} /></label>
               <Button type="submit" disabled={(!!pending || voiceBusy) || !(session.answers[session.activeStep] || '').trim()} className={actionClass}>{copy.evaluate}</Button>
+              <p className="text-base leading-7 text-[var(--cd-muted)]">{copy.correctionHint}</p>
               {completed && <p role="status" className="flex items-start gap-2 text-base leading-7 text-green-800"><CheckCircle2 className="mt-1 size-5 shrink-0" aria-hidden="true" />{copy.passed}</p>}
-            </form>
-            <div className="space-y-4 border-t border-[var(--cd-line)] pt-6" aria-live="polite" aria-relevant="additions">
-              {(session.conversations[session.activeStep] || []).map((message, index) => <div key={`${index}:${message.role}:${message.content}`} className={`rounded-xl p-4 ${message.role === 'user' ? 'border border-[var(--cd-line)] bg-[var(--cd-paper)]' : 'bg-white'}`}><Markdown>{message.content}</Markdown>{message.role === 'assistant' && <LearningAudio text={message.narration || spokenText(message.content)} fullText={message.content} language={language} copy={copy} onUsage={refreshUsage} />}</div>)}
-              {pending === 'coach' && <p role="status" className="flex items-center gap-2 text-base text-[var(--cd-muted)]"><Loader2 className="size-5 animate-spin" aria-hidden="true" />{copy.thinking}</p>}
-            </div>
-            <form onSubmit={event => { event.preventDefault(); void coach('question') }} className="space-y-3">
-              <label className="block text-base font-semibold">{copy.ask}<textarea required value={question} disabled={(!!pending || voiceBusy)} onChange={event => setQuestion(event.target.value)} rows={2} maxLength={3000} className={fieldClass} placeholder={copy.askPlaceholder} /></label>
-              <LearningMicrophone key={session.activeStep} copy={copy} disabled={!!pending} onBusy={setVoiceBusy} onUsage={refreshUsage} onText={text => { setQuestion(text); setVoiceReady(true) }} />
-              {voiceReady && <p role="status" className="text-base text-green-800">{copy.micReady}</p>}
-              <Button type="submit" variant="outline" disabled={(!!pending || voiceBusy) || !question.trim()} className="min-h-11 h-auto whitespace-normal text-base">{copy.send}</Button>
             </form>
           </>}
           <div className="flex flex-wrap justify-between gap-3 border-t border-[var(--cd-line)] pt-5">
             {session.activeStep > 0 && <Button type="button" variant="outline" className="min-h-11 h-auto whitespace-normal" disabled={(!!pending || voiceBusy)} onClick={() => selectStep(session.activeStep - 1)}>{copy.previous}</Button>}
             {session.activeStep < session.plan.steps.length - 1 && <Button type="button" disabled={(!!pending || voiceBusy) || !completed} onClick={() => selectStep(session.activeStep + 1)} title={!completed ? copy.locked : undefined} className={`${actionClass} ms-auto gap-2`}>{copy.continue}<ArrowRight className="size-4 shrink-0" aria-hidden="true" /></Button>}
           </div>
+          </div>
         </section>
+        <aside id={tutorId} ref={tutorRef} tabIndex={-1} aria-label={copy.tutor} className="learning-tutor min-w-0 scroll-mt-24 space-y-5 rounded-[var(--cd-radius-panel)] border border-[var(--cd-line)] bg-white p-5">
+          <header><h3 className="flex items-center gap-2 font-editorial text-2xl"><MessageCircle className="size-5 shrink-0 text-[var(--cd-brand)]" aria-hidden="true" />{copy.tutor}</h3><p className="mt-3 text-base leading-7 text-[var(--cd-muted)]">{copy.tutorHint}</p></header>
+          {!lesson ? <p className="rounded-xl bg-[var(--cd-paper)] p-4 text-base leading-7 text-[var(--cd-muted)]">{copy.tutorEmpty}</p> : <>
+            <a href={`#${lessonId}`} className="learning-tutor-link inline-flex min-h-11 items-center text-base font-semibold text-[var(--cd-brand)] underline">{copy.returnLesson}</a>
+            <details className="rounded-xl border border-[var(--cd-line)]"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 p-3 text-base font-semibold">{copy.audioTools}<ChevronDown className="size-4 shrink-0" aria-hidden="true" /></summary><div className="px-3 pb-3"><LearningAudio key={`${session.activeStep}:${lesson.narration}`} text={lesson.narration} summary={lesson.audioSummary} fullText={lesson.content} language={language} copy={copy} onUsage={refreshUsage} /></div></details>
+            {errorAction === 'coach' && error}
+            {(!!conversation?.length || pending === 'coach') && <div ref={conversationRef} className="max-h-96 space-y-4 overflow-y-auto border-y border-[var(--cd-line)] py-4" aria-live="polite" aria-relevant="additions">
+              {(conversation || []).map((message, index) => <div key={`${index}:${message.role}:${message.content}`} className={`min-w-0 rounded-xl p-3 ${message.role === 'user' ? 'border border-[var(--cd-line)] bg-[var(--cd-paper)]' : 'bg-white'}`}><Markdown>{message.content}</Markdown>{message.role === 'assistant' && <LearningAudio text={message.narration || spokenText(message.content)} fullText={message.content} language={language} copy={copy} onUsage={refreshUsage} />}</div>)}
+              {pending === 'coach' && <p role="status" className="flex items-center gap-2 text-base text-[var(--cd-muted)]"><Loader2 className="size-5 shrink-0 animate-spin" aria-hidden="true" />{copy.thinking}</p>}
+            </div>}
+            <form onSubmit={event => { event.preventDefault(); void coach('question') }} className="space-y-3">
+              <label className="block text-base font-semibold">{copy.ask}<textarea required value={question} disabled={(!!pending || voiceBusy)} onChange={event => setQuestion(event.target.value)} rows={3} maxLength={3000} className={fieldClass} placeholder={copy.askPlaceholder} /></label>
+              <LearningMicrophone key={session.activeStep} copy={copy} disabled={!!pending} onBusy={setVoiceBusy} onUsage={refreshUsage} onText={text => { setQuestion(text); setVoiceReady(true) }} />
+              {voiceReady && <p role="status" className="text-base text-green-800">{copy.micReady}</p>}
+              <Button type="submit" variant="outline" disabled={(!!pending || voiceBusy) || !question.trim()} className="min-h-11 h-auto w-full whitespace-normal text-base">{copy.send}</Button>
+            </form>
+          </>}
+        </aside>
       </div>
     </>}
   </div>

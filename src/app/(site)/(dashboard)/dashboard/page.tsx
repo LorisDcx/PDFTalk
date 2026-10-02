@@ -317,7 +317,7 @@ export default function DashboardPage() {
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-[#faf7f5] px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl animate-pulse">
+        <div className="w-full animate-pulse">
           <Skeleton className="mb-3 h-3 w-24 rounded-full" />
           <Skeleton className="h-12 w-64 rounded-xl" />
           <Skeleton className="mt-4 h-5 w-80 max-w-full rounded-lg" />
@@ -339,7 +339,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#faf7f5] px-4 pb-20 pt-9 text-[#33252b] sm:px-6 sm:pt-12 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <header className="mb-8 flex flex-col justify-between gap-5 sm:mb-10 sm:flex-row sm:items-end">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#bc6b50]">{t('dashboard')}</p>

@@ -50,7 +50,7 @@ function LearnContent() {
   if (isLoading || !user) return <div role="status" className="flex min-h-[60vh] items-center justify-center gap-2"><Loader2 className="size-6 animate-spin" /><span suppressHydrationWarning>{copy.loading}</span></div>
   const document = documents.find(item => item.id === selectedDocument)
   return <div className="min-h-[calc(100vh-4rem)] bg-[var(--cd-paper)] px-4 py-8 text-[var(--cd-ink)] sm:px-8 sm:py-12">
-    <div className="mx-auto max-w-[1280px] space-y-8">
+    <div className="w-full space-y-8">
       <header className="max-w-3xl"><h1 className="font-editorial text-4xl sm:text-5xl">{copy.title}</h1><p className="mt-4 text-base leading-7 text-[var(--cd-muted)]">{copy.description}</p></header>
       <section className="space-y-4 border-y border-[var(--cd-line)] py-6" aria-label={copy.source}>
         <fieldset className="flex flex-wrap gap-4"><legend className="mb-3 text-base font-semibold">{copy.source}</legend>{(['topic', 'pdf'] as const).map(mode => <label key={mode} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-[var(--cd-line)] bg-white px-4 py-3 text-base"><input type="radio" name="learning-source" checked={sourceMode === mode} onChange={() => setSourceMode(mode)} className="size-4 accent-[var(--cd-brand)]" />{mode === 'topic' ? copy.subject : copy.pdf}</label>)}</fieldset>

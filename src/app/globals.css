@@ -627,3 +627,25 @@ details[open] > :not(summary) { animation: cd-detail-enter 180ms ease-out both; 
 .study-chat-answer th, .study-chat-answer td { min-width: 5rem; border: 1px solid var(--cd-line); padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; }
 .study-chat-answer th { background: #eee8e2; font-weight: 700; }
 .study-chat-answer hr { margin: 1.5rem 0; border-color: var(--cd-line); }
+
+/* Use the available study width, including when the source PDF or library
+   takes up part of the screen. Keep the lesson itself comfortable to read. */
+.learning-workspace { container: learning / inline-size; }
+.learning-grid { grid-template-columns: minmax(0, 1fr); }
+.learning-program, .learning-tutor { overflow-wrap: anywhere; }
+.document-library-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+
+@container learning (min-width: 880px) {
+  .learning-grid { grid-template-columns: 240px minmax(0, 1fr); }
+  .learning-program { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 88px; max-height: calc(100dvh - 112px); overflow-y: auto; }
+  .learning-program-toggle { display: none; }
+  .learning-program-list { display: block; }
+  .learning-lesson, .learning-tutor { grid-column: 2; }
+}
+
+@container learning (min-width: 1180px) {
+  .learning-grid { grid-template-columns: clamp(220px, 16cqw, 300px) minmax(0, 1fr) clamp(320px, 23cqw, 400px); }
+  .learning-program { grid-row: 1; }
+  .learning-tutor-link { display: none; }
+  .learning-tutor { grid-column: 3; grid-row: 1; position: sticky; top: 88px; max-height: calc(100dvh - 112px); overflow-y: auto; }
+}

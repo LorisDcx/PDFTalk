@@ -10,7 +10,7 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 | --- | --- |
 | Couleur | Utiliser les variables `--cd-*` de `src/app/globals.css`. Orange rouge pour une action primaire ou un état actif ; jamais comme simple décoration répétée. Vert seulement pour un succès, rouge d'alerte pour une erreur. Un statut a aussi un libellé. |
 | Typographie | Serif éditorial pour les titres et chiffres forts ; sans serif pour consignes, données et contrôles. Un seul `h1` par page. Texte courant de 16 px minimum sur mobile, largeur de lecture autour de 65–75 caractères. |
-| Grille | Contenu public limité à 1152 px ; produit limité à 1280 px. Espacements issus de 4, 8, 12, 16, 24, 32, 48, 64 px. Aligner titres, champs et actions sur la même grille. |
+| Grille | Contenu public limité à 1152 px ; espace étudiant fluide sur la largeur disponible, avec 16 px de marge mobile et 32 px desktop. Utiliser les panneaux latéraux pour programme, professeur et sources ; limiter le texte de lecture à 65–75 caractères. La disposition dépend de la largeur disponible dans le panneau, même avec un PDF ouvert. Espacements issus de 4, 8, 12, 16, 24, 32, 48, 64 px. Aligner titres, champs et actions sur la même grille. |
 | Surfaces | Blanc/papier en base ; une seule surface dominante par zone. Coins de 12 px pour les contrôles et 24 px pour un panneau principal. Les bordures séparent ; les ombres sont rares et discrètes. |
 | Mouvement | Animer uniquement une relation de cause à effet, en priorité `opacity` et `transform`. Respecter `prefers-reduced-motion`. Pas d'éléments flottants ou de halos sur chaque section. |
 
@@ -38,7 +38,7 @@ CramDesk est un **atelier de révision éditorial**, pas une vitrine de fonction
 ## Accessibilité et contrôle qualité
 
 - Navigation clavier complète, focus visible, intitulés explicites et ordre de lecture logique. Cible tactile d'au moins 44 px sur mobile ; aucune action fondée uniquement sur la couleur. Contraste de texte au niveau WCAG 2.2 AA et zoom navigateur préservé.
-- Vérifier les largeurs 375 px, 768 px et 1280 px avec textes longs, jeu de données vide et documents nombreux. Aucun débordement horizontal, aucune action masquée par l'en-tête fixe.
+- Vérifier les largeurs 375 px, 768 px, 1280 px et 1904 px avec textes longs, jeu de données vide et documents nombreux. Aucun débordement horizontal, aucune action masquée par l'en-tête fixe. Sur mobile, le programme est repliable ; sur écran large, programme, leçon et professeur restent accessibles côte à côte.
 - Tester avant livraison : première visite, retour après connexion, essai expiré, quota atteint, panne de service, PDF refusé, génération lente et erreur IA. Une erreur doit nommer la cause connue et une suite possible.
 - Revoir le visuel sans effets : si la hiérarchie ne fonctionne plus après retrait des halos, ombres et pastilles, corriger la composition et la typographie.
 

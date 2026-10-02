@@ -78,7 +78,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-[#faf7f5] px-4 pb-20 pt-9 text-[#33252b] sm:px-6 sm:pt-12 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#bc6b50]">{t('documents')}</p>
@@ -111,11 +111,11 @@ export default function DocumentsPage() {
 
         <section aria-label={t('myDocuments')} aria-live="polite" className="mt-7">
           {loading ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="document-library-grid grid gap-4">
               {Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} className="h-[194px] rounded-[24px]" />)}
             </div>
           ) : documents.length ? (
-            <div className="grid gap-4 md:grid-cols-2">{documents.map(doc => <DocumentCard key={doc.id} document={doc} onDelete={handleDelete} />)}</div>
+            <div className="document-library-grid grid gap-4">{documents.map(doc => <DocumentCard key={doc.id} document={doc} onDelete={handleDelete} />)}</div>
           ) : (
             <div className="flex flex-col items-center rounded-[28px] border border-dashed border-[#e3cbbf] bg-white px-5 py-16 text-center">
               <span className="mb-5 flex size-16 items-center justify-center rounded-[22px] bg-[#f3eaf0] text-[#b84432]"><FileText className="size-7" strokeWidth={1.5} aria-hidden="true" /></span>

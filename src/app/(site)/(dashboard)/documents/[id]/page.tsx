@@ -328,7 +328,7 @@ export default function DocumentPage() {
 
       <div className="min-w-0 flex-1">
         <header className="border-b border-[#e8dedb] bg-white px-4 py-5 sm:px-8 sm:py-6">
-          <div className={`mx-auto ${pdfVisible ? 'max-w-[1600px]' : 'max-w-[1060px]'}`}>
+          <div className="w-full">
             <div className="mb-4 flex items-center gap-2 text-sm text-[#786d72]">
               <button type="button" className="rounded-lg p-2 text-[#5d4256] hover:bg-[#f0e8e9] lg:hidden" onClick={() => setMobileLibraryOpen(true)} aria-label={t('myDocuments')}>
                 <Menu className="size-5" />
@@ -385,7 +385,7 @@ export default function DocumentPage() {
               <button type="button" onClick={() => setMobilePane('pdf')} aria-pressed={mobilePane === 'pdf'} className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-semibold ${mobilePane === 'pdf' ? 'bg-white text-[var(--cd-ink)] shadow-sm' : 'text-[var(--cd-muted)]'}`}>{pdfCopy.pdf}</button>
             </div>
           </div>
-          <div ref={workspaceRef} className={pdfVisible ? 'mx-auto flex min-w-0 max-w-[1600px] items-start' : 'mx-auto max-w-[1060px]'} style={{ '--document-pdf-width': `${pdfPaneWidth}px` } as React.CSSProperties}>
+          <div ref={workspaceRef} className={pdfVisible ? 'flex w-full min-w-0 items-start' : 'w-full min-w-0'} style={{ '--document-pdf-width': `${pdfPaneWidth}px` } as React.CSSProperties}>
             <div className={`${pdfVisible ? (mobilePane === 'pdf' ? 'hidden md:block' : 'block') : 'block'} min-w-0 flex-1 px-4 pb-14 sm:px-8`}>
             <nav aria-label={t('documentAnalysis')} className="flex gap-1 overflow-x-auto border-b border-[#e8dedb]">
               {views.map(view => <button
