@@ -1,5 +1,7 @@
 'use client'
 
+import { authHref } from '@/lib/auth-navigation'
+
 import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone, type FileRejection } from 'react-dropzone'
@@ -78,7 +80,7 @@ export function DemoUpload({ locale = 'fr' }: { locale?: StudyPdfLocale }) {
         sessionStorage.setItem('processPendingDocument', 'true')
         router.push('/dashboard')
       } else {
-        router.push('/signup?demo=true')
+        router.push(authHref('/signup?demo=true', locale))
       }
     } catch {
       toast({ title: t('uploadError'), description: t('unexpectedError'), variant: 'destructive' })

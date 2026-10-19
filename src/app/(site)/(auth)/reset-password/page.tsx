@@ -6,9 +6,10 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, LockKeyhole } from 'lucid
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n'
+import { authHref } from '@/lib/auth-navigation'
 import { AuthFrame } from '../auth-frame'
 import { getAuthCopy } from '../auth-copy'
-import { PasswordField, authButtonClass } from '../form-parts'
+import { PasswordField, authButtonClass, authTitleClass } from '../form-parts'
 
 type ResetState = 'checking' | 'ready' | 'invalid' | 'updated'
 
@@ -68,16 +69,16 @@ export default function ResetPasswordPage() {
       {state === 'invalid' && (
         <div role="alert">
           <div className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-[#f7e8ed] text-[#9f5365]"><LockKeyhole className="size-7" aria-hidden="true" /></div>
-          <h2 className="font-editorial text-[clamp(2.4rem,3.5vw,3.45rem)] leading-[1.08] tracking-[-.045em]">{copy.invalidTitle}</h2>
+          <h1 className={authTitleClass}>{copy.invalidTitle}</h1>
           <p className="mt-4 text-sm leading-7 text-[#817480]">{copy.invalidDescription}</p>
-          <Button asChild className={`mt-7 ${authButtonClass}`}><Link href="/forgot-password">{copy.requestNewLink}<ArrowRight className="ms-2 size-4" aria-hidden="true" /></Link></Button>
+          <Button asChild className={`mt-7 ${authButtonClass}`}><Link href={authHref('/forgot-password', language)}>{copy.requestNewLink}<ArrowRight className="ms-2 size-4" aria-hidden="true" /></Link></Button>
         </div>
       )}
 
       {state === 'updated' && (
         <div role="status">
           <div className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-[#e9f3e9] text-[#3b8662]"><CheckCircle2 className="size-7" aria-hidden="true" /></div>
-          <h2 className="font-editorial text-[clamp(2.4rem,3.5vw,3.45rem)] leading-[1.08] tracking-[-.045em]">{copy.updatedTitle}</h2>
+          <h1 className={authTitleClass}>{copy.updatedTitle}</h1>
           <p className="mt-4 text-sm leading-7 text-[#817480]">{copy.updatedDescription}</p>
           <Button asChild className={`mt-7 ${authButtonClass}`}><Link href="/dashboard">{t('dashboard')}<ArrowRight className="ms-2 size-4" aria-hidden="true" /></Link></Button>
         </div>
@@ -85,13 +86,13 @@ export default function ResetPasswordPage() {
 
       {state === 'ready' && (
         <>
-          <Link href="/login" className="mb-7 inline-flex items-center gap-2 rounded-full text-xs font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]"><ArrowLeft className="size-4" aria-hidden="true" />{copy.backToLogin}</Link>
-          <div className="mb-8">
+          <Link href={authHref('/login', language)} className="mb-2 inline-flex min-h-11 items-center gap-2 rounded-xl text-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]"><ArrowLeft className="size-4" aria-hidden="true" />{copy.backToLogin}</Link>
+          <div className="mb-4">
             <span className="inline-flex rounded-full bg-[#ffe9df] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.16em] text-[#ae4731]">{copy.forgotLink}</span>
-            <h2 className="font-editorial mt-5 text-[clamp(2.4rem,3.5vw,3.45rem)] leading-[1.08] tracking-[-.045em]">{copy.resetTitle}</h2>
-            <p className="mt-3 text-sm leading-7 text-[#817480]">{copy.resetDescription}</p>
+            <h1 className={authTitleClass}>{copy.resetTitle}</h1>
+            <p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{copy.resetDescription}</p>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <PasswordField id="new-password" label={copy.newPassword} value={password} onChange={setPassword} autoComplete="new-password" minLength={8} disabled={isSaving} />
             <PasswordField id="confirm-password" label={copy.confirmPassword} value={confirmation} onChange={setConfirmation} autoComplete="new-password" minLength={8} disabled={isSaving} />
             {formError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</p>}

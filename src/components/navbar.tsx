@@ -1,5 +1,7 @@
 'use client'
 
+import { authHref } from '@/lib/auth-navigation'
+
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -246,8 +248,8 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
             </DropdownMenuContent>
           </DropdownMenu>
         </> : <>
-          <Link href="/login" className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm font-semibold text-[var(--cd-ink)] hover:text-[var(--cd-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] xl:inline-flex">{c.login}</Link>
-          <Link href="/signup" title={c.trial} className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[var(--cd-brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--cd-brand-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] focus-visible:ring-offset-2">{labels.trial}</Link>
+          <Link href={authHref('/login', locale)} className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm font-semibold text-[var(--cd-ink)] hover:text-[var(--cd-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] xl:inline-flex">{c.login}</Link>
+          <Link href={authHref('/signup', locale)} title={c.trial} className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[var(--cd-brand)] px-4 text-sm font-semibold text-white hover:bg-[var(--cd-brand-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] focus-visible:ring-offset-2">{labels.trial}</Link>
         </>}
         <button ref={menuButtonRef} type="button" aria-label={menuOpen ? c.close : c.open} aria-expanded={menuOpen} aria-controls="main-mobile-menu" onClick={() => setMenuOpen(value => !value)} className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-[var(--cd-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cd-brand)] xl:hidden">{menuOpen ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}</button>
       </div>
@@ -263,7 +265,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
           <MobileGroup label={c.free} links={freeLinks} onNavigate={closeMenu} />
         </nav>
         <div className="mt-3 flex min-h-12 items-center justify-between gap-3 px-2"><span className="text-sm text-[var(--cd-muted)]">{c.language}</span><LanguageSelector currentLocale={publicLocale} label={c.language} onLocaleChange={closeMenu} /></div>
-        {!user && <Link href="/login" onClick={closeMenu} className="mt-2 flex min-h-11 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-ink)]">{c.login}</Link>}
+        {!user && <Link href={authHref('/login', locale)} onClick={closeMenu} className="mt-2 flex min-h-11 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-ink)]">{c.login}</Link>}
       </div>
     </div>}
   </header>

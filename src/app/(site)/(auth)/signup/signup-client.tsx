@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowRight, Check, CheckCircle2, FileText, Loader2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FileText, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,9 +12,10 @@ import { getAuthErrorMessage, withAuthTimeout } from '@/lib/supabase/auth-reques
 import { useToast } from '@/components/ui/use-toast'
 import { formatFileSize } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n'
+import { authHref } from '@/lib/auth-navigation'
 import { AuthFrame } from '../auth-frame'
 import { getAuthCopy } from '../auth-copy'
-import { PasswordField, authButtonClass, authInputClass } from '../form-parts'
+import { PasswordField, authButtonClass, authInputClass, authTitleClass } from '../form-parts'
 
 interface PendingDocument {
   name: string
@@ -110,11 +111,11 @@ export default function SignupClient() {
     return (
       <AuthFrame>
         <div className="mb-6 flex size-14 items-center justify-center rounded-2xl bg-[#e9f3e9] text-[#3b8662]"><CheckCircle2 className="size-7" aria-hidden="true" /></div>
-        <h2 className="font-editorial text-[clamp(2.4rem,3.5vw,3.45rem)] leading-[1.08] tracking-[-.045em]">{t('confirmEmailTitle')}</h2>
+        <h1 className={authTitleClass}>{t('confirmEmailTitle')}</h1>
         <p className="mt-4 text-sm leading-7 text-[#817480]">{t('confirmEmailDesc')}</p>
         <p className="mt-5 break-all rounded-2xl border border-[#ead9cf] bg-[#fff5ee] px-4 py-3 text-sm font-semibold text-[#a84431]">{confirmationEmail}</p>
         {pendingDoc && <p className="mt-4 text-sm text-[#6f6170]">{t('documentReadyToAnalyze')} · {pendingDoc.name}</p>}
-        <Button asChild className={`mt-7 ${authButtonClass}`}><Link href="/login">{t('signIn')}<ArrowRight className="ms-2 size-4" aria-hidden="true" /></Link></Button>
+        <Button asChild className={`mt-7 ${authButtonClass}`}><Link href={authHref('/login', language)}>{t('signIn')}<ArrowRight className="ms-2 size-4" aria-hidden="true" /></Link></Button>
       </AuthFrame>
     )
   }
@@ -129,30 +130,25 @@ export default function SignupClient() {
         </div>
       )}
 
-      <div className="mb-7">
-        <span className="inline-flex rounded-full bg-[#ffe9df] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.16em] text-[#ae4731]">{t('freeTrial')}</span>
-        <h2 className="font-editorial mt-5 text-[clamp(2.35rem,3.5vw,3.35rem)] leading-[1.08] tracking-[-.045em] text-[#33252b]">{pendingDoc ? t('createYourAccount') : t('createMyAccount')}</h2>
-        <p className="mt-3 text-sm leading-6 text-[#817480]">{pendingDoc ? t('signupToSeeAnalysis') : t('trialDescription')}</p>
+      <div className="mb-3">
+        <h1 className={authTitleClass}>{pendingDoc ? t('createYourAccount') : t('createMyAccount')}</h1>
+        <p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{pendingDoc ? t('signupToSeeAnalysis') : t('trialDescription')}</p>
       </div>
 
-      <form onSubmit={handleSignup} className="space-y-4">
-        <div className="space-y-2">
+      <form onSubmit={handleSignup} className="space-y-2.5">
+        <div className="space-y-1">
           <Label htmlFor="signup-name" className="text-sm font-semibold text-[#51434e]">{t('name')}</Label>
           <Input id="signup-name" name="name" type="text" autoComplete="name" placeholder={t('yourName')} value={name} onChange={event => setName(event.target.value)} disabled={isLoading} className={authInputClass} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor="signup-email" className="text-sm font-semibold text-[#51434e]">{t('email')}</Label>
           <Input id="signup-email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={event => setEmail(event.target.value)} required disabled={isLoading} className={authInputClass} />
         </div>
         <PasswordField id="signup-password" label={t('password')} value={password} onChange={setPassword} autoComplete="new-password" minLength={8} hint={t('minCharacters')} disabled={isLoading} />
 
-        <div className="flex flex-wrap gap-2 pt-1 text-xs text-[#61725e]">
-          {[copy.benefitOne, copy.benefitTwo].map(item => <span key={item} className="inline-flex items-center gap-1.5 rounded-full bg-[#eef5e9] px-3 py-1.5"><Check className="size-3.5" aria-hidden="true" />{item}</span>)}
-        </div>
-
-        <div className="flex items-start gap-3 pt-1">
+        <div className="flex items-start gap-2">
           <input id="signup-terms" name="terms" type="checkbox" checked={acceptedTerms} onChange={event => setAcceptedTerms(event.target.checked)} required disabled={isLoading} className="mt-1 size-4 shrink-0 rounded border-[#bdaaba] accent-[#a84431] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]" />
-          <label htmlFor="signup-terms" className="text-xs leading-5 text-[#817480]">
+          <label htmlFor="signup-terms" className="text-sm leading-5 text-[var(--cd-muted)]">
             {copy.acceptTerms}{' '}
             <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#ae4731] underline-offset-4 hover:underline">{copy.terms}</Link>{' '}
             {copy.and}{' '}
@@ -167,9 +163,9 @@ export default function SignupClient() {
         </Button>
       </form>
 
-      <div className="mt-6 border-t border-[#f0dfd5] pt-5 text-center text-sm text-[#817480]">
+      <div className="mt-3 border-t border-[var(--cd-line)] pt-2 text-center text-sm text-[var(--cd-muted)]">
         {t('alreadyHaveAccount')}{' '}
-        <Link href="/login" className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('signIn')}</Link>
+        <Link href={authHref('/login', language)} className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('signIn')}</Link>
       </div>
     </AuthFrame>
   )

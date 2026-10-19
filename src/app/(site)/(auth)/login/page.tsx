@@ -11,9 +11,10 @@ import { createClient } from '@/lib/supabase/client'
 import { getAuthErrorMessage, withAuthTimeout } from '@/lib/supabase/auth-request'
 import { useToast } from '@/components/ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
+import { authHref } from '@/lib/auth-navigation'
 import { AuthFrame } from '../auth-frame'
 import { getAuthCopy } from '../auth-copy'
-import { PasswordField, authButtonClass, authInputClass } from '../form-parts'
+import { PasswordField, authButtonClass, authInputClass, authTitleClass } from '../form-parts'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -61,21 +62,20 @@ export default function LoginPage() {
 
   return (
     <AuthFrame>
-      <div className="mb-8">
-        <span className="inline-flex rounded-full bg-[#ffe9df] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.16em] text-[#ae4731]">{t('login')}</span>
-        <h2 className="font-editorial mt-5 text-[clamp(2.4rem,3.5vw,3.45rem)] leading-[1.08] tracking-[-.045em] text-[#33252b]">{t('welcomeBack')}</h2>
-        <p className="mt-3 text-sm leading-6 text-[#817480]">{t('signInToContinue')}</p>
+      <div className="mb-3">
+        <h1 className={authTitleClass}>{t('welcomeBack')}</h1>
+        <p className="mt-1 text-base leading-6 text-[var(--cd-muted)]">{t('signInToContinue')}</p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-5">
-        <div className="space-y-2">
+      <form onSubmit={handleLogin} className="space-y-2.5">
+        <div className="space-y-1">
           <Label htmlFor="login-email" className="text-sm font-semibold text-[#51434e]">{t('email')}</Label>
           <Input id="login-email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={event => setEmail(event.target.value)} required disabled={isLoading} className={authInputClass} />
         </div>
 
         <div>
           <PasswordField id="login-password" label={t('password')} value={password} onChange={setPassword} disabled={isLoading} autoComplete="current-password" />
-          <div className="mt-2 text-end"><Link href="/forgot-password" className="inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{copy.forgotLink}</Link></div>
+          <div className="mt-2 text-end"><Link href={authHref('/forgot-password', language)} className="inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{copy.forgotLink}</Link></div>
         </div>
 
         {formError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</p>}
@@ -85,9 +85,9 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-8 border-t border-[#f0dfd5] pt-6 text-center text-sm text-[#817480]">
+      <div className="mt-3 border-t border-[var(--cd-line)] pt-2 text-center text-sm text-[var(--cd-muted)]">
         {t('noAccount')}{' '}
-        <Link href="/signup" className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('startFreeTrial')}</Link>
+        <Link href={authHref('/signup', language)} className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('startFreeTrial')}</Link>
       </div>
     </AuthFrame>
   )
