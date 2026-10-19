@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthErrorMessage, withAuthTimeout } from '@/lib/supabase/auth-request'
 import { useToast } from '@/components/ui/use-toast'
 import { useLanguage } from '@/lib/i18n'
 import { AuthFrame } from '../auth-frame'
@@ -31,16 +32,17 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email: email.trim(), password }))
       if (error) {
-        setFormError(error.message)
-        toast({ title: t('loginFailed'), description: error.message, variant: 'destructive' })
+        const message = getAuthErrorMessage(error, language, t('unexpectedError'))
+        setFormError(message)
+        toast({ title: t('loginFailed'), description: message, variant: 'destructive' })
         return
       }
 
-      if (sessionStorage.getItem('pendingDocument')) {
-        sessionStorage.setItem('processPendingDocument', 'true')
-      }
+      try {
+        if (sessionStorage.getItem('pendingDocument')) sessionStorage.setItem('processPendingDocument', 'true')
+      } catch { /* Storage restrictions must not block a successful login. */ }
 
       const requestedPath = new URLSearchParams(window.location.search).get('redirect')
       const destination = requestedPath?.startsWith('/') && !requestedPath.startsWith('//') && !requestedPath.includes('\\')
@@ -48,9 +50,10 @@ export default function LoginPage() {
         : '/dashboard'
       router.push(destination)
       router.refresh()
-    } catch {
-      setFormError(t('unexpectedError'))
-      toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
+    } catch (error) {
+      const message = getAuthErrorMessage(error, language, t('unexpectedError'))
+      setFormError(message)
+      toast({ title: t('error'), description: message, variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }
@@ -72,7 +75,7 @@ export default function LoginPage() {
 
         <div>
           <PasswordField id="login-password" label={t('password')} value={password} onChange={setPassword} disabled={isLoading} autoComplete="current-password" />
-          <div className="mt-2 text-end"><Link href="/forgot-password" className="rounded-sm text-xs font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{copy.forgotLink}</Link></div>
+          <div className="mt-2 text-end"><Link href="/forgot-password" className="inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{copy.forgotLink}</Link></div>
         </div>
 
         {formError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</p>}
@@ -84,7 +87,7 @@ export default function LoginPage() {
 
       <div className="mt-8 border-t border-[#f0dfd5] pt-6 text-center text-sm text-[#817480]">
         {t('noAccount')}{' '}
-        <Link href="/signup" className="font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('startFreeTrial')}</Link>
+        <Link href="/signup" className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('startFreeTrial')}</Link>
       </div>
     </AuthFrame>
   )

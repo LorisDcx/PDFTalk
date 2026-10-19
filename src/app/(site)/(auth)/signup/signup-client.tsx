@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthErrorMessage, withAuthTimeout } from '@/lib/supabase/auth-request'
 import { useToast } from '@/components/ui/use-toast'
 import { formatFileSize } from '@/lib/utils'
 import { useLanguage } from '@/lib/i18n'
@@ -59,31 +60,34 @@ export default function SignupClient() {
     setIsLoading(true)
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+      const { data: authData, error: authError } = await withAuthTimeout(supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: { name, onboarding_pending: true },
         },
-      })
+      }))
 
       if (authError) {
-        setFormError(authError.message)
-        toast({ title: t('signupFailed'), description: authError.message, variant: 'destructive' })
+        const message = getAuthErrorMessage(authError, language, t('unexpectedError'))
+        setFormError(message)
+        toast({ title: t('signupFailed'), description: message, variant: 'destructive' })
         return
       }
 
       if (authData.user && authData.session) {
         // The database trigger creates the profile and starts the trial.
-        await supabase.from('analytics_events').insert({
+        void Promise.resolve(supabase.from('analytics_events').insert({
           user_id: authData.user.id,
           event_type: 'signup',
           event_data: { source: 'web' },
-        })
+        })).catch(error => console.error('Failed to record signup:', error))
       }
 
-      if (pendingDoc) sessionStorage.setItem('processPendingDocument', 'true')
+      try {
+        if (pendingDoc) sessionStorage.setItem('processPendingDocument', 'true')
+      } catch { /* Storage restrictions must not block account creation. */ }
 
       if (!authData.session) {
         setConfirmationEmail(email)
@@ -93,9 +97,10 @@ export default function SignupClient() {
       toast({ title: t('accountCreated'), description: pendingDoc ? t('documentWillBeAnalyzed') : t('trialStarted') })
       router.push('/dashboard')
       router.refresh()
-    } catch {
-      setFormError(t('unexpectedError'))
-      toast({ title: t('error'), description: t('unexpectedError'), variant: 'destructive' })
+    } catch (error) {
+      const message = getAuthErrorMessage(error, language, t('unexpectedError'))
+      setFormError(message)
+      toast({ title: t('error'), description: message, variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }
@@ -164,7 +169,7 @@ export default function SignupClient() {
 
       <div className="mt-6 border-t border-[#f0dfd5] pt-5 text-center text-sm text-[#817480]">
         {t('alreadyHaveAccount')}{' '}
-        <Link href="/login" className="font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('signIn')}</Link>
+        <Link href="/login" className="inline-flex min-h-11 items-center justify-center rounded-sm font-semibold text-[#ae4731] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae4731]">{t('signIn')}</Link>
       </div>
     </AuthFrame>
   )

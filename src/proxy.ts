@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { authFetch, withAuthTimeout } from '@/lib/supabase/auth-request'
 
 export async function proxy(req: NextRequest) {
   let res = NextResponse.next({
@@ -13,6 +14,7 @@ export async function proxy(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: authFetch },
       cookies: {
         getAll() {
           return req.cookies.getAll()
@@ -28,7 +30,9 @@ export async function proxy(req: NextRequest) {
   )
 
   // Use getUser() instead of deprecated getSession() for security
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await withAuthTimeout(supabase.auth.getUser())
+    .then(({ data }) => data.user)
+    .catch(() => null)
 
   // Protected routes
   const protectedPaths = ['/dashboard', '/documents', '/billing', '/settings', '/flashcards', '/writer', '/apprendre']

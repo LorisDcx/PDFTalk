@@ -132,7 +132,7 @@ function MobileGroup({ label, links, onNavigate }: { label: string; links: Heade
 }
 
 export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {}) {
-  const { user, profile, signOut, isLoading } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const pathname = usePathname()
   const { t, language } = useLanguage()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -227,7 +227,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
 
       <div className="ms-auto flex shrink-0 items-center justify-end gap-2 xl:ms-0">
         <div className="hidden xl:block"><LanguageSelector currentLocale={publicLocale} label={c.language} /></div>
-        {isLoading ? <span aria-hidden="true" className="h-11 w-20 animate-pulse rounded-full bg-[#f1e9e3] motion-reduce:animate-none" /> : user ? <>
+        {user ? <>
           {profile?.subscription_status !== 'active' && <div className="hidden xl:block [&>button]:min-h-11 [&>button]:whitespace-nowrap"><TrialCountdown /></div>}
           <DropdownMenu dir={rtl ? 'rtl' : 'ltr'}>
             <DropdownMenuTrigger asChild>
@@ -263,7 +263,7 @@ export function Navbar({ publicLocale }: { publicLocale?: StudyPdfLocale } = {})
           <MobileGroup label={c.free} links={freeLinks} onNavigate={closeMenu} />
         </nav>
         <div className="mt-3 flex min-h-12 items-center justify-between gap-3 px-2"><span className="text-sm text-[var(--cd-muted)]">{c.language}</span><LanguageSelector currentLocale={publicLocale} label={c.language} onLocaleChange={closeMenu} /></div>
-        {!isLoading && !user && <Link href="/login" onClick={closeMenu} className="mt-2 flex min-h-11 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-ink)]">{c.login}</Link>}
+        {!user && <Link href="/login" onClick={closeMenu} className="mt-2 flex min-h-11 items-center justify-center rounded-full border border-[var(--cd-line)] bg-white text-sm font-semibold text-[var(--cd-ink)]">{c.login}</Link>}
       </div>
     </div>}
   </header>

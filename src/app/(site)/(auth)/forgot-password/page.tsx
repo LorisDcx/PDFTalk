@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthErrorMessage, withAuthTimeout } from '@/lib/supabase/auth-request'
 import { useLanguage } from '@/lib/i18n'
 import { AuthFrame } from '../auth-frame'
 import { getAuthCopy } from '../auth-copy'
@@ -26,16 +27,16 @@ export default function ForgotPasswordPage() {
     setIsSending(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await withAuthTimeout(supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password/callback`,
-      })
+      }))
       if (error) {
-        setFormError(error.message)
+        setFormError(getAuthErrorMessage(error, language, t('unexpectedError')))
         return
       }
       setSent(true)
-    } catch {
-      setFormError(t('unexpectedError'))
+    } catch (error) {
+      setFormError(getAuthErrorMessage(error, language, t('unexpectedError')))
     } finally {
       setIsSending(false)
     }

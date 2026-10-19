@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { withAuthTimeout } from '@/lib/supabase/auth-request'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import type { User } from '@/types/database'
 
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    let sessionEventReceived = false
     const applySession = (nextSession: Session | null) => {
       if (!mounted) return
       setSession(nextSession)
@@ -34,10 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Keep database requests outside the auth callback so token refresh cannot stall.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => applySession(nextSession)
+      (_event, nextSession) => {
+        sessionEventReceived = true
+        applySession(nextSession)
+      }
     )
-    supabase.auth.getSession()
-      .then(({ data }) => applySession(data.session))
+    withAuthTimeout(supabase.auth.getSession())
+      .then(({ data }) => {
+        if (!sessionEventReceived) applySession(data.session)
+      })
       .catch(error => {
         console.error('Failed to restore session:', error)
         if (mounted) setIsLoading(false)
